@@ -2,7 +2,6 @@
  * Note: this file wants as few imports as possible, as it gets loaded in a worker-thread and may require its own webpack bundle
  */
 import { createSocket, Socket, RemoteInfo } from 'dgram'
-import * as NanoTimer from 'nanotimer'
 import { performance } from 'perf_hooks'
 
 const IN_FLIGHT_TIMEOUT = 60 // ms
@@ -65,8 +64,7 @@ export class AtemSocketChild {
 	private _lastReceivedAt: number = performance.now()
 	private _lastReceivedPacketId = 0
 	private _inFlight: InFlightPacket[] = []
-	private readonly _ackTimer = new NanoTimer()
-	private _ackTimerRunning = false
+	private _ackTimer: NodeJS.Timeout | undefined
 	private _receivedWithoutAck = 0
 
 	private readonly onDisconnect: () => Promise<void>
@@ -327,21 +325,19 @@ export class AtemSocketChild {
 		this._receivedWithoutAck++
 		if (this._receivedWithoutAck >= MAX_PACKET_PER_ACK) {
 			this._receivedWithoutAck = 0
-			this._ackTimerRunning = false
-			this._ackTimer.clearTimeout()
+
+			if (this._ackTimer) {
+				clearTimeout(this._ackTimer)
+				delete this._ackTimer
+			}
+
 			this._sendAck(this._lastReceivedPacketId)
-		} else if (!this._ackTimerRunning) {
-			this._ackTimerRunning = true
-			// timeout for 5 ms (syntax for nanotimer says m)
-			this._ackTimer.setTimeout(
-				() => {
-					this._receivedWithoutAck = 0
-					this._ackTimerRunning = false
-					this._sendAck(this._lastReceivedPacketId)
-				},
-				[],
-				'5m'
-			)
+		} else if (!this._ackTimer) {
+			this._ackTimer = setTimeout(() => {
+				delete this._ackTimer
+				this._receivedWithoutAck = 0
+				this._sendAck(this._lastReceivedPacketId)
+			}, 5)
 		}
 	}
 
