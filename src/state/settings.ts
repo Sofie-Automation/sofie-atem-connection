@@ -16,12 +16,24 @@ export interface MultiViewerPropertiesState {
 	layout: MultiViewerLayout
 	programPreviewSwapped: boolean
 }
+export interface MultiViewerBorderColorState {
+	/** Red component 0-1000 */
+	red: number
+	/** Green component 0-1000 */
+	green: number
+	/** Blue component 0-1000 */
+	blue: number
+	/** Alpha component 0-1000 */
+	alpha: number
+}
 
 export interface MultiViewer {
 	readonly index: number
 	readonly windows: Array<MultiViewerWindowState | undefined>
 	properties?: MultiViewerPropertiesState
 	vuOpacity?: number
+
+	borderColor?: MultiViewerBorderColorState
 }
 
 export interface MediaPool {
