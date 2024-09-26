@@ -1,15 +1,19 @@
-import { VideoMode, MultiViewerLayout, TimeMode } from '../enums'
+import { VideoMode, MultiViewerLayout, TimeMode, SafeTitlePattern } from '../enums'
 
 export interface MultiViewerSourceState {
 	source: number
 	readonly windowIndex: number
 	readonly supportsVuMeter: boolean
 	readonly supportsSafeArea: boolean
+	// readonly supportsOverlayProperties: boolean
 }
 
 export interface MultiViewerWindowState extends MultiViewerSourceState {
 	safeTitle?: boolean
 	audioMeter?: boolean
+
+	safeTitlePattern?: SafeTitlePattern[]
+	overlayProperties?: MultiViewerWindowOverlayPropertiesState
 }
 
 export interface MultiViewerPropertiesState {
@@ -25,6 +29,10 @@ export interface MultiViewerBorderColorState {
 	blue: number
 	/** Alpha component 0-1000 */
 	alpha: number
+}
+export interface MultiViewerWindowOverlayPropertiesState {
+	labelVisible: boolean
+	borderVisible: boolean
 }
 
 export interface MultiViewer {
