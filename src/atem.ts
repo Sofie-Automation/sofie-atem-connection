@@ -49,7 +49,7 @@ import {
 	hasInternalMultiviewerLabelGeneration,
 	loadFont,
 } from './lib/multiviewLabel'
-import { FontFace } from '@julusian/freetype2'
+import { FontFace } from 'freetype2'
 import PLazy = require('p-lazy')
 import { TimeCommand } from './commands'
 import { TimeInfo } from './state/info'

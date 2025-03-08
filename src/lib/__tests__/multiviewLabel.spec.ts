@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { AtemState } from '../../state'
 import { calculateGenerateMultiviewerLabelProps, generateMultiviewerLabel } from '../multiviewLabel'
-import { NewMemoryFace } from '@julusian/freetype2'
+import { NewMemoryFace } from 'freetype2'
 import * as fs from 'fs'
 
 describe('Multiview Label', () => {
