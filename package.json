@@ -92,7 +92,7 @@
     "debug": "^4.3.4",
     "eventemitter3": "^4.0.7",
     "exit-hook": "^2.2.1",
-    "freetype2": "^2.0.0",
+    "freetype2": "^2.1.0",
     "nanotimer": "^0.3.15",
     "p-lazy": "^3.1.0",
     "p-queue": "^6.6.2",

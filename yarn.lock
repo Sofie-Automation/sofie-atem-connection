@@ -1785,7 +1785,7 @@ __metadata:
     debug: ^4.3.4
     eventemitter3: ^4.0.7
     exit-hook: ^2.2.1
-    freetype2: ^2.0.0
+    freetype2: ^2.1.0
     jest: ^29.7.0
     jest-extended: ^3.2.4
     nanotimer: ^0.3.15
@@ -3103,14 +3103,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"freetype2@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "freetype2@npm:2.0.0"
+"freetype2@npm:^2.1.0":
+  version: 2.1.0
+  resolution: "freetype2@npm:2.1.0"
   dependencies:
-    node-addon-api: ^6.1.0
-    node-gyp: ^10.1.0
-    pkg-prebuilds: ^1.0.0
-  checksum: 4b78fdacccf5c5a7e8f9e29e9ab2b34ae3cb3c1446140e4ba66af70f74bb5f795726f54929c780148b4303bf25ad7a468bf8870509c4d4d38dfd51afdfb65fb5
+    node-addon-api: 8.3.1
+    node-gyp: 10.1.0
+    pkg-prebuilds: 1.0.0
+  checksum: 3af08e1e4fca3941c934c2e602103f5de1d9244ffb90d3b86844028da12224582f850ac6f0089d6985d675acc19af71b40a647ed829c940aff8d54938d314eb1
   languageName: node
   linkType: hard
 
@@ -4981,13 +4981,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"minipass@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "minipass@npm:5.0.0"
-  checksum: 425dab288738853fded43da3314a0b5c035844d6f3097a8e3b5b29b328da8f3c1af6fc70618b32c29ff906284cf6406b6841376f21caaadd0793c1d5a6a620ea
-  languageName: node
-  linkType: hard
-
 "minipass@npm:^5.0.0 || ^6.0.2 || ^7.0.0":
   version: 7.0.3
   resolution: "minipass@npm:7.0.3"
@@ -5087,18 +5080,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"node-addon-api@npm:^6.1.0":
-  version: 6.1.0
-  resolution: "node-addon-api@npm:6.1.0"
+"node-addon-api@npm:8.3.1":
+  version: 8.3.1
+  resolution: "node-addon-api@npm:8.3.1"
   dependencies:
     node-gyp: latest
-  checksum: 3a539510e677cfa3a833aca5397300e36141aca064cdc487554f2017110709a03a95da937e98c2a14ec3c626af7b2d1b6dabe629a481f9883143d0d5bff07bf2
+  checksum: 8d8566cdead5ffb866000fa1d2472833dfdaa2e5abc282c1aa29e0e6a4570e3978c6f00846bd62c96fde4b7e25972636472dc1a4dba2d5b07178c018929b9799
   languageName: node
   linkType: hard
 
-"node-gyp@npm:^10.1.0":
-  version: 10.3.1
-  resolution: "node-gyp@npm:10.3.1"
+"node-gyp@npm:10.1.0":
+  version: 10.1.0
+  resolution: "node-gyp@npm:10.1.0"
   dependencies:
     env-paths: ^2.2.0
     exponential-backoff: ^3.1.1
@@ -5106,13 +5099,13 @@ __metadata:
     graceful-fs: ^4.2.6
     make-fetch-happen: ^13.0.0
     nopt: ^7.0.0
-    proc-log: ^4.1.0
+    proc-log: ^3.0.0
     semver: ^7.3.5
-    tar: ^6.2.1
+    tar: ^6.1.2
     which: ^4.0.0
   bin:
     node-gyp: bin/node-gyp.js
-  checksum: 91b0690ab504fe051ad66863226dc5ecac72b8471f85e8428e4d5ca3217d3a2adfffae48cd555e8d009a4164689fff558b88d2bc9bfd246452a3336ab308cf99
+  checksum: 72e2ab4b23fc32007a763da94018f58069fc0694bf36115d49a2b195c8831e12cf5dd1e7a3718fa85c06969aedf8fc126722d3b672ec1cb27e06ed33caee3c60
   languageName: node
   linkType: hard
 
@@ -5634,7 +5627,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"pkg-prebuilds@npm:^1.0.0":
+"pkg-prebuilds@npm:1.0.0":
   version: 1.0.0
   resolution: "pkg-prebuilds@npm:1.0.0"
   dependencies:
@@ -5693,7 +5686,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"proc-log@npm:^4.1.0, proc-log@npm:^4.2.0":
+"proc-log@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "proc-log@npm:3.0.0"
+  checksum: 02b64e1b3919e63df06f836b98d3af002b5cd92655cab18b5746e37374bfb73e03b84fe305454614b34c25b485cc687a9eebdccf0242cda8fda2475dd2c97e02
+  languageName: node
+  linkType: hard
+
+"proc-log@npm:^4.2.0":
   version: 4.2.0
   resolution: "proc-log@npm:4.2.0"
   checksum: 98f6cd012d54b5334144c5255ecb941ee171744f45fca8b43b58ae5a0c1af07352475f481cadd9848e7f0250376ee584f6aa0951a856ff8f021bdfbff4eb33fc
@@ -6512,20 +6512,6 @@ __metadata:
     mkdirp: ^1.0.3
     yallist: ^4.0.0
   checksum: 8a278bed123aa9f53549b256a36b719e317c8b96fe86a63406f3c62887f78267cea9b22dc6f7007009738509800d4a4dccc444abd71d762287c90f35b002eb1c
-  languageName: node
-  linkType: hard
-
-"tar@npm:^6.2.1":
-  version: 6.2.1
-  resolution: "tar@npm:6.2.1"
-  dependencies:
-    chownr: ^2.0.0
-    fs-minipass: ^2.0.0
-    minipass: ^5.0.0
-    minizlib: ^2.1.1
-    mkdirp: ^1.0.3
-    yallist: ^4.0.0
-  checksum: f1322768c9741a25356c11373bce918483f40fa9a25c69c59410c8a1247632487edef5fe76c5f12ac51a6356d2f1829e96d2bc34098668a2fc34d76050ac2b6c
   languageName: node
   linkType: hard
 
