@@ -76,32 +76,30 @@ export abstract class DataTransferQueueBase {
 	/** Queue a transfer to be performed */
 	public async enqueue<T>(transfer: DataTransfer<T>): Promise<T> {
 		this.taskQueue.push(transfer)
-		if (!this.activeTransfer) {
-			this.dequeueAndRun()
-		}
+
+		this.dequeueAndRun()
 
 		return transfer.promise
 	}
 
 	private dequeueAndRun(): void {
-		if (this.activeTransfer === undefined) {
-			const newTransfer = this.taskQueue.shift()
+		if (this.activeTransfer) return
 
-			if (newTransfer) {
-				// Anything in the queue is rubbish now TODO - is this true? what about lock changes?
-				this.handleCommandQueue.clear()
+		const newTransfer = this.taskQueue.shift()
+		if (!newTransfer) return
 
-				const transferId = this.nextTransferId()
-				this.activeTransfer = {
-					id: transferId,
-					state: DataTransferState.Pending,
-					job: newTransfer,
-					queuedCommands: [],
-				}
+		// Anything in the queue is rubbish now TODO - is this true? what about lock changes?
+		this.handleCommandQueue.clear()
 
-				this.tryStartTransfer()
-			}
+		const transferId = this.nextTransferId()
+		this.activeTransfer = {
+			id: transferId,
+			state: DataTransferState.Pending,
+			job: newTransfer,
+			queuedCommands: [],
 		}
+
+		this.tryStartTransfer()
 	}
 
 	/**

@@ -769,6 +769,43 @@ export class Atem extends BasicAtem {
 	}
 
 	/**
+	 * Download a frame of a clip from the ATEM media pool
+	 *
+	 * Note: This performs colour conversions in JS, which is not very CPU efficient. If performance is important,
+	 * consider using [@atem-connection/image-tools](https://www.npmjs.com/package/@atem-connection/image-tools) to
+	 * pre-convert the images with more optimal algorithms
+	 * @param clipIndex Clip index to download
+	 * @param frameIndex Frame index to download from the clip
+	 * @param format The pixel format to return for the downloaded image. 'raw' passes through unchanged, and will be RLE encoded.
+	 * @returns Promise which returns the image once downloaded. If the still slot is not in use, this will throw
+	 */
+	public async downloadClipFrame(
+		clipIndex: number,
+		frameIndex: number,
+		format: 'raw' | 'rgba' | 'yuv' = 'rgba'
+	): Promise<Buffer> {
+		let rawBuffer = await this.dataTransferManager.downloadClipFrame(clipIndex, frameIndex)
+
+		if (format === 'raw') {
+			return rawBuffer
+		}
+
+		if (!this.state) throw new Error('Unable to check current resolution')
+		const resolution = getVideoModeInfo(this.state.settings.videoMode)
+		if (!resolution) throw new Error('Failed to determine required resolution')
+
+		rawBuffer = decodeRLE(rawBuffer, resolution.width * resolution.height * 4)
+
+		switch (format) {
+			case 'yuv':
+				return rawBuffer
+			case 'rgba':
+			default:
+				return convertYUV422ToRGBA(resolution.width, resolution.height, rawBuffer)
+		}
+	}
+
+	/**
 	 * Download a still image from the ATEM media pool
 	 *
 	 * Note: This performs colour conversions in JS, which is not very CPU efficient. If performance is important,
