@@ -11,7 +11,7 @@ jobs:
   sonarcloud:
     name: SonarCloud
     runs-on: ubuntu-latest
-    if: ${{ github.repository_owner == 'nrkno' }}
+    if: ${{ github.repository_owner == 'Sofie-Automation' }}
 
     steps:
       - uses: actions/checkout@v4

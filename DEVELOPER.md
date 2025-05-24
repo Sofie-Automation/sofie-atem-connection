@@ -1,13 +1,14 @@
 # Developer Information
 
 ## Contributing
+
 [How to Contribute to this Repository](/CONTRIBUTING.md).
 
 ## Code Style
 
 This project uses [_Prettier_](https://prettier.io/) and [_ESLint_](https://eslint.org/) with [_TypeScript_](https://www.typescriptlang.org/).
 
-There is a pre-commit hook to ensure any changes follow the enforced style, as well as [continuous integration](https://github.com/nrkno/tv-automation-atem-connection/actions) to help ensure any contributions follow the rules (as well as other checks).
+There is a pre-commit hook to ensure any changes follow the enforced style, as well as [continuous integration](https://github.com/Sofie-Automation/sofie-atem-connection/actions) to help ensure any contributions follow the rules (as well as other checks).
 
 It is recommended to install the _Prettier plugin_ for _VSCode_ while developing, as it will auto format the code whenever you save a file.
 

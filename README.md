@@ -1,17 +1,19 @@
 # Sofie ATEM Connection Library
-[![Node CI](https://github.com/nrkno/sofie-atem-connection/actions/workflows/node.yaml/badge.svg)](https://github.com/nrkno/sofie-atem-connection/actions/workflows/node.yaml)
-[![codecov](https://codecov.io/gh/nrkno/sofie-atem-connection/branch/master/graph/badge.svg)](https://codecov.io/gh/nrkno/sofie-atem-connection/)
+
+[![Node CI](https://github.com/Sofie-Automation/sofie-atem-connection/actions/workflows/node.yaml/badge.svg)](https://github.com/Sofie-Automation/sofie-atem-connection/actions/workflows/node.yaml)
+[![codecov](https://codecov.io/gh/Sofie-Automation/sofie-atem-connection/branch/master/graph/badge.svg)](https://codecov.io/gh/Sofie-Automation/sofie-atem-connection/)
 [![npm](https://img.shields.io/npm/v/atem-connection)](https://www.npmjs.com/package/atem-connection)
 
-This is the _ATEM Connection_ library of the [**Sofie** TV Automation System](https://github.com/nrkno/Sofie-TV-automation/). The library is used for connecting to Blackmagic Design's ATEM devices.
+This is the _ATEM Connection_ library of the [**Sofie** TV Automation System](https://github.com/Sofie-Automation/Sofie-TV-automation/). The library is used for connecting to Blackmagic Design's ATEM devices.
 
-* [_ATEM-Connection_-specific Developer Info](DEVELOPER.md)
+- [_ATEM-Connection_-specific Developer Info](DEVELOPER.md)
 
 ## General Sofie System Information
-* [_Sofie_ Documentation](https://nrkno.github.io/sofie-core/)
-* [_Sofie_ Releases](https://nrkno.github.io/sofie-core/releases)
-* [Contribution Guidelines](CONTRIBUTING.md)
-* [License](LICENSE)
+
+- [_Sofie_ Documentation](https://nrkno.github.io/sofie-core/)
+- [_Sofie_ Releases](https://nrkno.github.io/sofie-core/releases)
+- [Contribution Guidelines](CONTRIBUTING.md)
+- [License](LICENSE)
 
 ---
 
@@ -19,7 +21,7 @@ This is the _ATEM Connection_ library of the [**Sofie** TV Automation System](ht
 
 | Version       | Level of Support                                                  |
 | ------------- | ----------------------------------------------------------------- |
-| v8.0 - v8.6   | Primary focus. Target for new features                            |
+| v8.0 - Latest | Primary focus. Target for new features                            |
 | v7.2          | Previous focus, should still work well                            |
 | v7.3 - v7.5.2 | Community tested, we may accept PRs but will not be testing these |
 
@@ -33,12 +35,14 @@ The library is tested on a variety of models spanning every generation, and the 
 Note: USB control of devices is not supported by this library.
 
 ## Technology Highlights
+
 - Typescript
 - Jest
 - standard-version
 - codecov
 
 ## Installation
+
 For usage by library consumers installation is as easy as:
 
 ```sh
@@ -48,7 +52,7 @@ yarn add atem-connection
 For library developers installation steps are as following:
 
 ```sh
-git clone https://github.com/nrkno/tv-automation-atem-connection
+git clone https://github.com/Sofie-Automation/sofie-atem-connection
 yarn
 yarn build
 ```

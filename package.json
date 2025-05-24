@@ -7,12 +7,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nrkno/sofie-atem-connection.git"
+    "url": "git+https://github.com/Sofie-Automation/sofie-atem-connection.git"
   },
   "bugs": {
-    "url": "https://github.com/nrkno/sofie-atem-connection/issues"
+    "url": "https://github.com/Sofie-Automation/sofie-atem-connection/issues"
   },
-  "homepage": "https://github.com/nrkno/sofie-atem-connection#readme",
+  "homepage": "https://github.com/Sofie-Automation/sofie-atem-connection#readme",
   "contributors": [
     {
       "name": "Mint de Wit",
