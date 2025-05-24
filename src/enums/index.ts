@@ -27,8 +27,8 @@ export enum Model {
 	// 0x19 ??
 	TelevisionStudioHD8 = 0x1a,
 	TelevisionStudioHD8ISO = 0x1b,
-	// 0x1c ??
-	// 0x1d ??
+	Constellation4K1ME = 0x1c,
+	Constellation4K2ME = 0x1d,
 	Constellation4K4ME = 0x1e,
 	// 0x1f ??
 	TelevisionStudio4K8 = 0x20,
