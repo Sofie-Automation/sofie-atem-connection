@@ -249,9 +249,9 @@ export class BasicAtem extends EventEmitter<AtemEvents> {
 				}
 			}
 
-			for (const commandName in DataTransferCommands) {
-				// TODO - this is fragile
-				if (command.constructor.name === commandName) {
+			// TODO - this isn't very efficient, but it works
+			for (const dtCommand of Object.values<any>(DataTransferCommands)) {
+				if (typeof dtCommand === 'function' && command instanceof dtCommand) {
 					this.dataTransferManager.queueHandleCommand(command)
 				}
 			}
