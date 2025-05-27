@@ -1,9 +1,9 @@
 on:
-  # Trigger analysis when pushing in master or pull requests, and when creating
+  # Trigger analysis when pushing in main or pull requests, and when creating
   # a pull request.
   push:
     branches:
-      - master
+      - main
   pull_request:
     types: [opened, synchronize, reopened]
 name: SonarCloud

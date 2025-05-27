@@ -58,7 +58,7 @@ jobs:
         run: |
           if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
             echo "No Token"
-          elif [[ "${{ github.ref }}" == "refs/heads/master" ]]; then
+          elif [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
             echo "Publish nightly"
             echo "publish=nightly" >> $GITHUB_OUTPUT
           else

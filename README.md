@@ -1,7 +1,7 @@
 # Sofie ATEM Connection Library
 
 [![Node CI](https://github.com/Sofie-Automation/sofie-atem-connection/actions/workflows/node.yaml/badge.svg)](https://github.com/Sofie-Automation/sofie-atem-connection/actions/workflows/node.yaml)
-[![codecov](https://codecov.io/gh/Sofie-Automation/sofie-atem-connection/branch/master/graph/badge.svg)](https://codecov.io/gh/Sofie-Automation/sofie-atem-connection/)
+[![codecov](https://codecov.io/gh/Sofie-Automation/sofie-atem-connection/branch/main/graph/badge.svg)](https://codecov.io/gh/Sofie-Automation/sofie-atem-connection/)
 [![npm](https://img.shields.io/npm/v/atem-connection)](https://www.npmjs.com/package/atem-connection)
 
 This is the _ATEM Connection_ library of the [**Sofie** TV Automation System](https://github.com/Sofie-Automation/Sofie-TV-automation/). The library is used for connecting to Blackmagic Design's ATEM devices.
@@ -10,8 +10,8 @@ This is the _ATEM Connection_ library of the [**Sofie** TV Automation System](ht
 
 ## General Sofie System Information
 
-- [_Sofie_ Documentation](https://nrkno.github.io/sofie-core/)
-- [_Sofie_ Releases](https://nrkno.github.io/sofie-core/releases)
+- [_Sofie_ Documentation](https://sofie-automation.github.io/sofie-core//)
+- [_Sofie_ Releases](https://sofie-automation.github.io/sofie-core//releases)
 - [Contribution Guidelines](CONTRIBUTING.md)
 - [License](LICENSE)
 
@@ -85,7 +85,7 @@ myAtem.on('stateChanged', (state, pathToChange) => {
 
 ### Documentation
 
-You can find the generated type docs [here](https://nrkno.github.io/sofie-atem-connection/).
+You can find the generated type docs [here](https://sofie-automation.github.io/sofie-atem-connection/).
 
 ### Events
 
