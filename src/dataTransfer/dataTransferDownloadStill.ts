@@ -13,14 +13,14 @@ import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataT
 export class DataTransferDownloadStill extends DataTransfer<Buffer> {
 	#data: Buffer[] = []
 
-	constructor(public readonly stillIndex: number) {
+	constructor(public readonly poolIndex: number, public readonly stillIndex: number) {
 		super()
 	}
 
 	public async startTransfer(transferId: number): Promise<ProgressTransferResult> {
 		const command = new DataTransferDownloadRequestCommand({
 			transferId: transferId,
-			transferStoreId: 0x00,
+			transferStoreId: this.poolIndex,
 			transferIndex: this.stillIndex,
 			transferType: 0x00f9,
 		})

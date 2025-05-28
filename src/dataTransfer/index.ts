@@ -33,7 +33,6 @@ export class DataTransferManager {
 	readonly #sendLockCommand = (/*lock: DataTransferLockingQueue,*/ cmd: ISerializableCommand): void => {
 		this.#rawSendCommands([cmd]).catch((e) => {
 			debug(`Failed to send lock command: ${e}`)
-			console.log('Failed to send lock command')
 		})
 	}
 
@@ -171,8 +170,18 @@ export class DataTransferManager {
 		}
 	}
 
+	public async downloadClipFrame(clipIndex: number, frameIndex: number): Promise<Buffer> {
+		if (clipIndex < 0 || clipIndex >= 2) {
+			throw new Error('Invalid clip index')
+		}
+
+		const transfer = new DataTransferDownloadStill(clipIndex + 1, frameIndex)
+
+		return this.getClipLock(clipIndex).enqueue(transfer)
+	}
+
 	public async downloadStill(index: number): Promise<Buffer> {
-		const transfer = new DataTransferDownloadStill(index)
+		const transfer = new DataTransferDownloadStill(0, index)
 
 		return this.#stillsLock.enqueue(transfer)
 	}
