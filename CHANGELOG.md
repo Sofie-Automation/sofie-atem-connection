@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.6.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.5.0...v3.6.0) (Fri May 30 2025)
+
+
+### Features
+
+* download clip frames [5c879b69](https://github.com/Sofie-Automation/sofie-atem-connection/commit/5c879b6996e2447f702d359240e3a9270a3ca4e2)
+* downloadStill from media pool (#167) [9036d5cf](https://github.com/Sofie-Automation/sofie-atem-connection/commit/9036d5cf13e64552e8bbb79647a5619327dce99f)
+* fairlight talkback mute and solo [84fbd738](https://github.com/Sofie-Automation/sofie-atem-connection/commit/84fbd7385e04a88358d3ba8b7ffbb09bbb9dee77)
+* time mode [9e469df9](https://github.com/Sofie-Automation/sofie-atem-connection/commit/9e469df96591fc11c1d9d84e01ebd1321379f626)
+
+### Fixes
+
+* cleanup fragile command check [c89d8677](https://github.com/Sofie-Automation/sofie-atem-connection/commit/c89d8677be8effcec55f9412a3ce94fbf411a883)
+* add 9.4 and 9.6 protocol versions [36bf64f8](https://github.com/Sofie-Automation/sofie-atem-connection/commit/36bf64f88a218ad295627a1b2e290c3e125d1b2d)
+
 ## [3.5.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.4.0...v3.5.0) (Wed Feb 07 2024)
 
 
