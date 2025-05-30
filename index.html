@@ -12,16 +12,16 @@
 <div class="col-content">
 <div class="tsd-page-title">
 <h2>atem-connection</h2></div>
-<div class="tsd-panel tsd-typography"><a id="md:sofie-atem-connection-library" class="tsd-anchor"></a><h1><a href="#md:sofie-atem-connection-library">Sofie ATEM Connection Library</a></h1><p><a href="https://github.com/nrkno/sofie-atem-connection/actions/workflows/node.yaml"><img src="https://github.com/nrkno/sofie-atem-connection/actions/workflows/node.yaml/badge.svg" alt="Node CI"></a>
-<a href="https://codecov.io/gh/nrkno/sofie-atem-connection/"><img src="https://codecov.io/gh/nrkno/sofie-atem-connection/branch/master/graph/badge.svg" alt="codecov"></a>
+<div class="tsd-panel tsd-typography"><a id="md:sofie-atem-connection-library" class="tsd-anchor"></a><h1><a href="#md:sofie-atem-connection-library">Sofie ATEM Connection Library</a></h1><p><a href="https://github.com/Sofie-Automation/sofie-atem-connection/actions/workflows/node.yaml"><img src="https://github.com/Sofie-Automation/sofie-atem-connection/actions/workflows/node.yaml/badge.svg" alt="Node CI"></a>
+<a href="https://codecov.io/gh/Sofie-Automation/sofie-atem-connection/"><img src="https://codecov.io/gh/Sofie-Automation/sofie-atem-connection/branch/main/graph/badge.svg" alt="codecov"></a>
 <a href="https://www.npmjs.com/package/atem-connection"><img src="https://img.shields.io/npm/v/atem-connection" alt="npm"></a></p>
-<p>This is the <em>ATEM Connection</em> library of the <a href="https://github.com/nrkno/Sofie-TV-automation/"><strong>Sofie</strong> TV Automation System</a>. The library is used for connecting to Blackmagic Design&#39;s ATEM devices.</p>
+<p>This is the <em>ATEM Connection</em> library of the <a href="https://github.com/Sofie-Automation/Sofie-TV-automation/"><strong>Sofie</strong> TV Automation System</a>. The library is used for connecting to Blackmagic Design&#39;s ATEM devices.</p>
 <ul>
 <li><a href="DEVELOPER.md"><em>ATEM-Connection</em>-specific Developer Info</a></li>
 </ul>
 <a id="md:general-sofie-system-information" class="tsd-anchor"></a><h2><a href="#md:general-sofie-system-information">General Sofie System Information</a></h2><ul>
-<li><a href="https://nrkno.github.io/sofie-core/"><em>Sofie</em> Documentation</a></li>
-<li><a href="https://nrkno.github.io/sofie-core/releases"><em>Sofie</em> Releases</a></li>
+<li><a href="https://sofie-automation.github.io/sofie-core//"><em>Sofie</em> Documentation</a></li>
+<li><a href="https://sofie-automation.github.io/sofie-core//releases"><em>Sofie</em> Releases</a></li>
 <li><a href="CONTRIBUTING.md">Contribution Guidelines</a></li>
 <li><a href="LICENSE">License</a></li>
 </ul>
@@ -34,7 +34,7 @@
 </tr>
 </thead>
 <tbody><tr>
-<td>v8.0 - v8.6</td>
+<td>v8.0 - Latest</td>
 <td>Primary focus. Target for new features</td>
 </tr>
 <tr>
@@ -61,12 +61,12 @@ Additionally any newly unimplemented functionality will generally only be writte
 <pre><code class="language-sh"><span class="hl-0">yarn</span><span class="hl-1"> </span><span class="hl-2">add</span><span class="hl-1"> </span><span class="hl-2">atem-connection</span>
 </code><button>Copy</button></pre>
 <p>For library developers installation steps are as following:</p>
-<pre><code class="language-sh"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> </span><span class="hl-2">https://github.com/nrkno/tv-automation-atem-connection</span><br/><span class="hl-0">yarn</span><br/><span class="hl-0">yarn</span><span class="hl-1"> </span><span class="hl-2">build</span>
+<pre><code class="language-sh"><span class="hl-0">git</span><span class="hl-1"> </span><span class="hl-2">clone</span><span class="hl-1"> </span><span class="hl-2">https://github.com/Sofie-Automation/sofie-atem-connection</span><br/><span class="hl-0">yarn</span><br/><span class="hl-0">yarn</span><span class="hl-1"> </span><span class="hl-2">build</span>
 </code><button>Copy</button></pre>
 <p>We welcome any contributions. Please read <a href="CONTRIBUTING.md">our guide</a> on how to add new commands before raising a PR.</p>
 <a id="md:usage" class="tsd-anchor"></a><h2><a href="#md:usage">Usage</a></h2><pre><code class="language-javascript"><span class="hl-3">const</span><span class="hl-1"> { </span><span class="hl-4">Atem</span><span class="hl-1"> } = </span><span class="hl-0">require</span><span class="hl-1">(</span><span class="hl-2">&#39;atem-connection&#39;</span><span class="hl-1">)</span><br/><span class="hl-3">const</span><span class="hl-1"> </span><span class="hl-4">myAtem</span><span class="hl-1"> = </span><span class="hl-3">new</span><span class="hl-1"> </span><span class="hl-0">Atem</span><span class="hl-1">()</span><br/><span class="hl-5">myAtem</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;info&#39;</span><span class="hl-1">, </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-5">log</span><span class="hl-1">)</span><br/><span class="hl-5">myAtem</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;error&#39;</span><span class="hl-1">, </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-5">error</span><span class="hl-1">)</span><br/><br/><span class="hl-5">myAtem</span><span class="hl-1">.</span><span class="hl-0">connect</span><span class="hl-1">(</span><span class="hl-2">&#39;192.168.168.240&#39;</span><span class="hl-1">)</span><br/><br/><span class="hl-5">myAtem</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;connected&#39;</span><span class="hl-1">, () </span><span class="hl-3">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-5">myAtem</span><span class="hl-1">.</span><span class="hl-0">changeProgramInput</span><span class="hl-1">(</span><span class="hl-6">3</span><span class="hl-1">).</span><span class="hl-0">then</span><span class="hl-1">(() </span><span class="hl-3">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">        </span><span class="hl-7">// Fired once the atem has acknowledged the command</span><br/><span class="hl-1">        </span><span class="hl-7">// Note: the state likely hasnt updated yet, but will follow shortly</span><br/><span class="hl-1">        </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-2">&#39;Program input set&#39;</span><span class="hl-1">)</span><br/><span class="hl-1">    })</span><br/><span class="hl-1">    </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">myAtem</span><span class="hl-1">.</span><span class="hl-5">state</span><span class="hl-1">)</span><br/><span class="hl-1">})</span><br/><br/><span class="hl-5">myAtem</span><span class="hl-1">.</span><span class="hl-0">on</span><span class="hl-1">(</span><span class="hl-2">&#39;stateChanged&#39;</span><span class="hl-1">, (</span><span class="hl-5">state</span><span class="hl-1">, </span><span class="hl-5">pathToChange</span><span class="hl-1">) </span><span class="hl-3">=&gt;</span><span class="hl-1"> {</span><br/><span class="hl-1">    </span><span class="hl-5">console</span><span class="hl-1">.</span><span class="hl-0">log</span><span class="hl-1">(</span><span class="hl-5">state</span><span class="hl-1">) </span><span class="hl-7">// catch the ATEM state.</span><br/><span class="hl-1">})</span>
 </code><button>Copy</button></pre>
-<a id="md:documentation" class="tsd-anchor"></a><h3><a href="#md:documentation">Documentation</a></h3><p>You can find the generated type docs <a href="https://nrkno.github.io/sofie-atem-connection/">here</a>.</p>
+<a id="md:documentation" class="tsd-anchor"></a><h3><a href="#md:documentation">Documentation</a></h3><p>You can find the generated type docs <a href="https://sofie-automation.github.io/sofie-atem-connection/">here</a>.</p>
 <a id="md:events" class="tsd-anchor"></a><h3><a href="#md:events">Events</a></h3><ul>
 <li><p><code>error</code>
 This event will be fired when an error occurs in the connection. Node requires you to handle these errors, or your application will quit.</p>
