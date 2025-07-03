@@ -1,5 +1,7 @@
 import type { IDeserializedCommand, ISerializableCommand } from '../commands'
 
+export { getVideoModeInfo } from './videoMode'
+
 export function bufToBase64String(buffer: Buffer, start: number, length: number): string {
 	return buffer.toString('base64', start, start + length)
 }
