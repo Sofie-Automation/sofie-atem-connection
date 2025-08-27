@@ -9,6 +9,8 @@
 			"*": ["./node_modules/*"],
 			"atem-connection": ["./src/index.ts"]
 		},
-		"types": ["node"]
+		"types": ["node"],
+		"esModuleInterop": true,
+		"skipLibCheck": true
 	}
 }
