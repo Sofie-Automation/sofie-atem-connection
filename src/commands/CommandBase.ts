@@ -23,12 +23,15 @@ export abstract class DeserializedCommand<T> implements IDeserializedCommand {
 
 export interface ISerializableCommand {
 	serialize(version: ProtocolVersion): Buffer
+	runOrderGroup?: number
 }
 
 /** Base command type for a simple writable command, which has a few values which must all be sent */
 export abstract class BasicWritableCommand<T> implements ISerializableCommand {
 	public static readonly rawName?: string
 	public static readonly minimumVersion?: ProtocolVersion
+
+	public runOrderGroup?: number = 0
 
 	protected _properties: T
 
