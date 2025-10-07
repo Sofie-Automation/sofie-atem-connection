@@ -23,6 +23,14 @@ export abstract class DeserializedCommand<T> implements IDeserializedCommand {
 
 export interface ISerializableCommand {
 	serialize(version: ProtocolVersion): Buffer
+	/**
+	 * Controls the command's execution order and batching.
+	 *
+	 * Lower values run **earlier**. Commands with different `runOrderGroup` values
+	 * will not be processed in the same batch.
+	 *
+	 * Defaults to 0. Use a **negative value** to ensure execution before the default group.
+	 */
 	runOrderGroup?: number
 }
 
@@ -31,6 +39,7 @@ export abstract class BasicWritableCommand<T> implements ISerializableCommand {
 	public static readonly rawName?: string
 	public static readonly minimumVersion?: ProtocolVersion
 
+	/** @link ISerializableCommand.runOrderGroup */
 	public runOrderGroup?: number = 0
 
 	protected _properties: T
