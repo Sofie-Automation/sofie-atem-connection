@@ -157,10 +157,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Use Node.js 18.x
+      - name: Use Node.js 24.x
         uses: actions/setup-node@v6
         with:
-          node-version: 18.x
+          node-version: 24.x
 
       - name: Download release artifact
         uses: actions/download-artifact@v5
