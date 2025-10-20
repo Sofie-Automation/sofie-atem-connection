@@ -55,6 +55,9 @@ jobs:
       prerelease: ${{ steps.do-publish.outputs.prerelease }}
     timeout-minutes: 15
 
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v5
         with:
@@ -129,7 +132,7 @@ jobs:
           if-no-files-found: error
 
       - name: Generate docs
-        if: ${{ steps.do-publish.outputs.tag }} == 'latest'
+        if: ${{ steps.do-publish.outputs.tag == 'latest' }}
         run: |
           yarn docs:html
       - name: Publish docs
