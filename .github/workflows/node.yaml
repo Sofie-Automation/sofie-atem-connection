@@ -2,10 +2,6 @@ name: Node CI
 
 on:
   push:
-    branches:
-      - '**'
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+*'
   pull_request:
 
 jobs:
@@ -21,7 +17,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Use Node.js 18.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: 18.x
       - name: Prepare Environment
@@ -44,7 +40,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14.x, 16.x, 18.x, 20.x, 22.x]
+        node-version: [14.x, 16.x, 18.x, 20.x, 22.x, 24.x]
 
     steps:
       - name: Git checkout
@@ -52,7 +48,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
       - name: Prepare Environment
@@ -77,83 +73,6 @@ jobs:
         env:
           CI: true
 
-  release:
-    name: Release
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-
-    # only run for tags
-    if: contains(github.ref, 'refs/tags/')
-
-    needs:
-      - test
-      # - validate-dependencies
-
-    steps:
-      - name: Git checkout
-        uses: actions/checkout@v5
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: Use Node.js 18.x
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18.x
-      - name: Check release is desired
-        id: do-publish
-        run: |
-          if [ -z "${{ secrets.NPM_TOKEN }}" ]; then
-            echo "No Token"
-          else
-
-            PUBLISHED_VERSION=$(yarn npm info --json . | jq -c '.version' -r)
-            THIS_VERSION=$(node -p "require('./package.json').version")
-            # Simple bash helper to comapre version numbers
-            verlte() {
-              [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
-            }
-            verlt() {
-              [ "$1" = "$2" ] && return 1 || verlte $1 $2
-            }
-            if verlt $PUBLISHED_VERSION $THIS_VERSION
-            then
-              echo "Publishing latest"
-              echo "tag=latest" >> $GITHUB_OUTPUT
-            else
-              echo "Publishing hotfix"
-              echo "tag=hotfix" >> $GITHUB_OUTPUT
-            fi
-
-          fi
-      - name: Prepare build
-        if: ${{ steps.do-publish.outputs.tag }}
-        run: |
-          yarn install
-          yarn build
-        env:
-          CI: true
-      - name: Publish to NPM
-        if: ${{ steps.do-publish.outputs.tag }}
-        run: |
-          yarn config set npmAuthToken $NPM_AUTH_TOKEN
-
-          NEW_VERSION=$(node -p "require('./package.json').version")
-          yarn npm publish --access=public --tag ${{ steps.do-publish.outputs.tag }}
-
-          echo "**Published:** $NEW_VERSION" >> $GITHUB_STEP_SUMMARY
-        env:
-          NPM_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          CI: true
-      - name: Generate docs
-        if: ${{ steps.do-publish.outputs.tag }} == 'latest'
-        run: |
-          yarn docs:html
-      - name: Publish docs
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-
   # validate-dependencies:
   #   name: Validate production dependencies
   #   runs-on: ubuntu-latest
@@ -163,7 +82,7 @@ jobs:
   #   steps:
   #     - uses: actions/checkout@v5
   #     - name: Use Node.js 18.x
-  #       uses: actions/setup-node@v4
+  #       uses: actions/setup-node@v6
   #       with:
   #         node-version: 18.x
   #     - name: Prepare Environment
@@ -190,7 +109,7 @@ jobs:
   #   steps:
   #     - uses: actions/checkout@v5
   #     - name: Use Node.js 18.x
-  #       uses: actions/setup-node@v4
+  #       uses: actions/setup-node@v6
   #       with:
   #         node-version: 18.x
   #     - name: Prepare Environment
