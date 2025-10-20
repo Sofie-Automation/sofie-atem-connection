@@ -24307,13 +24307,13 @@
   {
     "name": "CAMH",
     "firstVersion": 131094,
-    "bytes": "00-14-00-00-43-41-4D-48-08-00-AF-71-4C-4E-48-5A-4B-FD-00-00",
+    "bytes": "00-14-00-00-43-41-4D-48-08-00-AF-71-4C-4E-48-5A-4B-FB-00-00",
     "command": {
       "Mask": 8,
       "Gain": 2.738442602430085,
       "ProgramOutGain": -4.493175031539171,
       "TalkbackGain": -4.955241101879579,
-      "SidetoneGain": -4.529266963361785
+      "SidetoneGain": -4.53
     },
     "commandHash": "44-55-21-91-39-1C-2D-5A-4A-58-0D-27-6C-CE-D1-DB-CC-44-22-3A-02-BC-43-B0-87-CD-ED-A4-6C-EA-2F-0A"
   },
@@ -24411,12 +24411,12 @@
   {
     "name": "CAMH",
     "firstVersion": 131094,
-    "bytes": "00-14-00-00-43-41-4D-48-08-00-F2-B1-34-1E-75-9F-06-EA-00-00",
+    "bytes": "00-14-00-00-43-41-4D-48-08-00-F2-B1-34-25-75-A0-06-EA-00-00",
     "command": {
       "Mask": 8,
       "Gain": 5.556888570081627,
-      "ProgramOutGain": -7.8045799728630705,
-      "TalkbackGain": -0.7344951218051538,
+      "ProgramOutGain": -7.80,
+      "TalkbackGain": -0.734,
       "SidetoneGain": -25.344627475392866
     },
     "commandHash": "44-55-21-91-39-1C-2D-5A-4A-58-0D-27-6C-CE-D1-DB-CC-44-22-3A-02-BC-43-B0-87-CD-ED-A4-6C-EA-2F-0A"
