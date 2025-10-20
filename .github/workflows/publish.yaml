@@ -137,6 +137,7 @@ jobs:
           yarn docs:html
       - name: Publish docs
         uses: peaceiris/actions-gh-pages@v4
+        if: ${{ steps.do-publish.outputs.tag == 'latest' }}
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
