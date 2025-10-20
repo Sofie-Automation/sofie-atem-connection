@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.6.1](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.6.0...v3.6.1) (Mon Oct 20 2025)
+
+
+### Fixes
+
+* bring back getVideoModeInfo export [f30b6d78](https://github.com/Sofie-Automation/sofie-atem-connection/commit/f30b6d78e9ce30bf0d265e450e2d7adc452ca38f)
+
 ## [3.6.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.5.0...v3.6.0) (Fri May 30 2025)
 
 
