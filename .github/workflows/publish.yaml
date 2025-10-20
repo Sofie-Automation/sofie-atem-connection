@@ -173,7 +173,7 @@ jobs:
           yarn install
 
           # Publish from the extracted release (build output present)
-          yarn npm publish --access=public --provenance --tag ${{ needs.prepare.outputs.tag }}
+          npm publish --access=public --provenance --tag ${{ needs.prepare.outputs.tag }}
 
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "**Published:** $NEW_VERSION" >> $GITHUB_STEP_SUMMARY
