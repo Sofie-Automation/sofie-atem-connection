@@ -172,6 +172,24 @@ export class BasicAtem extends EventEmitter<AtemEvents> {
 	}
 
 	public async sendCommands(commands: ISerializableCommand[]): Promise<void> {
+		// Split commands into map by priority
+		const groups: Map<number, ISerializableCommand[]> = new Map()
+		commands.forEach((cmd) => {
+			const orderGroup = cmd.runOrderGroup || 0
+			if (!groups.has(orderGroup)) {
+				groups.set(orderGroup, [])
+			}
+			groups.get(orderGroup)?.push(cmd)
+		})
+
+		await Promise.all(
+			Array.from(groups.keys())
+				.sort() // Ensure they run in correct order
+				.map(async (orderGroup) => this.sendUnprioritizedCommands(groups.get(orderGroup) || []))
+		)
+	}
+
+	public async sendUnprioritizedCommands(commands: ISerializableCommand[]): Promise<void> {
 		const trackingIds = await this.socket.sendCommands(commands)
 
 		const promises: Promise<void>[] = []
