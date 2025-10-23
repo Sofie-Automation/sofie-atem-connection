@@ -24,7 +24,8 @@
     }
   ],
   "scripts": {
-    "postinstall": "./node_modules/.bin/husky install",
+	"prepare": "run build:main",
+    "postinstall": "husky install || true",
     "prepack": "pinst --disable",
     "postpack": "pinst --enable",
     "build": "rimraf dist && run build:main",
