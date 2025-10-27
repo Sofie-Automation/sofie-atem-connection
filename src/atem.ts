@@ -64,6 +64,7 @@ export interface AtemOptions {
 	port?: number
 	debugBuffers?: boolean
 	disableMultithreaded?: boolean
+	/** @deprecated No longer user */
 	childProcessTimeout?: number
 	/**
 	 * Maximum size of packets to transmit
@@ -111,10 +112,7 @@ export class BasicAtem extends EventEmitter<AtemEvents> {
 		this._status = AtemConnectionStatus.CLOSED
 		this.socket = new AtemSocket({
 			debugBuffers: options?.debugBuffers ?? false,
-			address: options?.address || '',
-			port: options?.port || DEFAULT_PORT,
 			disableMultithreaded: options?.disableMultithreaded ?? false,
-			childProcessTimeout: options?.childProcessTimeout || 600,
 			maxPacketSize: options?.maxPacketSize ?? DEFAULT_MAX_PACKET_SIZE,
 		})
 		this.dataTransferManager = new DT.DataTransferManager(this.sendCommands.bind(this))

@@ -2,7 +2,6 @@
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 import { AtemSocketChild } from '../lib/atemSocketChild'
-import { ThreadedClass } from 'threadedclass'
 import { BasicAtem } from '../atem'
 import { AtemState, InvalidIdError } from '../state'
 import { IDeserializedCommand } from '../commands'
@@ -59,8 +58,8 @@ function createConnection(): BasicAtem {
 	})
 }
 
-function getChild(conn: BasicAtem): ThreadedClass<AtemSocketChildMock> {
-	return (conn as any).socket._socketProcess
+function getChild(conn: BasicAtem): AtemSocketChildMock {
+	return (conn as any).socket._socketProcess.wrappedChild
 }
 
 function runTest(name: string, filename: string): void {
@@ -71,7 +70,7 @@ function runTest(name: string, filename: string): void {
 	describe(name, () => {
 		test(`Connection`, async () => {
 			const conn = createConnection()
-			await conn.connect('')
+			await conn.connect('127.0.0.1')
 
 			const child = getChild(conn)
 			expect(child).toBeTruthy()

@@ -12,12 +12,10 @@ import {
 } from '../../commands'
 import { ProtocolVersion, Model } from '../../enums'
 import { AtemSocket } from '../atemSocket'
-import { ThreadedClass, ThreadedClassManager } from 'threadedclass'
 import { Buffer } from 'buffer'
 import { CommandParser } from '../atemCommandParser'
 import * as fakeTimers from '@sinonjs/fake-timers'
 import { AtemSocketChild } from '../atemSocketChild'
-// import { promisify } from 'util'
 jest.mock('../atemSocketChild')
 
 // @ts-ignore
@@ -60,22 +58,6 @@ const AtemSocketChildSingleton = new AtemSocketChildMock()
 	}
 )
 
-class ThreadedClassManagerMock {
-	public handlers: Function[] = []
-
-	public onEvent(_socketProcess: any, _event: string, cb: Function): { stop: () => void } {
-		// eslint-disable-next-line @typescript-eslint/no-use-before-define
-		ThreadedClassManagerSingleton.handlers.push(cb)
-		return {
-			stop: (): void => {
-				// Ignore
-			},
-		}
-	}
-}
-const ThreadedClassManagerSingleton = new ThreadedClassManagerMock()
-jest.spyOn(ThreadedClassManager, 'onEvent').mockImplementation(ThreadedClassManagerSingleton.onEvent)
-
 describe('AtemSocket', () => {
 	let clock: fakeTimers.InstalledClock
 
@@ -95,37 +77,38 @@ describe('AtemSocket', () => {
 	beforeEach(() => {
 		clock = fakeTimers.install()
 		mockClear()
-		ThreadedClassManagerSingleton.handlers = []
 	})
 	afterEach(() => {
 		clock.uninstall()
 	})
 
-	function createSocket(): AtemSocket {
+	function createSocket(runInWorkerThread?: boolean): AtemSocket {
 		return new AtemSocket({
 			debugBuffers: false,
-			address: '',
+			address: '0000',
 			port: 890,
-			disableMultithreaded: true,
-			childProcessTimeout: 100,
+			disableMultithreaded: !runInWorkerThread,
 			maxPacketSize: 1416,
 		})
 	}
 
-	function getChild(socket: AtemSocket): ThreadedClass<AtemSocketChild> | undefined {
+	function getSocketChild(socket: AtemSocket): AtemSocketChild | undefined {
 		return (socket as any)._socketProcess
 	}
+	// function getWorker(socket: AtemSocket): Worker | undefined {
+	// 	return (socket as any)._socketWorker
+	// }
 
 	test('connect initial', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 
-		expect((socket as any)._address).toEqual('')
+		expect((socket as any)._address).toEqual('0000')
 		expect((socket as any)._port).toEqual(890)
 
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 		// Connect was not called explicitly
 		expect(AtemSocketChildSingleton.connect).toHaveBeenCalledTimes(1)
 		expect(AtemSocketChildSingleton.disconnect).toHaveBeenCalledTimes(0)
@@ -134,23 +117,24 @@ describe('AtemSocket', () => {
 		// New child was constructed
 		expect(AtemSocketChild).toHaveBeenCalledTimes(1)
 		expect(AtemSocketChild).toHaveBeenCalledWith(
-			{ address: '', port: 890, debugBuffers: false },
+			{ debugBuffers: false },
 			expect.toBeFunction(),
 			expect.toBeFunction(),
 			expect.toBeFunction(),
 			expect.toBeFunction()
 		)
+		expect(AtemSocketChildSingleton.connect).toHaveBeenCalledWith('0000', 890)
 	})
 	test('connect initial with params', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect('abc', 765)
 
 		expect((socket as any)._address).toEqual('abc')
 		expect((socket as any)._port).toEqual(765)
 
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 		// Connect was not called explicitly
 		expect(AtemSocketChildSingleton.connect).toHaveBeenCalledTimes(1)
 		expect(AtemSocketChildSingleton.disconnect).toHaveBeenCalledTimes(0)
@@ -159,23 +143,24 @@ describe('AtemSocket', () => {
 		// New child was constructed
 		expect(AtemSocketChild).toHaveBeenCalledTimes(1)
 		expect(AtemSocketChild).toHaveBeenCalledWith(
-			{ address: 'abc', port: 765, debugBuffers: false },
+			{ debugBuffers: false },
 			expect.toBeFunction(),
 			expect.toBeFunction(),
 			expect.toBeFunction(),
 			expect.toBeFunction()
 		)
+		expect(AtemSocketChildSingleton.connect).toHaveBeenCalledWith('abc', 765)
 	})
 	test('connect change details', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 
-		expect((socket as any)._address).toEqual('')
+		expect((socket as any)._address).toEqual('0000')
 		expect((socket as any)._port).toEqual(890)
 
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 
 		// Connect was not called explicitly
 		expect(AtemSocketChild).toHaveBeenCalledTimes(1)
@@ -208,11 +193,11 @@ describe('AtemSocket', () => {
 
 	test('disconnect', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 		mockClear()
 
 		await socket.disconnect()
@@ -227,7 +212,7 @@ describe('AtemSocket', () => {
 
 	test('disconnect - not open', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.disconnect()
 
@@ -240,7 +225,7 @@ describe('AtemSocket', () => {
 
 	test('sendCommand - not open', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		const cmd = new CutCommand(0)
 		await expect(socket.sendCommands([cmd])).rejects.toEqual(new Error('Socket process is not open'))
@@ -254,11 +239,11 @@ describe('AtemSocket', () => {
 
 	test('sendCommand - not serializable', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 		mockClear()
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 
 		const cmd = new ProductIdentifierCommand({
 			model: Model.OneME,
@@ -278,11 +263,11 @@ describe('AtemSocket', () => {
 
 	test('sendCommand', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 		mockClear()
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 
 		class MockCommand extends BasicWritableCommand<{}> {
 			public static readonly rawName = 'TEST'
@@ -318,10 +303,10 @@ describe('AtemSocket', () => {
 
 	test('events', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 
 		const disconnect = jest.fn()
 		// const log = jest.fn()
@@ -344,11 +329,11 @@ describe('AtemSocket', () => {
 
 	test('receive - init complete', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 		mockClear(true)
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 
 		const error = jest.fn()
 		const change = jest.fn()
@@ -373,11 +358,11 @@ describe('AtemSocket', () => {
 	})
 	test('receive - protocol version', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 		mockClear(true)
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 
 		const error = jest.fn()
 		const change = jest.fn()
@@ -410,11 +395,11 @@ describe('AtemSocket', () => {
 	})
 	test('receive - multiple commands', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 		mockClear(true)
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 
 		const error = jest.fn()
 		const change = jest.fn()
@@ -469,11 +454,11 @@ describe('AtemSocket', () => {
 	})
 	test('receive - empty buffer', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 		mockClear(true)
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 
 		const error = jest.fn()
 		const change = jest.fn()
@@ -492,11 +477,11 @@ describe('AtemSocket', () => {
 	})
 	test('receive - corrupt', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 		mockClear(true)
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 
 		const error = jest.fn()
 		const change = jest.fn()
@@ -515,11 +500,11 @@ describe('AtemSocket', () => {
 	})
 	test('receive - deserialize error', async () => {
 		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+		expect(getSocketChild(socket)).toBeFalsy()
 
 		await socket.connect()
 		mockClear(true)
-		expect(getChild(socket)).toBeTruthy()
+		expect(getSocketChild(socket)).toBeTruthy()
 
 		const error = jest.fn()
 		const change = jest.fn()
@@ -585,26 +570,49 @@ describe('AtemSocket', () => {
 		expect(error).toHaveBeenCalledWith('Failed to deserialize command: BrokenCommand: Error: Broken command')
 	})
 
-	test('receive - thread restart', async () => {
-		const socket = createSocket()
-		expect(getChild(socket)).toBeFalsy()
+	// TODO: this is a good test case, but it doesnt run as the Worker fails to find the js file because it is looking for the js file in the wrong place
+	// test.only('receive - thread restart', async () => {
+	// 	const socket = createSocket(true)
+	// 	try {
+	// 		expect(getSocketChild(socket)).toBeFalsy()
 
-		await socket.connect()
-		mockClear()
-		expect(getChild(socket)).toBeTruthy()
+	// 		clock.uninstall()
 
-		const connect = (socket.connect = jest.fn(async () => Promise.resolve()))
+	// 		await socket.connect().catch(() => null)
+	// 		mockClear()
+	// 		console.log('nnn')
+	// 		expect(getSocketChild(socket)).toBeTruthy()
+	// 		expect(getWorker(socket)).toBeTruthy()
 
-		const disconnected = jest.fn()
-		socket.on('disconnect', disconnected)
+	// 		console.log('aaa')
 
-		expect(ThreadedClassManagerSingleton.handlers).toHaveLength(2) // 2 eventHandlers: 1 for restart, 1 for thread_closed
-		// simulate a restart
-		ThreadedClassManagerSingleton.handlers.forEach((handler) => handler())
+	// 		const connect = (socket.connect = jest.fn(async () => Promise.resolve()))
 
-		expect(disconnected).toHaveBeenCalledTimes(1)
-		expect(connect).toHaveBeenCalledTimes(1)
-	})
+	// 		const disconnected = jest.fn()
+	// 		socket.on('disconnect', disconnected)
+
+	// 		await getWorker(socket)
+	// 			?.terminate()
+	// 			.catch(() => null)
+
+	// 		// await jest.runAllTimersAsync()
+
+	// 		// await new Promise((resolve) => setTimeout(resolve, 1000))
+
+	// 		// expect(ThreadedClassManagerSingleton.handlers).toHaveLength(2) // 2 eventHandlers: 1 for restart, 1 for thread_closed
+	// 		// // simulate a restart
+	// 		// ThreadedClassManagerSingleton.handlers.forEach((handler) => handler())
+
+	// 		console.log('ttt')
+	// 		expect(disconnected).toHaveBeenCalledTimes(1)
+	// 		expect(connect).toHaveBeenCalledTimes(1)
+	// 	} finally {
+	// 		console.log('tttbb')
+	// 		socket.destroy().catch(() => null)
+
+	// 		console.log('eee')
+	// 	}
+	// })
 	// testIgnore('receive - thread restart with error', async () => {
 	// 	const socket = createSocket()
 	// 	expect(getChild(socket)).toBeFalsy()
