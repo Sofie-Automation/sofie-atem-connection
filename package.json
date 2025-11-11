@@ -25,7 +25,7 @@
   ],
   "scripts": {
     "postinstall": "./node_modules/.bin/husky install",
-    "prepack": "pinst --disable",
+    "prepack": "pinst --disable && run build:main",
     "postpack": "pinst --enable",
     "build": "rimraf dist && run build:main",
     "build:main": "tsc -p tsconfig.build.json",
