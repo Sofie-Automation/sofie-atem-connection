@@ -81,7 +81,7 @@ jobs:
               echo "Publishing experimental"
               echo "tag=experimental" >> $GITHUB_OUTPUT
             fi
-            
+
             HASH=$(git rev-parse --short HEAD)
             TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
             PRERELEASE_TAG=nightly-$(echo "${{ github.ref_name }}" | sed -r 's/[^a-z0-9]+/-/gi')
@@ -172,8 +172,11 @@ jobs:
           corepack enable
           yarn install
 
+          # Disable postinstall in published release
+          yarn pinst --disable
+
           # Publish from the extracted release (build output present)
-          npm publish --access=public --provenance --tag ${{ needs.prepare.outputs.tag }}
+          npm publish --ignore-scripts --access=public --provenance --tag ${{ needs.prepare.outputs.tag }}
 
           NEW_VERSION=$(node -p "require('./package.json').version")
           echo "**Published:** $NEW_VERSION" >> $GITHUB_STEP_SUMMARY
