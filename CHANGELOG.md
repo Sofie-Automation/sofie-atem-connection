@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.7.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.6.1...v3.7.0) (Wed Nov 12 2025)
+
+
+### Fixes
+
+* Allow installing direct from git repository (#184) [ebbbcc5d](https://github.com/Sofie-Automation/sofie-atem-connection/commit/ebbbcc5d1764544f9a7b0ce1e2e939687166b773)
+
+### Features
+
+* Run order groups for ATEM commands (#178) [f3e5c351](https://github.com/Sofie-Automation/sofie-atem-connection/commit/f3e5c35146893080120d8e41f795915745ece329)
+
 ## [3.6.1](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.6.0...v3.6.1) (Mon Oct 20 2025)
 
 
