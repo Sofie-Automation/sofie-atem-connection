@@ -1758,6 +1758,7 @@ __metadata:
     "@types/object-path": ^0.11.4
     "@types/sinon": ^10.0.20
     "@types/sinonjs__fake-timers": ^8.1.5
+    comlink: "npm:@superflytv/comlink@^4.4.2"
     debug: ^4.3.4
     eventemitter3: ^4.0.7
     exit-hook: ^2.2.1
@@ -1771,7 +1772,6 @@ __metadata:
     pinst: ^3.0.0
     rimraf: ^5.0.5
     sinon: ^14.0.2
-    threadedclass: ^1.2.1
     ts-jest: ^29.1.1
     ts-node: ^10.9.1
     tslib: ^2.6.2
@@ -2009,7 +2009,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"callsites@npm:^3.0.0, callsites@npm:^3.1.0":
+"callsites@npm:^3.0.0":
   version: 3.1.0
   resolution: "callsites@npm:3.1.0"
   checksum: 072d17b6abb459c2ba96598918b55868af677154bec7e73d222ef95a8fdb9bbf7dae96a8421085cdad8cd190d86653b5b6dc55a4484f2e5b2e27d5e0c3fc15b3
@@ -2218,6 +2218,13 @@ __metadata:
   version: 2.0.20
   resolution: "colorette@npm:2.0.20"
   checksum: 0c016fea2b91b733eb9f4bcdb580018f52c0bc0979443dad930e5037a968237ac53d9beb98e218d2e9235834f8eebce7f8e080422d6194e957454255bde71d3d
+  languageName: node
+  linkType: hard
+
+"comlink@npm:@superflytv/comlink@^4.4.2":
+  version: 4.4.2
+  resolution: "@superflytv/comlink@npm:4.4.2"
+  checksum: 5bfc8fbb9ef9a7055322074f2519e5c5820714af7aa7dda707c57b7a669e837b669097681c50ce558828e01810c2629b4adddaaf25d5d4856d456c83a349b494
   languageName: node
   linkType: hard
 
@@ -3595,13 +3602,6 @@ __metadata:
   version: 1.1.0
   resolution: "is-plain-obj@npm:1.1.0"
   checksum: 0ee04807797aad50859652a7467481816cbb57e5cc97d813a7dcd8915da8195dc68c436010bf39d195226cde6a2d352f4b815f16f26b7bf486a5754290629931
-  languageName: node
-  linkType: hard
-
-"is-running@npm:^2.1.0":
-  version: 2.1.0
-  resolution: "is-running@npm:2.1.0"
-  checksum: b8804a041e532d218b123ddd34e1b5ff086ba03d100373dfda99179569b3fd146de228bef65d7448be4c4dfae3df84d9aa45b1e1b4a044899fc0521c68e32692
   languageName: node
   linkType: hard
 
@@ -6241,18 +6241,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"threadedclass@npm:^1.2.1":
-  version: 1.2.1
-  resolution: "threadedclass@npm:1.2.1"
-  dependencies:
-    callsites: ^3.1.0
-    eventemitter3: ^4.0.4
-    is-running: ^2.1.0
-    tslib: ^1.13.0
-  checksum: 2f9cab0df9ed21865f6f874ff7e352bbc32c9970bb48f132ae9bd71d9203655089ad065fa8438bdb786e381c3e0284b43bf7f281ad607962ab365781ea9aef6f
-  languageName: node
-  linkType: hard
-
 "through@npm:^2.3.8":
   version: 2.3.8
   resolution: "through@npm:2.3.8"
@@ -6385,7 +6373,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tslib@npm:^1.13.0, tslib@npm:^1.8.1":
+"tslib@npm:^1.8.1":
   version: 1.14.1
   resolution: "tslib@npm:1.14.1"
   checksum: dbe628ef87f66691d5d2959b3e41b9ca0045c3ee3c7c7b906cc1e328b39f199bb1ad9e671c39025bd56122ac57dfbf7385a94843b1cc07c60a4db74795829acd
