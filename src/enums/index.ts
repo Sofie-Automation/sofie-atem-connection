@@ -145,6 +145,8 @@ export enum InternalPortType {
 	Mask = 130,
 	// Since V8_1_1
 	MultiViewer = 131,
+	// Since v9_4/v9_6
+	AudioMonitor = 132,
 }
 
 export enum SourceAvailability {
@@ -156,7 +158,8 @@ export enum SourceAvailability {
 	KeySource = 1 << 4,
 	Auxiliary1 = 1 << 5,
 	Auxiliary2 = 1 << 6,
-	All = Auxiliary | Multiviewer | SuperSourceArt | SuperSourceBox | KeySource | Auxiliary1 | Auxiliary2,
+	WebcamOut = 1 << 7,
+	All = Auxiliary | Multiviewer | SuperSourceArt | SuperSourceBox | KeySource | Auxiliary1 | Auxiliary2 | WebcamOut,
 }
 
 export enum MeAvailability {
