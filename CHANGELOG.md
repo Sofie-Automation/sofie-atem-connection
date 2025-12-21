@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.8.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.7.0...v3.8.0) (Sun Dec 21 2025)
+
+
+### Features
+
+* add some recent enum additions [c57a0f76](https://github.com/Sofie-Automation/sofie-atem-connection/commit/c57a0f769cd58937e63b3e8839ba8ff6d4ab9763)
+
+### Fixes
+
+* add MiniExtremeISOG2 model [e522d538](https://github.com/Sofie-Automation/sofie-atem-connection/commit/e522d53823dfa4acd0e9409bfc950726a103513b)
+
 ## [3.7.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.6.1...v3.7.0) (Wed Nov 12 2025)
 
 
