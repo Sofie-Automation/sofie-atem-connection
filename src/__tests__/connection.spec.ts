@@ -5,9 +5,9 @@ import { AtemSocketChild } from '../lib/atemSocketChild'
 import { ThreadedClass } from 'threadedclass'
 import { BasicAtem } from '../atem'
 import { AtemState, InvalidIdError } from '../state'
-import { IDeserializedCommand } from '../commands'
+import { IDeserializedCommand, ProductIdentifierCommand, VersionCommand } from '../commands'
 import * as objectPath from 'object-path'
-import { ProtocolVersion } from '../enums'
+import { Model, ProtocolVersion } from '../enums'
 jest.mock('../lib/atemSocketChild')
 
 function cloneJson<T>(v: T): T {
@@ -61,6 +61,10 @@ function createConnection(): BasicAtem {
 
 function getChild(conn: BasicAtem): ThreadedClass<AtemSocketChildMock> {
 	return (conn as any).socket._socketProcess
+}
+
+function expectIsValidEnumValue<T>(enumObj: Record<string, T>, value: T): void {
+	expect(Object.values<T>(enumObj)).toContain(value)
 }
 
 function runTest(name: string, filename: string): void {
@@ -120,6 +124,12 @@ function runTest(name: string, filename: string): void {
 
 			for (const cmd of commands) {
 				test(`${cmd.constructor.name}`, async () => {
+					if (cmd instanceof VersionCommand) {
+						expectIsValidEnumValue(ProtocolVersion, cmd.properties.version)
+					} else if (cmd instanceof ProductIdentifierCommand) {
+						expectIsValidEnumValue(Model, cmd.properties.model)
+					}
+
 					const newState = cloneJson(state0)
 					try {
 						const paths0 = cmd.applyToState(newState)
@@ -200,4 +210,5 @@ describe('connection', () => {
 	runTest('tvs 4k8 v9.3', 'tvs-4k8-v9.3')
 	runTest('mini extreme iso v9.5', 'mini-extreme-iso-v9.5')
 	runTest('constellation hd 2me v9.6.2', 'constellation-2me-hd-v9.6.2')
+	runTest('mini extreme iso g2 v10.1.1', 'mini-extreme-iso-g2-v10.1.1')
 })

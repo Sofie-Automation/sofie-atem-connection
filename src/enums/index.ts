@@ -30,8 +30,9 @@ export enum Model {
 	Constellation4K1ME = 0x1c,
 	Constellation4K2ME = 0x1d,
 	Constellation4K4ME = 0x1e,
-	// 0x1f ??
+	Constellation4K4MEPlus = 0x1f,
 	TelevisionStudio4K8 = 0x20,
+	MiniExtremeISOG2 = 0x21,
 }
 
 export enum ProtocolVersion {
