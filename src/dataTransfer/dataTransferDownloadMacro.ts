@@ -22,7 +22,7 @@ export class DataTransferDownloadMacro extends DataTransfer<Buffer> {
 			transferId: transferId,
 			transferStoreId: 0xffff,
 			transferIndex: this.macroIndex,
-			transferType: 3,
+			transferType: 0x03fe,
 		})
 
 		return {
