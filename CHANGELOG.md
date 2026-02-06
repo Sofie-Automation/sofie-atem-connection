@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.8.1](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.8.0...v3.8.1) (Fri Feb 06 2026)
+
+
+### Fixes
+
+* macro download transfer type (#188) [d2ec5164](https://github.com/Sofie-Automation/sofie-atem-connection/commit/d2ec516462bc081c73fe72df6d09d47b172c7491)
+
 ## [3.8.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.7.0...v3.8.0) (Sun Dec 21 2025)
 
 

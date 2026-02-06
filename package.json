@@ -1,6 +1,6 @@
 {
   "name": "atem-connection",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "description": "Typescript Node.js library for connecting with an ATEM switcher.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
