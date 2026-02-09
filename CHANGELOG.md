@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.8.2](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.8.1...v3.8.2) (Mon Feb 09 2026)
+
+
+### Fixes
+
+* update @julusian/freetype2 #189 [222e0d3d](https://github.com/Sofie-Automation/sofie-atem-connection/commit/222e0d3d8fce3bd6307677766b26035ac34c70ec)
+
 ## [3.8.1](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.8.0...v3.8.1) (Fri Feb 06 2026)
 
 
