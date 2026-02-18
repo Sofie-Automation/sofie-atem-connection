@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.9.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.8.2...v3.9.0) (Wed Feb 18 2026)
+
+
+### Features
+
+* make retransmit timer use `setTimeout` instead of `setInterval` #96 [2fc828a8](https://github.com/Sofie-Automation/sofie-atem-connection/commit/2fc828a8d536696815574810178b133781830367)
+* remove use of nanotimer [a4b8a6f0](https://github.com/Sofie-Automation/sofie-atem-connection/commit/a4b8a6f02512849222ff7cd726db1b7ab52af2d3)
+
 ## [3.8.2](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.8.1...v3.8.2) (Mon Feb 09 2026)
 
 
