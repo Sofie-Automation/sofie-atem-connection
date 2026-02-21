@@ -43,7 +43,7 @@ export class DataTransferManager {
 
 	readonly #rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>
 
-	private interval?: NodeJS.Timer
+	private interval?: NodeJS.Timeout
 	private exitUnsubscribe?: () => void
 
 	constructor(rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>) {
