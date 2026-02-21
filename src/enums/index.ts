@@ -36,6 +36,7 @@ export enum Model {
 }
 
 export enum ProtocolVersion {
+	Unknown = 0,
 	V7_2 = 0x00020016, // 2.22 // TODO - verify this is correct
 	V7_5_2 = 0x0002001b, // 2.27 // The naming of this may be off
 	V8_0 = 0x0002001c, // 2.28

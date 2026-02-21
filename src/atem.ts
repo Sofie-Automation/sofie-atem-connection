@@ -50,7 +50,7 @@ import {
 	loadFont,
 } from './lib/multiviewLabel.js'
 import { FontFace } from '@julusian/freetype2'
-import PLazy = require('p-lazy')
+import PLazy from 'p-lazy'
 import { TimeCommand } from './commands/index.js'
 import { TimeInfo } from './state/info.js'
 import { SomeAtemAudioLevels } from './state/levels.js'
