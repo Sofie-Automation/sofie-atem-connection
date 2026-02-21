@@ -34,13 +34,6 @@ The library is tested on a variety of models spanning every generation, and the 
 
 Note: USB control of devices is not supported by this library.
 
-## Technology Highlights
-
-- Typescript
-- Jest
-- standard-version
-- codecov
-
 ## Installation
 
 For usage by library consumers installation is as easy as:
@@ -133,7 +126,7 @@ RECV <Buffer 00 0c 90 60 5f 76 65 72 00 02 00 10>...
 
 ## Test
 
-This module run tests with jest.
+This module run tests with vitest.
 
 ```sh
 $ yarn unit

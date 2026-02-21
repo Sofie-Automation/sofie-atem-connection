@@ -1,3 +1,4 @@
+import { describe, test, expect } from 'vitest'
 import { decodeRLE, encodeRLE } from '../rle.js'
 
 describe('encodeRLE', () => {

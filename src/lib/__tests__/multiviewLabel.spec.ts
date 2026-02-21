@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import { describe, test, expect } from 'vitest'
 import { AtemState } from '../../state/index.js'
 import { calculateGenerateMultiviewerLabelProps, generateMultiviewerLabel } from '../multiviewLabel.js'
 import { NewMemoryFace } from '@julusian/freetype2'
@@ -674,7 +675,7 @@ describe('Multiview Label', () => {
 		expect(buffer.length).toBe(640 * 190)
 	})
 
-	// eslint-disable-next-line jest/no-commented-out-tests
+	// eslint-disable-next-line vitest/no-commented-out-tests
 	// test('Constellation 8K', () => {
 	// 	const info: AtemState['info'] = {
 
