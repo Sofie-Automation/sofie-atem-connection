@@ -1192,7 +1192,6 @@ __metadata:
     "@types/object-path": "npm:^0.11.4"
     debug: "npm:^4.4.3"
     eslint: "npm:^9.39.3"
-    exit-hook: "npm:^2.2.1"
     husky: "npm:^9.1.7"
     lint-staged: "npm:^16.2.7"
     object-path: "npm:^0.11.8"
@@ -1930,13 +1929,6 @@ __metadata:
   version: 5.0.4
   resolution: "eventemitter3@npm:5.0.4"
   checksum: 10c0/575b8cac8d709e1473da46f8f15ef311b57ff7609445a7c71af5cd42598583eee6f098fa7a593e30f27e94b8865642baa0689e8fa97c016f742abdb3b1bf6d9a
-  languageName: node
-  linkType: hard
-
-"exit-hook@npm:^2.2.1":
-  version: 2.2.1
-  resolution: "exit-hook@npm:2.2.1"
-  checksum: 10c0/0803726d1b60aade6afd10c73e5a7e1bf256ac9bee78362a88e91a4f735e8c67899f2853ddc613072c05af07bbb067a9978a740e614db1aeef167d50c6dc5c09
   languageName: node
   linkType: hard
 
