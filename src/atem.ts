@@ -1,4 +1,4 @@
-import EventEmitter from 'eventemitter3'
+import EventEmitter from 'node:events'
 import { AtemState, AtemStateUtil, InvalidIdError, ColorGeneratorState } from './state/index.js'
 import { AtemSocket } from './lib/atemSocket.js'
 import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase.js'
