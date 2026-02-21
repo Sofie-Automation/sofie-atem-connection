@@ -1,5 +1,4 @@
-/* eslint-disable jest/no-export */
-
+import { describe, test, expect } from 'vitest'
 import { CommandParser } from '../../lib/atemCommandParser.js'
 import { ProtocolVersion } from '../../enums/index.js'
 import { IDeserializedCommand, SymmetricalCommand, ISerializableCommand } from '../CommandBase.js'
@@ -147,7 +146,7 @@ function runTestForCommand(commandParser: CommandParser, i: number, testCase: Te
 				const maskProps = (cmd as any).constructor.MaskFlags
 				if (maskProps) {
 					for (const key of Object.keys(mutatedCommand)) {
-						// eslint-disable-next-line jest/no-conditional-expect
+						// eslint-disable-next-line vitest/no-conditional-expect
 						expect(maskProps).toHaveProperty(key)
 						// expect(maskProps[key]).not.toBeUndefined()
 					}

@@ -1,3 +1,4 @@
+import { test, expect } from 'vitest'
 import * as DataTransferCommands from '../../commands/DataTransfer/index.js'
 import { readFileSync } from 'fs'
 import * as path from 'path'

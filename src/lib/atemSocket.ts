@@ -3,12 +3,13 @@ import { CommandParser } from './atemCommandParser.js'
 import exitHook from 'exit-hook'
 import { VersionCommand, ISerializableCommand, IDeserializedCommand } from '../commands/index.js'
 import { DEFAULT_PORT } from '../atem.js'
-import threadedClassPkg from 'threadedclass'
+import threadedClassPkg, { ThreadedClassManager } from 'threadedclass'
 import type { ThreadedClass } from 'threadedclass'
 import type { AtemSocketChild, OutboundPacketInfo } from './atemSocketChild.js'
 import { PacketBuilder } from './packetBuilder.js'
+import { isRunningInTests } from './atemUtil.js'
 
-const { threadedClass, ThreadedClassManager } = threadedClassPkg
+const { threadedClass } = threadedClassPkg
 
 export interface AtemSocketOptions {
 	address: string
@@ -133,7 +134,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 
 	private async _createSocketProcess(): Promise<void> {
 		this._socketProcess = await threadedClass<AtemSocketChild, typeof AtemSocketChild>(
-			'./atemSocketChild',
+			isRunningInTests() ? './__tests__/atemSocketChildFake.js' : './atemSocketChild.js',
 			'AtemSocketChild',
 			[
 				{
@@ -162,6 +163,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 				freezeLimit: this._childProcessTimeout,
 				autoRestart: true,
 				disableMultithreading: this._disableMultithreaded,
+				importWorkerFile: true,
 			}
 		)
 

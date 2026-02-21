@@ -1,54 +1,13 @@
-/* eslint-disable jest/no-conditional-expect */
+/* eslint-disable vitest/no-conditional-expect */
+import { describe, test, expect, beforeEach } from 'vitest'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
-import { AtemSocketChild } from '../lib/atemSocketChild.js'
-import { ThreadedClass } from 'threadedclass'
 import { BasicAtem } from '../atem.js'
 import { AtemState, InvalidIdError } from '../state/index.js'
 import { IDeserializedCommand, ProductIdentifierCommand, VersionCommand } from '../commands/index.js'
 import * as objectPath from 'object-path'
 import { Model, ProtocolVersion } from '../enums/index.js'
-jest.mock('../lib/atemSocketChild')
-
-function cloneJson<T>(v: T): T {
-	return JSON.parse(JSON.stringify(v))
-}
-
-// @ts-ignore
-class AtemSocketChildMock implements AtemSocketChild {
-	public onDisconnect: () => Promise<void>
-	public onLog: (message: string) => Promise<void>
-	public onCommandsReceived: (payload: Buffer, packetId: number) => Promise<void>
-	public onPacketsAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
-
-	constructor(
-		onDisconnect: () => Promise<void>,
-		onLog: (message: string) => Promise<void>,
-		onCommandsReceived: (payload: Buffer, packetId: number) => Promise<void>,
-		onPacketsAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
-	) {
-		this.onDisconnect = onDisconnect
-		this.onLog = onLog
-		this.onCommandsReceived = onCommandsReceived
-		this.onPacketsAcknowledged = onPacketsAcknowledged
-	}
-
-	public connect = jest.fn(async () => Promise.resolve())
-	public disconnect = jest.fn(async () => Promise.resolve())
-	public sendCommands = jest.fn(async () => Promise.resolve())
-}
-
-;(AtemSocketChild as any).mockImplementation(
-	(
-		_opts: any,
-		onDisconnect: () => Promise<void>,
-		onLog: (message: string) => Promise<void>,
-		onCommandsReceived: (payload: Buffer, packetId: number) => Promise<void>,
-		onPacketsAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
-	) => {
-		return new AtemSocketChildMock(onDisconnect, onLog, onCommandsReceived, onPacketsAcknowledged)
-	}
-)
+import { mockCallbacks, resetMocks } from '../lib/__tests__/atemSocketChildFake.js'
 
 function createConnection(): BasicAtem {
 	return new BasicAtem({
@@ -59,10 +18,6 @@ function createConnection(): BasicAtem {
 	})
 }
 
-function getChild(conn: BasicAtem): ThreadedClass<AtemSocketChildMock> {
-	return (conn as any).socket._socketProcess
-}
-
 function expectIsValidEnumValue<T>(enumObj: Record<string, T>, value: T): void {
 	expect(Object.values<T>(enumObj)).toContain(value)
 }
@@ -71,15 +26,13 @@ function runTest(name: string, filename: string): void {
 	const filePath = resolve(__dirname, `./connection/${filename}.data`)
 	const fileData = readFileSync(filePath).toString().split('\n')
 
-	// eslint-disable-next-line jest/valid-title
+	// eslint-disable-next-line vitest/valid-title
 	describe(name, () => {
 		test(`Connection`, async () => {
 			const conn = createConnection()
 			await conn.connect('')
 
-			const child = getChild(conn)
-			expect(child).toBeTruthy()
-			expect(child.onCommandsReceived).toBeTruthy()
+			expect(mockCallbacks.onCommandsReceived).toBeTruthy()
 
 			const errors: any[] = []
 			conn.on('error', (e: any) => {
@@ -92,7 +45,7 @@ function runTest(name: string, filename: string): void {
 			// eslint-disable-next-line @typescript-eslint/no-for-in-array
 			for (const i in fileData) {
 				const buffer = Buffer.from(fileData[i].trim(), 'hex')
-				await child.onCommandsReceived(buffer, Number(i))
+				await mockCallbacks.onCommandsReceived(buffer, Number(i))
 			}
 
 			expect(errors).toEqual([])
@@ -113,11 +66,11 @@ function runTest(name: string, filename: string): void {
 				commands.push(...parser(buffer))
 			}
 
-			const state = cloneJson(conn.state)
+			const state = structuredClone(conn.state)
 
-			// eslint-disable-next-line jest/no-standalone-expect
-			expect(commands).not.toBeEmpty()
-			// eslint-disable-next-line jest/no-standalone-expect
+			// eslint-disable-next-line vitest/no-standalone-expect
+			expect(commands).not.toHaveLength(0)
+			// eslint-disable-next-line vitest/no-standalone-expect
 			expect(state).toBeTruthy()
 
 			const state0 = state as AtemState
@@ -130,7 +83,7 @@ function runTest(name: string, filename: string): void {
 						expectIsValidEnumValue(Model, cmd.properties.model)
 					}
 
-					const newState = cloneJson(state0)
+					const newState = structuredClone(state0)
 					try {
 						const paths0 = cmd.applyToState(newState)
 						const paths = Array.isArray(paths0) ? paths0 : [paths0]
@@ -140,10 +93,10 @@ function runTest(name: string, filename: string): void {
 							case 'LockStateUpdateCommand':
 							case 'CameraControlUpdateCommand': // Temporary?
 								// Some commands are not expected to update the state
-								expect(paths).toBeEmpty()
+								expect(paths).toHaveLength(0)
 								break
 							default:
-								expect(paths).not.toBeEmpty()
+								expect(paths).not.toHaveLength(0)
 								break
 						}
 
@@ -179,6 +132,10 @@ function runTest(name: string, filename: string): void {
 }
 
 describe('connection', () => {
+	beforeEach(() => {
+		resetMocks()
+	})
+
 	/**
 	 * Test cases can be generated with the dump.js script.
 	 * These tests run the payload through the parser to ensure that the commands does not error.

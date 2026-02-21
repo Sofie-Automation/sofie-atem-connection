@@ -73,5 +73,5 @@ export function assertNever(_val: never): void {
 }
 
 export function isRunningInTests(): boolean {
-	return process.env.JEST_WORKER_ID !== undefined
+	return process.env.VITEST_POOL_ID !== undefined
 }

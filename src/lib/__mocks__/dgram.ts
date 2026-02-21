@@ -1,8 +1,8 @@
 import { EventEmitter } from 'events'
 import { SocketType, RemoteInfo } from 'dgram'
-import 'jest-extended'
 import { DEFAULT_PORT } from '../../atem.js'
 import * as fakeTimers from '@sinonjs/fake-timers'
+import { expect } from 'vitest'
 
 export class Socket extends EventEmitter {
 	public isOpen = false
@@ -47,10 +47,10 @@ export class Socket extends EventEmitter {
 		callback?: (error: Error | null, bytes: number) => void
 	): void {
 		expect(Buffer.isBuffer(msg)).toBeTruthy()
-		expect(offset).toBeNumber()
-		expect(length).toBeNumber()
-		expect(port).toBeNumber()
-		expect(address).toBeString()
+		expect(offset).toBeTypeOf('number')
+		expect(length).toBeTypeOf('number')
+		expect(port).toBeTypeOf('number')
+		expect(address).toBeTypeOf('string')
 		expect(callback).toBeUndefined()
 
 		if (this.expectedAddress) {

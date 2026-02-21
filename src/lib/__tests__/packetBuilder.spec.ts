@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from 'vitest'
 import type { ISerializableCommand } from '../../commands/index.js'
 import { ProtocolVersion } from '../../enums/index.js'
 import { PacketBuilder } from '../packetBuilder.js'
@@ -14,7 +15,7 @@ class FakeCommand implements ISerializableCommand {
 		return this.length + 8
 	}
 
-	serialize = jest.fn((_version: ProtocolVersion): Buffer => {
+	serialize = vi.fn((_version: ProtocolVersion): Buffer => {
 		return Buffer.alloc(this.length, this.value)
 	})
 }
