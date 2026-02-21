@@ -1,5 +1,3 @@
-import exitHook from 'exit-hook'
-
 import { DataTransferLockingQueue, DataTransferSimpleQueue, DataTransferQueueBase } from './dataTransferQueue.js'
 import DataTransferUploadStill from './dataTransferUploadStill.js'
 import { DataTransferUploadClipFrame, DataTransferUploadClip } from './dataTransferUploadClip.js'
@@ -44,7 +42,6 @@ export class DataTransferManager {
 	readonly #rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>
 
 	private interval?: NodeJS.Timeout
-	private exitUnsubscribe?: () => void
 
 	constructor(rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>) {
 		this.#rawSendCommands = rawSendCommands
@@ -83,13 +80,6 @@ export class DataTransferManager {
 				}
 			}, 2) // TODO - refine this. perhaps we can stop and restart the interval?
 		}
-		if (!this.exitUnsubscribe) {
-			this.exitUnsubscribe = exitHook(() => {
-				debug(`Exit auto-cleanup`)
-				// TODO - replace this with a WeakRef to the parent class?
-				this.stopCommandSending()
-			})
-		}
 	}
 
 	/**
@@ -102,10 +92,6 @@ export class DataTransferManager {
 			lock.clearQueueAndAbort(new Error('Stopping connection'))
 		}
 
-		if (this.exitUnsubscribe) {
-			this.exitUnsubscribe()
-			this.exitUnsubscribe = undefined
-		}
 		if (this.interval) {
 			clearInterval(this.interval)
 			this.interval = undefined
