@@ -7,7 +7,7 @@ import { MixEffect, SuperSource, DSK, USK } from './video/index.js'
 export function Create(): AtemState {
 	return {
 		info: {
-			apiVersion: 0,
+			apiVersion: Enums.ProtocolVersion.Unknown,
 			model: Enums.Model.Unknown,
 			superSources: [],
 			mixEffects: [],

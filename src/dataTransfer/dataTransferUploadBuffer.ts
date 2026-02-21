@@ -9,7 +9,7 @@ import {
 } from '../commands/DataTransfer/index.js'
 import * as crypto from 'crypto'
 import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataTransfer.js'
-import debug0 = require('debug')
+import debug0 from 'debug'
 import { VideoModeInfo } from '../lib/videoMode.js'
 import { convertRGBAToYUV422 } from '../lib/converters/rgbaToYuv422.js'
 import { RLE_HEADER, encodeRLE } from '../lib/converters/rle.js'
