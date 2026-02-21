@@ -1,8 +1,7 @@
 import { EventEmitter } from 'events'
 import { SocketType, RemoteInfo } from 'dgram'
 import { DEFAULT_PORT } from '../../atem.js'
-import * as fakeTimers from '@sinonjs/fake-timers'
-import { expect } from 'vitest'
+import { expect, vi } from 'vitest'
 
 export class Socket extends EventEmitter {
 	public isOpen = false
@@ -16,7 +15,7 @@ export class Socket extends EventEmitter {
 
 	public sendImpl?: (msg: Buffer) => void
 
-	public async emitMessage(clock: fakeTimers.Clock, msg: Buffer): Promise<void> {
+	public async emitMessage(msg: Buffer): Promise<void> {
 		expect(Buffer.isBuffer(msg)).toBeTruthy()
 
 		const rinfo: RemoteInfo = {
@@ -27,7 +26,7 @@ export class Socket extends EventEmitter {
 		}
 		this.emit('message', msg, rinfo)
 
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 	}
 
 	public bind(port?: number, address?: string, callback?: () => void): void {

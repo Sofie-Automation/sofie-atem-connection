@@ -3,6 +3,7 @@ dist
 test
 src/**/*.js
 scratch
+*.tsbuildinfo
 
 /coverage
 /docs

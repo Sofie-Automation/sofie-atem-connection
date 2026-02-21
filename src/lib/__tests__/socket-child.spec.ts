@@ -2,10 +2,8 @@ import { describe, test, expect, vi, beforeEach, beforeAll, afterEach, afterAll 
 // eslint-disable-next-line vitest/no-mocks-import
 import { Socket } from '../__mocks__/dgram.js'
 import { AtemSocketChild, COMMAND_CONNECT_HELLO, ConnectionState, PacketFlag } from '../atemSocketChild.js'
-import * as fakeTimers from '@sinonjs/fake-timers'
 import { DEFAULT_PORT } from '../../atem.js'
 import { performance } from 'perf_hooks'
-import * as sinon from 'sinon'
 
 vi.mock('dgram', async () => await import('../__mocks__/dgram.js'))
 
@@ -53,19 +51,18 @@ function createSocketChild(
 }
 
 describe('SocketChild', () => {
-	let clock: fakeTimers.InstalledClock
 	beforeEach(() => {
-		clock = fakeTimers.install()
+		vi.useFakeTimers()
 	})
 	beforeAll(() => {
 		const startup = Date.now()
-		sinon.stub(performance, 'now').callsFake(() => Date.now() - startup)
+		vi.spyOn(performance, 'now').mockImplementation(() => Date.now() - startup)
 	})
 	afterEach(() => {
-		clock.uninstall()
+		vi.useRealTimers()
 	})
 	afterAll(() => {
-		sinon.restore()
+		vi.restoreAllMocks()
 	})
 
 	test('Establish connection', async () => {
@@ -85,7 +82,7 @@ describe('SocketChild', () => {
 			await child.connect(ADDRESS, DEFAULT_PORT)
 
 			// Ensure everything has ticked through
-			clock.tick(20)
+			await vi.advanceTimersByTimeAsync(20)
 
 			// Confirm something was sent
 			expect(receivedPacket).toBeTruthy()
@@ -103,7 +100,6 @@ describe('SocketChild', () => {
 
 			// Now get the connection established
 			await socket.emitMessage(
-				clock,
 				Buffer.from([
 					0x10,
 					0x14, // Length & Type
@@ -129,7 +125,7 @@ describe('SocketChild', () => {
 			)
 
 			// Ensure everything has ticked through
-			await clock.tickAsync(20)
+			await vi.advanceTimersByTimeAsync(20)
 
 			// Confirm something was sent
 			expect(receivedPacket).toBeTruthy()
@@ -181,19 +177,19 @@ describe('SocketChild', () => {
 				}
 			}
 
-			await socket.emitMessage(clock, genAckRequestMessage(1))
+			await socket.emitMessage(genAckRequestMessage(1))
 
 			// Nothing should have been sent immediately
 			expect(acked).toEqual([])
 			expect(gotUnknown).toBe(false)
 
 			// Still nothing sent
-			clock.tick(4)
+			await vi.advanceTimersByTimeAsync(4)
 			expect(acked).toEqual([])
 			expect(gotUnknown).toBe(false)
 
 			// Should be an ack a little later
-			clock.tick(10)
+			await vi.advanceTimersByTimeAsync(10)
 			expect(acked).toEqual([1])
 			expect(gotUnknown).toBe(false)
 		} finally {
@@ -224,22 +220,22 @@ describe('SocketChild', () => {
 			}
 
 			for (let i = 1; i <= 15; i++) {
-				await socket.emitMessage(clock, genAckRequestMessage(i))
+				await socket.emitMessage(genAckRequestMessage(i))
 			}
 
 			// Nothing should have been sent yet
-			await clock.tickAsync(4)
+			await vi.advanceTimersByTimeAsync(4)
 			expect(acked).toEqual([])
 			expect(gotUnknown).toBe(false)
 
 			// One more will trigger an ack
-			await socket.emitMessage(clock, genAckRequestMessage(16))
+			await socket.emitMessage(genAckRequestMessage(16))
 			expect(acked).toEqual([16])
 			expect(gotUnknown).toBe(false)
 			acked = []
 
 			// Nothing more should be acked
-			clock.tick(10)
+			await vi.advanceTimersByTimeAsync(10)
 			expect(acked).toEqual([])
 			expect(gotUnknown).toBe(false)
 		} finally {
@@ -270,29 +266,29 @@ describe('SocketChild', () => {
 			gotCmds = []
 
 			// Nothing
-			await socket.emitMessage(clock, genAckRequestMessage(1))
+			await socket.emitMessage(genAckRequestMessage(1))
 			expect(gotCmds).toEqual([])
 			expect(gotUnknown).toBe(false)
 
 			// Some payload
 			const buffer = Buffer.concat([genAckRequestMessage(2, 1), Buffer.from([0])])
-			await socket.emitMessage(clock, buffer)
+			await socket.emitMessage(buffer)
 			expect(gotCmds).toEqual([1])
 			expect(gotUnknown).toBe(false)
 			gotCmds = []
 
 			// Repeated should not re-emit
-			await socket.emitMessage(clock, buffer)
+			await socket.emitMessage(buffer)
 			expect(gotCmds).toEqual([])
 			expect(gotUnknown).toBe(false)
 
 			// Previous should not re-emit
-			await socket.emitMessage(clock, Buffer.concat([genAckRequestMessage(1, 1), Buffer.from([0])]))
+			await socket.emitMessage(Buffer.concat([genAckRequestMessage(1, 1), Buffer.from([0])]))
 			expect(gotCmds).toEqual([])
 			expect(gotUnknown).toBe(false)
 
 			// Another payload
-			await socket.emitMessage(clock, Buffer.concat([genAckRequestMessage(3, 1), Buffer.from([0])]))
+			await socket.emitMessage(Buffer.concat([genAckRequestMessage(3, 1), Buffer.from([0])]))
 			expect(gotCmds).toEqual([1])
 			expect(gotUnknown).toBe(false)
 			gotCmds = []
@@ -325,50 +321,50 @@ describe('SocketChild', () => {
 			gotCmds = []
 
 			// Nothing
-			await socket.emitMessage(clock, Buffer.concat([genAckRequestMessage(32766, 1), Buffer.from([0])]))
+			await socket.emitMessage(Buffer.concat([genAckRequestMessage(32766, 1), Buffer.from([0])]))
 			expect(gotCmds).toEqual([])
 			expect(gotUnknown).toBe(false)
 
 			// Some payload
 			const lastBuffer = Buffer.concat([genAckRequestMessage(32767, 1), Buffer.from([0])])
-			await socket.emitMessage(clock, lastBuffer)
+			await socket.emitMessage(lastBuffer)
 			expect(gotCmds).toEqual([1])
 			expect(gotUnknown).toBe(false)
 			gotCmds = []
 
 			// Should not re-emit
-			await socket.emitMessage(clock, lastBuffer)
+			await socket.emitMessage(lastBuffer)
 			expect(gotCmds).toEqual([])
 			expect(gotUnknown).toBe(false)
 			gotCmds = []
 
 			// Now it has wrapped
 			const firstBuffer = Buffer.concat([genAckRequestMessage(0, 1), Buffer.from([0])])
-			await socket.emitMessage(clock, firstBuffer)
+			await socket.emitMessage(firstBuffer)
 			expect(gotCmds).toEqual([1])
 			expect(gotUnknown).toBe(false)
 			gotCmds = []
 
 			// Next buffer
-			await socket.emitMessage(clock, Buffer.concat([genAckRequestMessage(1, 1), Buffer.from([0])]))
+			await socket.emitMessage(Buffer.concat([genAckRequestMessage(1, 1), Buffer.from([0])]))
 			expect(gotCmds).toEqual([1])
 			expect(gotUnknown).toBe(false)
 			gotCmds = []
 
 			// Should not re-emit
-			await socket.emitMessage(clock, firstBuffer)
+			await socket.emitMessage(firstBuffer)
 			expect(gotCmds).toEqual([])
 			expect(gotUnknown).toBe(false)
 			gotCmds = []
 
 			// Retransmit of lastBuffer is not uncommon, it should not re-emit
-			await socket.emitMessage(clock, lastBuffer)
+			await socket.emitMessage(lastBuffer)
 			expect(gotCmds).toEqual([])
 			expect(gotUnknown).toBe(false)
 			gotCmds = []
 
 			// Ensure that the first buffer still does not re-emit
-			await socket.emitMessage(clock, firstBuffer)
+			await socket.emitMessage(firstBuffer)
 			expect(gotCmds).toEqual([])
 			expect(gotUnknown).toBe(false)
 			gotCmds = []
@@ -504,7 +500,7 @@ describe('SocketChild', () => {
 			expect(acked).toEqual([])
 
 			// Ack a couple
-			await socket.emitMessage(clock, genAckCommandMessage(125))
+			await socket.emitMessage(genAckCommandMessage(125))
 			expect(getInflightIds(child)).toEqual([126, 127, 128])
 			expect(acked).toEqual([
 				{ packetId: 123, trackingId: 5 },
@@ -514,7 +510,7 @@ describe('SocketChild', () => {
 			acked = []
 
 			// Another ack
-			await socket.emitMessage(clock, genAckCommandMessage(126))
+			await socket.emitMessage(genAckCommandMessage(126))
 			expect(getInflightIds(child)).toEqual([127, 128])
 			expect(acked).toEqual([{ packetId: 126, trackingId: 8 }])
 		} finally {
@@ -565,7 +561,7 @@ describe('SocketChild', () => {
 			expect(acked).toEqual([])
 
 			// Ack a couple
-			await socket.emitMessage(clock, genAckCommandMessage(32766))
+			await socket.emitMessage(genAckCommandMessage(32766))
 			expect(getInflightIds(child)).toEqual([32767, 0, 1])
 			expect(acked).toEqual([
 				{ packetId: 32764, trackingId: 5 },
@@ -575,7 +571,7 @@ describe('SocketChild', () => {
 			acked = []
 
 			// Another ack
-			await socket.emitMessage(clock, genAckCommandMessage(0))
+			await socket.emitMessage(genAckCommandMessage(0))
 			expect(getInflightIds(child)).toEqual([1])
 			expect(acked).toEqual([
 				{ packetId: 32767, trackingId: 8 },
@@ -625,7 +621,7 @@ describe('SocketChild', () => {
 			expect(acked).toEqual([])
 
 			// Ack a couple to ensure socket is running properly
-			await socket.emitMessage(clock, genAckCommandMessage(32765))
+			await socket.emitMessage(genAckCommandMessage(32765))
 			expect(getInflightIds(child)).toEqual([32766, 32767, 0, 1])
 			expect(acked).toEqual([
 				{ packetId: 32764, trackingId: 5 },
@@ -636,12 +632,12 @@ describe('SocketChild', () => {
 			received = []
 
 			// Let the commands be resent
-			await clock.tickAsync(80)
+			await vi.advanceTimersByTimeAsync(80)
 			expect(received).toEqual([32766, 32767, 0, 1])
 			received = []
 
 			// Should keep happening
-			await clock.tickAsync(80)
+			await vi.advanceTimersByTimeAsync(80)
 			expect(received).toEqual([32766, 32767, 0, 1])
 			received = []
 
@@ -655,7 +651,7 @@ describe('SocketChild', () => {
 			expect(acked).toEqual([])
 
 			// And again, this time with the new thing
-			await clock.tickAsync(80)
+			await vi.advanceTimersByTimeAsync(80)
 			expect(received).toEqual([32766, 32767, 0, 1, 2])
 			received = []
 		} finally {
@@ -722,7 +718,7 @@ describe('SocketChild', () => {
 			expect(acked).toEqual([])
 
 			// Ack a couple to ensure socket is running properly
-			await socket.emitMessage(clock, genAckCommandMessage(32765))
+			await socket.emitMessage(genAckCommandMessage(32765))
 			expect(getInflightIds(child)).toEqual([32766, 32767, 0, 1])
 			expect(acked).toEqual([
 				{ packetId: 32764, trackingId: 5 },
@@ -733,12 +729,12 @@ describe('SocketChild', () => {
 			received = []
 
 			// The device asks for a retransmit
-			await socket.emitMessage(clock, genRetransmitRequestCommandMessage(32766))
+			await socket.emitMessage(genRetransmitRequestCommandMessage(32766))
 			expect(received).toEqual([32766, 32767, 0, 1])
 			received = []
 
 			// And again
-			await socket.emitMessage(clock, genRetransmitRequestCommandMessage(32767))
+			await socket.emitMessage(genRetransmitRequestCommandMessage(32767))
 			expect(received).toEqual([32767, 0, 1])
 			received = []
 		} finally {
@@ -778,7 +774,7 @@ describe('SocketChild', () => {
 			expect(connected).toBe(true)
 
 			// The device asks for a retransmit of a future packet
-			await socket.emitMessage(clock, genRetransmitRequestCommandMessage(1))
+			await socket.emitMessage(genRetransmitRequestCommandMessage(1))
 			expect(getInflightIds(child)).toEqual([])
 			expect(connected).toBe(false)
 		} finally {
@@ -818,7 +814,7 @@ describe('SocketChild', () => {
 			expect(connected).toBe(true)
 
 			// The device asks for a retransmit of a past packet
-			await socket.emitMessage(clock, genRetransmitRequestCommandMessage(32766))
+			await socket.emitMessage(genRetransmitRequestCommandMessage(32766))
 			expect(getInflightIds(child)).toEqual([])
 			expect(connected).toBe(false)
 		} finally {
@@ -860,7 +856,7 @@ describe('SocketChild', () => {
 			expect(connected).toBe(true)
 
 			// Ack a couple to ensure socket is running properly
-			await socket.emitMessage(clock, genAckCommandMessage(0))
+			await socket.emitMessage(genAckCommandMessage(0))
 			expect(getInflightIds(child)).toEqual([])
 			expect(acked).toEqual([
 				{ packetId: 32767, trackingId: 5 },
@@ -869,19 +865,19 @@ describe('SocketChild', () => {
 			acked = []
 
 			// Tick to let the timer execute
-			await clock.tickAsync(1500)
+			await vi.advanceTimersByTimeAsync(1500)
 			expect(connected).toBe(true)
 			expect(getInflightIds(child)).toEqual([])
 			expect(acked).toEqual([])
 
 			// Still nothing
-			await clock.tickAsync(1500)
+			await vi.advanceTimersByTimeAsync(1500)
 			expect(connected).toBe(true)
 			expect(getInflightIds(child)).toEqual([])
 			expect(acked).toEqual([])
 
 			// Not quite
-			await clock.tickAsync(1990)
+			await vi.advanceTimersByTimeAsync(1990)
 			expect(connected).toBe(true)
 			child.sendPackets([
 				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 7 }, // 1
@@ -890,7 +886,7 @@ describe('SocketChild', () => {
 			expect(acked).toEqual([])
 
 			// Timeout
-			await clock.tickAsync(20)
+			await vi.advanceTimersByTimeAsync(20)
 			expect(connected).toBe(false)
 			expect(getInflightIds(child)).toEqual([])
 			expect(acked).toEqual([])
