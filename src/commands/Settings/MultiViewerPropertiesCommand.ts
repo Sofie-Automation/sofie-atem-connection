@@ -1,7 +1,7 @@
-import { DeserializedCommand, WritableCommand } from '../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
-import { MultiViewerPropertiesState } from '../../state/settings'
-import { ProtocolVersion, MultiViewerLayout } from '../../enums'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { MultiViewerPropertiesState } from '../../state/settings.js'
+import { ProtocolVersion, MultiViewerLayout } from '../../enums/index.js'
 
 export class MultiViewerPropertiesCommand extends WritableCommand<MultiViewerPropertiesState> {
 	public static MaskFlags = {

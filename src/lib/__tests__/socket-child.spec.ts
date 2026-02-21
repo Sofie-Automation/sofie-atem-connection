@@ -1,8 +1,8 @@
 jest.mock('dgram')
-import { Socket } from '../__mocks__/dgram'
-import { AtemSocketChild, COMMAND_CONNECT_HELLO, ConnectionState, PacketFlag } from '../atemSocketChild'
+import { Socket } from '../__mocks__/dgram.js'
+import { AtemSocketChild, COMMAND_CONNECT_HELLO, ConnectionState, PacketFlag } from '../atemSocketChild.js'
 import * as fakeTimers from '@sinonjs/fake-timers'
-import { DEFAULT_PORT } from '../../atem'
+import { DEFAULT_PORT } from '../../atem.js'
 import { performance } from 'perf_hooks'
 import * as sinon from 'sinon'
 

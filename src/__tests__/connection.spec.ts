@@ -1,13 +1,13 @@
 /* eslint-disable jest/no-conditional-expect */
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
-import { AtemSocketChild } from '../lib/atemSocketChild'
+import { AtemSocketChild } from '../lib/atemSocketChild.js'
 import { ThreadedClass } from 'threadedclass'
-import { BasicAtem } from '../atem'
-import { AtemState, InvalidIdError } from '../state'
-import { IDeserializedCommand, ProductIdentifierCommand, VersionCommand } from '../commands'
+import { BasicAtem } from '../atem.js'
+import { AtemState, InvalidIdError } from '../state/index.js'
+import { IDeserializedCommand, ProductIdentifierCommand, VersionCommand } from '../commands/index.js'
 import * as objectPath from 'object-path'
-import { Model, ProtocolVersion } from '../enums'
+import { Model, ProtocolVersion } from '../enums/index.js'
 jest.mock('../lib/atemSocketChild')
 
 function cloneJson<T>(v: T): T {

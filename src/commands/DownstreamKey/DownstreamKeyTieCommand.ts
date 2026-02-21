@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class DownstreamKeyTieCommand extends BasicWritableCommand<{ tie: boolean }> {
 	public static readonly rawName = 'CDsT'

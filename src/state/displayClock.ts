@@ -1,4 +1,4 @@
-import { DisplayClockClockMode, DisplayClockClockState } from '../enums'
+import { DisplayClockClockMode, DisplayClockClockState } from '../enums/index.js'
 
 export interface DisplayClockTime {
 	hours: number

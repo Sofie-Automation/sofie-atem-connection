@@ -1,9 +1,9 @@
-import { AtemState, InvalidIdError } from '../../state'
-import { Util } from '../..'
-import { AudioChannel } from '../../state/audio'
-import { WritableCommand, DeserializedCommand } from '../CommandBase'
-import { ProtocolVersion } from '../../enums'
-import { OmitReadonly } from '../../lib/types'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { Util } from '../../index.js'
+import { AudioChannel } from '../../state/audio.js'
+import { WritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { ProtocolVersion } from '../../enums/index.js'
+import { OmitReadonly } from '../../lib/types.js'
 
 export class AudioMixerInputCommand extends WritableCommand<OmitReadonly<AudioChannel>> {
 	public static MaskFlags = {

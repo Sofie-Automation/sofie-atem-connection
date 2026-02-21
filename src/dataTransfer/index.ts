@@ -1,17 +1,17 @@
 import exitHook = require('exit-hook')
 
-import { DataTransferLockingQueue, DataTransferSimpleQueue, DataTransferQueueBase } from './dataTransferQueue'
-import DataTransferUploadStill from './dataTransferUploadStill'
-import { DataTransferUploadClipFrame, DataTransferUploadClip } from './dataTransferUploadClip'
-import DataTransferUploadAudio from './dataTransferUploadAudio'
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase'
-import DataTransferUploadMultiViewerLabel from './dataTransferUploadMultiViewerLabel'
-import { DataTransferDownloadMacro } from './dataTransferDownloadMacro'
-import { DataTransferUploadMacro } from './dataTransferUploadMacro'
-import { LockObtainedCommand, LockStateUpdateCommand } from '../commands/DataTransfer'
+import { DataTransferLockingQueue, DataTransferSimpleQueue, DataTransferQueueBase } from './dataTransferQueue.js'
+import DataTransferUploadStill from './dataTransferUploadStill.js'
+import { DataTransferUploadClipFrame, DataTransferUploadClip } from './dataTransferUploadClip.js'
+import DataTransferUploadAudio from './dataTransferUploadAudio.js'
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
+import DataTransferUploadMultiViewerLabel from './dataTransferUploadMultiViewerLabel.js'
+import { DataTransferDownloadMacro } from './dataTransferDownloadMacro.js'
+import { DataTransferUploadMacro } from './dataTransferUploadMacro.js'
+import { LockObtainedCommand, LockStateUpdateCommand } from '../commands/DataTransfer/index.js'
 import debug0 from 'debug'
-import type { UploadBufferInfo } from './dataTransferUploadBuffer'
-import { DataTransferDownloadStill } from './dataTransferDownloadStill'
+import type { UploadBufferInfo } from './dataTransferUploadBuffer.js'
+import { DataTransferDownloadStill } from './dataTransferDownloadStill.js'
 
 const MAX_PACKETS_TO_SEND_PER_TICK = 50
 const MAX_TRANSFER_INDEX = (1 << 16) - 1 // Inclusive maximum

@@ -1,6 +1,6 @@
-import { DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import { AudioMixerInfo } from '../../state/info'
+import { DeserializedCommand } from '../CommandBase.js'
+import { AtemState } from '../../state/index.js'
+import { AudioMixerInfo } from '../../state/info.js'
 
 export class AudioMixerConfigCommand extends DeserializedCommand<AudioMixerInfo> {
 	public static readonly rawName = '_AMC'

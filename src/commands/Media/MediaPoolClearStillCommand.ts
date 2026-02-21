@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class MediaPoolClearStillCommand extends BasicWritableCommand<{ index: number }> {
 	public static readonly rawName = 'CSTL'

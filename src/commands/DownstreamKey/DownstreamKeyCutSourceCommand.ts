@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class DownstreamKeyCutSourceCommand extends BasicWritableCommand<{ input: number }> {
 	public static readonly rawName = 'CDsC'

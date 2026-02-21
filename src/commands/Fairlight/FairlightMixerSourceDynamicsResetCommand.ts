@@ -1,5 +1,5 @@
-import { WritableCommand } from '../CommandBase'
-import { FairlightDynamicsResetProps } from './common'
+import { WritableCommand } from '../CommandBase.js'
+import { FairlightDynamicsResetProps } from './common.js'
 
 export class FairlightMixerSourceDynamicsResetCommand extends WritableCommand<FairlightDynamicsResetProps> {
 	public static readonly rawName = 'RICD'

@@ -1,5 +1,5 @@
-import * as Commands from '../commands'
-import { ProtocolVersion } from '../enums'
+import * as Commands from '../commands/index.js'
+import { ProtocolVersion } from '../enums/index.js'
 
 type CommandConstructor = any
 export class CommandParser {

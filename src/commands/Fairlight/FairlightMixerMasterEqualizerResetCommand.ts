@@ -1,4 +1,4 @@
-import { WritableCommand } from '../CommandBase'
+import { WritableCommand } from '../CommandBase.js'
 
 export class FairlightMixerMasterEqualizerResetCommand extends WritableCommand<{ equalizer: boolean; band: number }> {
 	public static MaskFlags = {

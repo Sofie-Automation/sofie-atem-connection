@@ -1,7 +1,7 @@
-import { FairlightAudioCompressorState } from '../../state/fairlight'
-import { AtemState, InvalidIdError } from '../../state'
-import { DeserializedCommand, WritableCommand } from '../CommandBase'
-import { OmitReadonly } from '../../lib/types'
+import { FairlightAudioCompressorState } from '../../state/fairlight.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
+import { OmitReadonly } from '../../lib/types.js'
 
 export class FairlightMixerMasterCompressorCommand extends WritableCommand<
 	OmitReadonly<FairlightAudioCompressorState>

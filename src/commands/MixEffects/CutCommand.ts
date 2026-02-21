@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class CutCommand extends BasicWritableCommand<null> {
 	public static readonly rawName = 'DCut'

@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class MediaPoolCaptureStillCommand extends BasicWritableCommand<Record<string, never>> {
 	public static readonly rawName = 'Capt'

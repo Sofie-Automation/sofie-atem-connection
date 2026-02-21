@@ -1,9 +1,9 @@
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase'
-import { DataTransferFileDescriptionCommand, DataTransferUploadRequestCommand } from '../commands/DataTransfer'
-import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer'
-import { MediaPoolClearClipCommand, MediaPoolSetClipCommand } from '../commands/Media'
-import debug0 = require('debug')
-import { DataTransferUploadBuffer, UploadBufferInfo } from './dataTransferUploadBuffer'
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
+import { DataTransferFileDescriptionCommand, DataTransferUploadRequestCommand } from '../commands/DataTransfer/index.js'
+import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer.js'
+import { MediaPoolClearClipCommand, MediaPoolSetClipCommand } from '../commands/Media/index.js'
+import debug0 from 'debug'
+import { DataTransferUploadBuffer, UploadBufferInfo } from './dataTransferUploadBuffer.js'
 
 const debug = debug0('atem-connection:data-transfer:upload-clip')
 

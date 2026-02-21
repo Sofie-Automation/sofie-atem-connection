@@ -1,4 +1,4 @@
-import { WritableCommand } from '../CommandBase'
+import { WritableCommand } from '../CommandBase.js'
 
 export interface ClassicAudioResetPeaks {
 	all: boolean

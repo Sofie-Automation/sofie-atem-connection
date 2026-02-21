@@ -1,7 +1,7 @@
-import { SymmetricalCommand } from '../CommandBase'
-import { InvalidIdError, AtemState } from '../../state'
-import { ProtocolVersion } from '../../enums'
-import { StreamingAudioBitrates } from '../../state/streaming'
+import { SymmetricalCommand } from '../CommandBase.js'
+import { InvalidIdError, AtemState } from '../../state/index.js'
+import { ProtocolVersion } from '../../enums/index.js'
+import { StreamingAudioBitrates } from '../../state/streaming.js'
 
 export class StreamingAudioBitratesCommand extends SymmetricalCommand<StreamingAudioBitrates> {
 	public static readonly rawName = 'STAB'

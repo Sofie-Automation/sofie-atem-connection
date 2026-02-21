@@ -1,4 +1,4 @@
-import { Model, ProtocolVersion, VideoMode } from '../enums'
+import { Model, ProtocolVersion, VideoMode } from '../enums/index.js'
 
 export interface AtemCapabilites {
 	readonly mixEffects: number

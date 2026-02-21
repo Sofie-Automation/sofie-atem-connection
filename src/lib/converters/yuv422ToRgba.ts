@@ -3,7 +3,7 @@
  * Create util functions that handle proper colour spaces in UHD.
  */
 
-import { ColorConvertConstantsBT709, ColorConvertConstantsBT601 } from './colorConstants'
+import { ColorConvertConstantsBT709, ColorConvertConstantsBT601 } from './colorConstants.js'
 
 function clamp(v: number) {
 	if (v <= 0) return 0

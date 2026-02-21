@@ -1,2 +1,2 @@
-export * from './SuperSourceBoxParametersCommand'
-export * from './SuperSourcePropertiesCommand'
+export * from './SuperSourceBoxParametersCommand.js'
+export * from './SuperSourcePropertiesCommand.js'
