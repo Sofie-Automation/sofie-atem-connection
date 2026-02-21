@@ -43,7 +43,7 @@ export class RecordingStatusUpdateCommand extends DeserializedCommand<RecordingS
 		for (const e of errorEnumValues) {
 			if (e !== 0 && (rawStatus & e) === e) {
 				error = e
-				if (e !== RecordingError.None) break
+				if (e !== (RecordingError.None as number)) break
 			}
 		}
 

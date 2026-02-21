@@ -1,4 +1,4 @@
-import exitHook = require('exit-hook')
+import exitHook from 'exit-hook'
 
 import { DataTransferLockingQueue, DataTransferSimpleQueue, DataTransferQueueBase } from './dataTransferQueue.js'
 import DataTransferUploadStill from './dataTransferUploadStill.js'

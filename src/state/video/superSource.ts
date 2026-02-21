@@ -45,7 +45,7 @@ export interface SuperSource {
 		SuperSourceBox | undefined,
 		SuperSourceBox | undefined,
 		SuperSourceBox | undefined,
-		SuperSourceBox | undefined
+		SuperSourceBox | undefined,
 	]
 	properties?: SuperSourceProperties
 	border?: SuperSourceBorder

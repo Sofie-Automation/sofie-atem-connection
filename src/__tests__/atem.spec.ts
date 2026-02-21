@@ -156,6 +156,7 @@ describe('Atem', () => {
 			})
 			expect(socket.nextPacketTrackingId).toEqual(123)
 
+			// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
 			socket.sendCommands = jest.fn(() => Promise.reject(35) as any)
 
 			const sentQueue = (conn as any)._sentQueue as Record<string, unknown>

@@ -5,7 +5,10 @@ import { PacketBuilder } from '../packetBuilder.js'
 class FakeCommand implements ISerializableCommand {
 	static readonly rawName: string = 'FAKE'
 
-	constructor(public readonly length: number, public readonly value: number = 1) {}
+	constructor(
+		public readonly length: number,
+		public readonly value: number = 1
+	) {}
 
 	public get lengthWithHeader(): number {
 		return this.length + 8

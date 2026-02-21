@@ -4,7 +4,11 @@ import { ProgressTransferResult, DataTransferState } from './dataTransfer.js'
 import { DataTransferUploadBuffer } from './dataTransferUploadBuffer.js'
 
 export class DataTransferUploadMacro extends DataTransferUploadBuffer {
-	constructor(public readonly macroIndex: number, public readonly data: Buffer, private name: string) {
+	constructor(
+		public readonly macroIndex: number,
+		public readonly data: Buffer,
+		private name: string
+	) {
 		super({
 			encodedData: data,
 			rawDataLength: data.length,

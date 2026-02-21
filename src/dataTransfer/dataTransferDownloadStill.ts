@@ -13,7 +13,10 @@ import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataT
 export class DataTransferDownloadStill extends DataTransfer<Buffer> {
 	#data: Buffer[] = []
 
-	constructor(public readonly poolIndex: number, public readonly stillIndex: number) {
+	constructor(
+		public readonly poolIndex: number,
+		public readonly stillIndex: number
+	) {
 		super()
 	}
 
