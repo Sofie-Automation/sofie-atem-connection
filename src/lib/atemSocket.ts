@@ -1,7 +1,6 @@
 import EventEmitter from 'node:events'
 import path from 'node:path'
 
-import exitHook from 'exit-hook'
 import threadedClassPkg, { ThreadedClassManager } from 'threadedclass'
 import type { ThreadedClass } from 'threadedclass'
 
@@ -20,7 +19,6 @@ export interface AtemSocketOptions {
 	disableMultithreaded: boolean
 	childProcessTimeout: number
 	maxPacketSize: number
-	disableExitHandlers?: boolean
 }
 
 export type AtemSocketEvents = {
@@ -38,7 +36,6 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	private readonly _disableMultithreaded: boolean
 	private readonly _childProcessTimeout: number
 	private readonly _maxPacketSize: number
-	private readonly _disableExitHandlers: boolean
 	private readonly _commandParser: CommandParser = new CommandParser()
 
 	private _nextPacketTrackingId = 0
@@ -47,7 +44,6 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	private _port: number = DEFAULT_PORT
 	private _socketProcess: ThreadedClass<AtemSocketChild> | undefined
 	private _creatingSocket: Promise<void> | undefined
-	private _exitUnsubscribe?: () => void
 
 	constructor(options: AtemSocketOptions) {
 		super()
@@ -58,7 +54,6 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		this._disableMultithreaded = options.disableMultithreaded
 		this._childProcessTimeout = options.childProcessTimeout
 		this._maxPacketSize = options.maxPacketSize
-		this._disableExitHandlers = options.disableExitHandlers ?? false
 	}
 
 	public async connect(address?: string, port?: number): Promise<void> {
@@ -93,10 +88,6 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		if (this._socketProcess) {
 			await ThreadedClassManager.destroy(this._socketProcess)
 			this._socketProcess = undefined
-		}
-		if (this._exitUnsubscribe) {
-			this._exitUnsubscribe()
-			this._exitUnsubscribe = undefined
 		}
 	}
 
@@ -194,12 +185,6 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		ThreadedClassManager.onEvent(this._socketProcess, 'thread_closed', () => {
 			this.emit('disconnect')
 		})
-
-		if (!this._disableExitHandlers) {
-			this._exitUnsubscribe = exitHook(() => {
-				this.destroy().catch(() => null)
-			})
-		}
 	}
 
 	private _parseCommands(buffer: Buffer): IDeserializedCommand[] {

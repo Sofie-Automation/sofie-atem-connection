@@ -1,5 +1,4 @@
 import debug0 from 'debug'
-import exitHook from 'exit-hook'
 
 import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
 import { LockObtainedCommand, LockStateUpdateCommand } from '../commands/DataTransfer/index.js'
@@ -51,22 +50,13 @@ export class DataTransferManager {
 	readonly #macroLock: DataTransferSimpleQueue
 
 	private interval?: NodeJS.Timeout
-	private exitUnsubscribe?: () => void
-
-	readonly #disableExitHandlers: boolean
 
 	/**
 	 * @param rawSendCommands Send commands to the atem
 	 * @param onError Report an unexpected error
-	 * @param disableExitHandlers Skip registering exit handlers
 	 */
-	constructor(
-		rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>,
-		onError: (message: string) => void,
-		disableExitHandlers = false
-	) {
+	constructor(rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>, onError: (message: string) => void) {
 		this.#rawSendCommands = rawSendCommands
-		this.#disableExitHandlers = disableExitHandlers
 		this.#queueOptions = {
 			nextTransferId: this.#nextTransferId,
 			onError,
@@ -110,13 +100,6 @@ export class DataTransferManager {
 				}
 			}, 2) // TODO - refine this. perhaps we can stop and restart the interval?
 		}
-		if (!this.#disableExitHandlers && !this.exitUnsubscribe) {
-			this.exitUnsubscribe = exitHook(() => {
-				debug(`Exit auto-cleanup`)
-				// TODO - replace this with a WeakRef to the parent class?
-				this.stopCommandSending()
-			})
-		}
 	}
 
 	/**
@@ -129,10 +112,6 @@ export class DataTransferManager {
 			lock.clearQueueAndAbort(new Error('Stopping connection'))
 		}
 
-		if (this.exitUnsubscribe) {
-			this.exitUnsubscribe()
-			this.exitUnsubscribe = undefined
-		}
 		if (this.interval) {
 			clearInterval(this.interval)
 			this.interval = undefined

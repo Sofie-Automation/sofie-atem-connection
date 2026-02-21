@@ -50,14 +50,6 @@ export interface AtemOptions {
 	 * Maximum size of packets to transmit
 	 */
 	maxPacketSize?: number
-	/**
-	 * Disable registering handlers (via `exit-hook`) to cleanup the connection when the process exits.
-	 * These handlers listen for SIGINT/SIGTERM and call `process.exit()`, which cuts off any async shutdown logic in your application.
-	 * When disabled, you should call `destroy()` as part of your own shutdown.
-	 * You may also want to set `ThreadedClassManager.handleExit = RegisterExitHandlers.NO` from `threadedclass` to stop it registering its own handlers.
-	 * Default: false. In v4 these handlers will no longer be registered, matching the behaviour of setting this to true.
-	 */
-	disableExitHandlers?: boolean
 }
 
 export type AtemEvents = {
@@ -123,12 +115,9 @@ class AtemWrapper {
 			disableMultithreaded: options?.disableMultithreaded ?? false,
 			childProcessTimeout: options?.childProcessTimeout || 600,
 			maxPacketSize: options?.maxPacketSize ?? DEFAULT_MAX_PACKET_SIZE,
-			disableExitHandlers: options?.disableExitHandlers ?? false,
 		})
-		this.dataTransferManager = new DT.DataTransferManager(
-			this.sendCommands.bind(this),
-			(message) => this._safeEmit('error', message),
-			options?.disableExitHandlers ?? false
+		this.dataTransferManager = new DT.DataTransferManager(this.sendCommands.bind(this), (message) =>
+			this._safeEmit('error', message)
 		)
 
 		this.socket.on('receivedCommands', (commands) => {

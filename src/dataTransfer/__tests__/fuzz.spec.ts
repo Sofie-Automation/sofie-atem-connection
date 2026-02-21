@@ -74,8 +74,7 @@ describe('DataTransferManager fuzzing', () => {
 					}
 				}
 			},
-			(message) => errors.push(message),
-			true
+			(message) => errors.push(message)
 		)
 		manager.startCommandSending(true)
 
