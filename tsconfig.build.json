@@ -9,6 +9,8 @@
 			"*": ["./node_modules/*"],
 			"atem-connection": ["./src/index.ts"]
 		},
-		"types": ["node"]
+		"types": ["node"],
+		"module": "node16",
+		"moduleResolution": "node16"
 	}
 }
