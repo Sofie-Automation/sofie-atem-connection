@@ -1,5 +1,4 @@
-import { afterEach, beforeEach, describe, expect, test } from 'vitest'
-import * as fakeTimers from '@sinonjs/fake-timers'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { IDeserializedCommand, ISerializableCommand } from '../../commands/CommandBase.js'
 import {
@@ -42,20 +41,19 @@ function bufferInfo(length: number): UploadBufferInfo {
 }
 
 describe('DataTransferManager fuzzing', () => {
-	let clock: fakeTimers.InstalledClock
 	const unhandled: unknown[] = []
 	const onUnhandled = (e: unknown): void => {
 		unhandled.push(e)
 	}
 
 	beforeEach(() => {
-		clock = fakeTimers.install()
+		vi.useFakeTimers()
 		unhandled.length = 0
 		process.on('unhandledRejection', onUnhandled)
 	})
 	afterEach(() => {
 		process.off('unhandledRejection', onUnhandled)
-		clock.uninstall()
+		vi.useRealTimers()
 	})
 
 	test.each(Array.from({ length: SEEDS }, (_, i) => i + 1))('seed %d', async (seed) => {
@@ -128,17 +126,17 @@ describe('DataTransferManager fuzzing', () => {
 
 		for (let step = 0; step < STEPS; step++) {
 			manager.queueHandleCommand(randomCommand())
-			await clock.tickAsync(Math.floor(rand() * 10))
+			await vi.advanceTimersByTimeAsync(Math.floor(rand() * 10))
 		}
 
 		// Give every lock, so that nothing is left waiting on one, then let anything stalled time out
 		for (let round = 0; round < 10 && settled.includes(false); round++) {
 			for (const index of [0, 1, 2, 3]) manager.queueHandleCommand(new LockObtainedCommand(index))
-			await clock.tickAsync(SETTLE_TIME)
+			await vi.advanceTimersByTimeAsync(SETTLE_TIME)
 		}
 
 		manager.stopCommandSending()
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		expect(errors).toEqual([])
 		expect(unhandled).toEqual([])

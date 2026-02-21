@@ -2,7 +2,6 @@
 
 import { Buffer } from 'buffer'
 
-import * as fakeTimers from '@sinonjs/fake-timers'
 import { ThreadedClass, ThreadedClassManager } from 'threadedclass'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
@@ -44,8 +43,6 @@ const ThreadedClassManagerSingleton = new ThreadedClassManagerMock()
 vi.spyOn(ThreadedClassManager, 'onEvent').mockImplementation(ThreadedClassManagerSingleton.onEvent as any)
 
 describe('AtemSocket', () => {
-	let clock: fakeTimers.InstalledClock
-
 	function mockClear(lite?: boolean): void {
 		if (lite) {
 			mockConstructor.mockClear()
@@ -57,12 +54,12 @@ describe('AtemSocket', () => {
 		}
 	}
 	beforeEach(() => {
-		clock = fakeTimers.install()
+		vi.useFakeTimers()
 		mockClear()
 		ThreadedClassManagerSingleton.handlers = []
 	})
 	afterEach(() => {
-		clock.uninstall()
+		vi.useRealTimers()
 	})
 
 	function createSocket(): AtemSocket {
@@ -291,12 +288,12 @@ describe('AtemSocket', () => {
 
 		expect(mockCallbacks.onDisconnect).toBeDefined()
 		await mockCallbacks.onDisconnect()
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 		expect(disconnect).toHaveBeenCalledTimes(1)
 
 		expect(mockCallbacks.onPacketsAcknowledged).toBeDefined()
 		await mockCallbacks.onPacketsAcknowledged([{ packetId: 675, trackingId: 98 }])
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 		expect(ack).toHaveBeenCalledTimes(1)
 		expect(ack).toHaveBeenCalledWith([98])
 	})
@@ -323,7 +320,7 @@ describe('AtemSocket', () => {
 		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
 		await mockCallbacks.onCommandsReceived(testBuffer, pktId)
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(0)
 		expect(change).toHaveBeenCalledTimes(0)
@@ -353,7 +350,7 @@ describe('AtemSocket', () => {
 		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
 		await mockCallbacks.onCommandsReceived(testBuffer, pktId)
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(0)
 		expect(change).toHaveBeenCalledTimes(1)
@@ -414,7 +411,7 @@ describe('AtemSocket', () => {
 		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
 		await mockCallbacks.onCommandsReceived(Buffer.concat([testCmd1, testCmd2]), pktId)
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(0)
 		expect(change).toHaveBeenCalledTimes(1)
@@ -444,7 +441,7 @@ describe('AtemSocket', () => {
 		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
 		await mockCallbacks.onCommandsReceived(testBuffer, pktId)
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(0)
 		expect(change).toHaveBeenCalledTimes(0)
@@ -472,7 +469,7 @@ describe('AtemSocket', () => {
 		const backing = new Uint8Array(command.length + 4)
 		backing.set(command, 4)
 		await mockCallbacks.onCommandsReceived(backing.subarray(4) as any, 822)
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		expect(change).toHaveBeenCalledWith([new ProgramInputUpdateCommand(0, { source: 0x0123 })])
 	})
@@ -495,7 +492,7 @@ describe('AtemSocket', () => {
 		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
 		await mockCallbacks.onCommandsReceived(testBuffer, pktId)
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(0)
 		expect(change).toHaveBeenCalledTimes(0)
@@ -523,7 +520,7 @@ describe('AtemSocket', () => {
 			0x23,
 		])
 		await mockCallbacks.onCommandsReceived(testCmd, 822)
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		expect(change).toHaveBeenCalledTimes(0)
 		expect(error).toHaveBeenCalledWith('Received command PrgI with length 20, but only 12 bytes remain')
@@ -586,7 +583,7 @@ describe('AtemSocket', () => {
 		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
 		await mockCallbacks.onCommandsReceived(Buffer.concat([testCmd1, testCmd2]), pktId)
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(1)
 		expect(change).toHaveBeenCalledTimes(1)

@@ -1,4 +1,3 @@
-import * as fakeTimers from '@sinonjs/fake-timers'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { IDeserializedCommand } from '../../commands/CommandBase.js'
@@ -35,12 +34,11 @@ class FakeTransfer extends DataTransfer<void> {
 }
 
 describe('DataTransferQueue', () => {
-	let clock: fakeTimers.InstalledClock
 	beforeEach(() => {
-		clock = fakeTimers.install()
+		vi.useFakeTimers()
 	})
 	afterEach(() => {
-		clock.uninstall()
+		vi.useRealTimers()
 	})
 
 	function createQueue() {
@@ -62,7 +60,7 @@ describe('DataTransferQueue', () => {
 		const promise = queue.enqueue(transfer)
 		promise.catch(() => null) // Avoid an unhandled rejection before it is checked
 
-		await clock.tickAsync(TIMEOUT + 10)
+		await vi.advanceTimersByTimeAsync(TIMEOUT + 10)
 		await expect(promise).rejects.toThrow(`Transfer timed out after ${TIMEOUT}ms of inactivity`)
 		expect(queue.currentTransferId).toBeNull()
 		expect(errors).toEqual([])
@@ -74,15 +72,15 @@ describe('DataTransferQueue', () => {
 		const promise = queue.enqueue(transfer)
 
 		for (let i = 0; i < 5; i++) {
-			await clock.tickAsync(TIMEOUT * 0.8)
+			await vi.advanceTimersByTimeAsync(TIMEOUT * 0.8)
 			queue.handleCommand(data(0))
 		}
 		queue.handleCommand(new DataTransferCompleteCommand({ transferId: 0 }))
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 		await expect(promise).resolves.toBeUndefined()
 
 		// Completion stops the timer
-		expect(clock.countTimers()).toEqual(0)
+		expect(vi.getTimerCount()).toEqual(0)
 	})
 
 	test('time spent handling a command is not inactivity', async () => {
@@ -93,13 +91,13 @@ describe('DataTransferQueue', () => {
 		let settled = false
 		promise.finally(() => (settled = true)).catch(() => null)
 
-		await clock.tickAsync(10)
+		await vi.advanceTimersByTimeAsync(10)
 		queue.handleCommand(data(0))
-		await clock.tickAsync(TIMEOUT * 3 + 10)
+		await vi.advanceTimersByTimeAsync(TIMEOUT * 3 + 10)
 		expect(settled).toBe(false)
 
 		// Once the handler finishes, the clock starts again
-		await clock.tickAsync(TIMEOUT + 10)
+		await vi.advanceTimersByTimeAsync(TIMEOUT + 10)
 		await expect(promise).rejects.toThrow('Transfer timed out')
 	})
 
@@ -114,12 +112,12 @@ describe('DataTransferQueue', () => {
 		let settled = false
 		promise.finally(() => (settled = true)).catch(() => null)
 
-		await clock.tickAsync(TIMEOUT * 10)
+		await vi.advanceTimersByTimeAsync(TIMEOUT * 10)
 		expect(settled).toBe(false)
 
 		// Once the lock is obtained the transfer starts, and can time out
 		queue.lockObtained()
-		await clock.tickAsync(TIMEOUT + 10)
+		await vi.advanceTimersByTimeAsync(TIMEOUT + 10)
 		await expect(promise).rejects.toThrow('Transfer timed out')
 	})
 
@@ -134,13 +132,13 @@ describe('DataTransferQueue', () => {
 		const broken = queue.enqueue(new BrokenTransfer())
 		broken.catch(() => null)
 		const next = queue.enqueue(new FakeTransfer())
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		await expect(broken).rejects.toThrow('No frames available for transfer')
 		expect(queue.currentTransferId).toEqual(1)
 
 		queue.handleCommand(new DataTransferCompleteCommand({ transferId: 1 }))
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 		await expect(next).resolves.toBeUndefined()
 	})
 
@@ -170,20 +168,20 @@ describe('DataTransferQueue', () => {
 			const transfer = new FakeTransfer()
 			const startSpy = vi.spyOn(transfer, 'startTransfer')
 			const promise = queue.enqueue(transfer)
-			await clock.tickAsync(0)
+			await vi.advanceTimersByTimeAsync(0)
 			expect(lockCommands).toEqual([true])
 			expect(startSpy).not.toHaveBeenCalled()
 
 			// The other client unlocking doesn't abort our transfer, which is still waiting for the lock
 			queue.updateLock(false)
-			await clock.tickAsync(0)
+			await vi.advanceTimersByTimeAsync(0)
 
 			queue.lockObtained()
-			await clock.tickAsync(0)
+			await vi.advanceTimersByTimeAsync(0)
 			expect(startSpy).toHaveBeenCalledTimes(1)
 
 			queue.handleCommand(new DataTransferCompleteCommand({ transferId: 0 }))
-			await clock.tickAsync(0)
+			await vi.advanceTimersByTimeAsync(0)
 			queue.popQueuedCommands(10) // Let the queue see the transfer has finished
 			await expect(promise).resolves.toBeUndefined()
 
@@ -193,7 +191,7 @@ describe('DataTransferQueue', () => {
 			// Then confirming our unlock, and another client taking the lock, changes nothing
 			queue.updateLock(false)
 			queue.updateLock(true)
-			await clock.tickAsync(0)
+			await vi.advanceTimersByTimeAsync(0)
 			expect(lockCommands).toEqual([true, false])
 		})
 
@@ -202,12 +200,12 @@ describe('DataTransferQueue', () => {
 
 			const promise = queue.enqueue(new FakeTransfer())
 			promise.catch(() => null)
-			await clock.tickAsync(0)
+			await vi.advanceTimersByTimeAsync(0)
 			queue.lockObtained()
-			await clock.tickAsync(0)
+			await vi.advanceTimersByTimeAsync(0)
 
 			queue.updateLock(false)
-			await clock.tickAsync(0)
+			await vi.advanceTimersByTimeAsync(0)
 			await expect(promise).rejects.toThrow('Lost lock mid-transfer')
 			// It is already unlocked, so there is nothing to release
 			expect(lockCommands).toEqual([true])
