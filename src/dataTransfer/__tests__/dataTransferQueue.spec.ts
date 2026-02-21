@@ -1,4 +1,5 @@
 import * as fakeTimers from '@sinonjs/fake-timers'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import { IDeserializedCommand } from '../../commands/CommandBase.js'
 import {
@@ -95,7 +96,7 @@ describe('DataTransferQueue', () => {
 		await clock.tickAsync(10)
 		queue.handleCommand(data(0))
 		await clock.tickAsync(TIMEOUT * 3 + 10)
-		expect(settled).toBeFalse()
+		expect(settled).toBe(false)
 
 		// Once the handler finishes, the clock starts again
 		await clock.tickAsync(TIMEOUT + 10)
@@ -114,7 +115,7 @@ describe('DataTransferQueue', () => {
 		promise.finally(() => (settled = true)).catch(() => null)
 
 		await clock.tickAsync(TIMEOUT * 10)
-		expect(settled).toBeFalse()
+		expect(settled).toBe(false)
 
 		// Once the lock is obtained the transfer starts, and can time out
 		queue.lockObtained()
@@ -167,7 +168,7 @@ describe('DataTransferQueue', () => {
 
 			// We still have to request the lock, rather than starting the transfer straight away
 			const transfer = new FakeTransfer()
-			const startSpy = jest.spyOn(transfer, 'startTransfer')
+			const startSpy = vi.spyOn(transfer, 'startTransfer')
 			const promise = queue.enqueue(transfer)
 			await clock.tickAsync(0)
 			expect(lockCommands).toEqual([true])

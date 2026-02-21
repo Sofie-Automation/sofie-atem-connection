@@ -8,6 +8,7 @@ import type { ThreadedClass } from 'threadedclass'
 import { DEFAULT_PORT } from '../atem.js'
 import { IDeserializedCommand, ISerializableCommand, VersionCommand } from '../commands/index.js'
 import { CommandParser } from './atemCommandParser.js'
+import { isRunningInTests } from './atemUtil.js'
 import { PacketBuilder } from './packetBuilder.js'
 import type { AtemSocketChild, OutboundPacketInfo } from './atemSocketChild.js'
 
@@ -146,7 +147,10 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	private async _createSocketProcess(): Promise<void> {
 		this._socketProcess = await threadedClassPkg.threadedClass<AtemSocketChild, typeof AtemSocketChild>(
 			// threadedclass can't resolve relative paths from an ESM caller, so give it an absolute path
-			path.join(import.meta.dirname, 'atemSocketChild.js'),
+			path.join(
+				import.meta.dirname,
+				isRunningInTests() ? '__tests__/atemSocketChildFake.js' : 'atemSocketChild.js'
+			),
 			'AtemSocketChild',
 			[
 				{
@@ -177,6 +181,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 				freezeLimit: this._childProcessTimeout,
 				autoRestart: true,
 				disableMultithreading: this._disableMultithreaded,
+				importWorkerFile: true,
 			}
 		)
 

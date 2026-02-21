@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import * as fakeTimers from '@sinonjs/fake-timers'
 
 import { IDeserializedCommand, ISerializableCommand } from '../../commands/CommandBase.js'
@@ -120,7 +121,7 @@ describe('DataTransferManager fuzzing', () => {
 				default:
 					return new DataTransferErrorCommand({
 						transferId,
-						errorCode: pick([ErrorCode.Retry, ErrorCode.NotFound, ErrorCode.NotLocked, 7]),
+						errorCode: pick([ErrorCode.Retry, ErrorCode.NotFound, ErrorCode.NotLocked, 7 as ErrorCode]),
 					})
 			}
 		}

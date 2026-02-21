@@ -2,12 +2,14 @@
 import { EventEmitter } from 'events'
 import { promisify } from 'util'
 
+import { beforeEach, describe, expect, test, vi } from 'vitest'
+
 import { Atem, DEFAULT_MAX_PACKET_SIZE, DEFAULT_PORT } from '../atem.js'
 import { CutCommand, ProductIdentifierCommand, VersionCommand } from '../commands/index.js'
 import { Model, ProtocolVersion } from '../enums/index.js'
 import { AtemSocket } from '../lib/atemSocket.js'
 
-jest.mock('../lib/atemSocket.js')
+vi.mock('../lib/atemSocket.js')
 
 const setImmediatePromise = promisify(setImmediate)
 
@@ -19,7 +21,7 @@ class MockSocket extends EventEmitter {
 
 describe('Atem', () => {
 	beforeEach(() => {
-		;(AtemSocket as any).mockClear()
+		vi.mocked(AtemSocket).mockClear()
 	})
 
 	test('constructor test 1', async () => {
@@ -74,7 +76,7 @@ describe('Atem', () => {
 			const socket = (conn as any).client.socket as AtemSocket
 			expect(socket).toBeTruthy()
 
-			socket.connect = jest.fn(() => Promise.resolve(5) as any)
+			socket.connect = vi.fn(() => Promise.resolve(5) as any)
 
 			const res = conn.connect('127.9.8.7', 98)
 			expect(await res).toEqual(5)
@@ -93,7 +95,7 @@ describe('Atem', () => {
 			const socket = (conn as any).client.socket as AtemSocket
 			expect(socket).toBeTruthy()
 
-			socket.disconnect = jest.fn(() => Promise.resolve(35) as any)
+			socket.disconnect = vi.fn(() => Promise.resolve(35) as any)
 
 			const res = await conn.disconnect()
 			expect(res).toEqual(35)
@@ -106,7 +108,9 @@ describe('Atem', () => {
 	})
 
 	test('sendCommand - good', async () => {
-		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		vi.mocked(AtemSocket).mockImplementation(function () {
+			return new MockSocket() as any
+		})
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
 
 		try {
@@ -115,12 +119,12 @@ describe('Atem', () => {
 
 			let nextId = 123
 			Object.defineProperty(socket, 'nextPacketTrackingId', {
-				get: jest.fn(() => nextId++),
-				set: jest.fn(),
+				get: vi.fn(() => nextId++),
+				set: vi.fn(),
 			})
 			expect(socket.nextPacketTrackingId).toEqual(123)
 
-			socket.sendCommands = jest.fn(() => Promise.resolve([124]) as any)
+			socket.sendCommands = vi.fn(() => Promise.resolve([124]) as any)
 
 			const sentQueue = (conn as any).client._sentQueue as Record<string, unknown>
 			expect(Object.keys(sentQueue)).toHaveLength(0)
@@ -146,12 +150,14 @@ describe('Atem', () => {
 	}, 500)
 
 	test('sendCommand - rejects when the connection is lost before the ack', async () => {
-		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		vi.mocked(AtemSocket).mockImplementation(function () {
+			return new MockSocket() as any
+		})
 		const conn = new Atem({ address: 'test1', port: 23 })
 
 		try {
 			const socket = (conn as any).client.socket as AtemSocket
-			socket.sendCommands = jest.fn(() => Promise.resolve([124, 125]) as any)
+			socket.sendCommands = vi.fn(() => Promise.resolve([124, 125]) as any)
 
 			const res = conn.sendCommand(new CutCommand(0))
 			await setImmediatePromise()
@@ -168,12 +174,14 @@ describe('Atem', () => {
 	})
 
 	test('a helper with nothing to change sends nothing, and resolves', async () => {
-		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		vi.mocked(AtemSocket).mockImplementation(function () {
+			return new MockSocket() as any
+		})
 		const conn = new Atem({ address: 'test1', port: 23 })
 
 		try {
 			const socket = (conn as any).client.socket as AtemSocket
-			socket.sendCommands = jest.fn(() => Promise.resolve([]) as any)
+			socket.sendCommands = vi.fn(() => Promise.resolve([]) as any)
 
 			await expect(conn.setInputSettings({})).resolves.toBeUndefined()
 			expect(socket.sendCommands).not.toHaveBeenCalled()
@@ -183,7 +191,9 @@ describe('Atem', () => {
 	})
 
 	test('sendCommand - send error', async () => {
-		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		vi.mocked(AtemSocket).mockImplementation(function () {
+			return new MockSocket() as any
+		})
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
 
 		try {
@@ -192,13 +202,13 @@ describe('Atem', () => {
 
 			let nextId = 123
 			Object.defineProperty(socket, 'nextPacketTrackingId', {
-				get: jest.fn(() => nextId++),
-				set: jest.fn(),
+				get: vi.fn(() => nextId++),
+				set: vi.fn(),
 			})
 			expect(socket.nextPacketTrackingId).toEqual(123)
 
 			// eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-			socket.sendCommands = jest.fn(() => Promise.reject(35) as any)
+			socket.sendCommands = vi.fn(() => Promise.reject(35) as any)
 
 			const sentQueue = (conn as any).client._sentQueue as Record<string, unknown>
 			expect(Object.keys(sentQueue)).toHaveLength(0)
@@ -224,12 +234,14 @@ describe('Atem', () => {
 	}, 500)
 
 	test('sendCommands - default group sent together in a single call', async () => {
-		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		vi.mocked(AtemSocket).mockImplementation(function () {
+			return new MockSocket() as any
+		})
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
 
 		try {
 			const socket = (conn as any).client.socket as AtemSocket
-			socket.sendCommands = jest.fn(() => Promise.resolve([]) as any)
+			socket.sendCommands = vi.fn(() => Promise.resolve([]) as any)
 
 			// All commands use the default runOrderGroup (0), so they are sent as one batch
 			const cmds = [new CutCommand(0), new CutCommand(1), new CutCommand(2)]
@@ -243,12 +255,14 @@ describe('Atem', () => {
 	})
 
 	test('sendCommands - splits by runOrderGroup and sends groups in ascending numeric order', async () => {
-		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		vi.mocked(AtemSocket).mockImplementation(function () {
+			return new MockSocket() as any
+		})
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
 
 		try {
 			const socket = (conn as any).client.socket as AtemSocket
-			socket.sendCommands = jest.fn(() => Promise.resolve([]) as any)
+			socket.sendCommands = vi.fn(() => Promise.resolve([]) as any)
 
 			const mk = (group: number): CutCommand => {
 				const cmd = new CutCommand(0)
@@ -268,7 +282,7 @@ describe('Atem', () => {
 
 			// One socket.sendCommands call per group, ordered by ascending runOrderGroup,
 			// with same-group commands preserving their original input order
-			const callArgs = (socket.sendCommands as jest.Mock).mock.calls.map((call) => call[0])
+			const callArgs = (socket.sendCommands as ReturnType<typeof vi.fn>).mock.calls.map((call) => call[0])
 			expect(callArgs).toEqual([[gNeg], [g0a, g0b], [g2], [g10]])
 		} finally {
 			await conn.destroy()
@@ -276,7 +290,9 @@ describe('Atem', () => {
 	})
 
 	test('a throwing event listener does not stop the state from updating', async () => {
-		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		vi.mocked(AtemSocket).mockImplementation(function () {
+			return new MockSocket() as any
+		})
 		const conn = new Atem({ address: 'test1', port: 23 })
 
 		try {
@@ -300,12 +316,14 @@ describe('Atem', () => {
 	})
 
 	test('disconnected is only emitted once per lost connection', async () => {
-		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		vi.mocked(AtemSocket).mockImplementation(function () {
+			return new MockSocket() as any
+		})
 		const conn = new Atem({ address: 'test1', port: 23 })
 
 		try {
 			const socket = (conn as any).client.socket as AtemSocket
-			const disconnected = jest.fn()
+			const disconnected = vi.fn()
 			conn.on('disconnected', disconnected)
 
 			// Never connected, eg the atem is unreachable, or disconnect() followed by destroy()

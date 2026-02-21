@@ -1,3 +1,5 @@
+import { describe, expect, test } from 'vitest'
+
 import * as Commands from '../../commands/index.js'
 import { FairlightAnalogInputLevel, ProtocolVersion } from '../../enums/index.js'
 import { AtemCommandCollector } from '../batchCommands.js'

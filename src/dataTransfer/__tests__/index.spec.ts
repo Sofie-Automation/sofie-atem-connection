@@ -1,6 +1,8 @@
 import { readFileSync } from 'fs'
 import * as path from 'path'
 
+import { expect, test } from 'vitest'
+
 import * as DataTransferCommands from '../../commands/DataTransfer/index.js'
 import { Commands, UploadBufferInfo } from '../../index.js'
 import { generateHashForBuffer } from '../dataTransferUploadBuffer.js'

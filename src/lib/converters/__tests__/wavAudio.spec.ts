@@ -1,3 +1,5 @@
+import { describe, expect, test } from 'vitest'
+
 import { Model } from '../../../enums/index.js'
 import { convertWAVToRaw } from '../wavAudio.js'
 

@@ -1,7 +1,7 @@
-/* eslint-disable jest/no-export */
-
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
+
+import { describe, expect, test } from 'vitest'
 
 import { createEmptyState } from '../../__tests__/util.js'
 import { ProtocolVersion } from '../../enums/index.js'
@@ -148,7 +148,7 @@ function runTestForCommand(commandParser: CommandParser, i: number, testCase: Te
 				const maskProps = (cmd as any).constructor.MaskFlags
 				if (maskProps) {
 					for (const key of Object.keys(mutatedCommand)) {
-						// eslint-disable-next-line jest/no-conditional-expect
+						// eslint-disable-next-line vitest/no-conditional-expect
 						expect(maskProps).toHaveProperty(key)
 						// expect(maskProps[key]).not.toBeUndefined()
 					}

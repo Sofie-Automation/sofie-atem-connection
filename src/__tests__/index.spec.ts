@@ -1,3 +1,5 @@
+import { expect, test, vi } from 'vitest'
+
 import { Atem, Enums } from '../index.js'
 import { createEmptyState } from './util.js'
 
@@ -20,7 +22,7 @@ function createConnection(apiVersion: Enums.ProtocolVersion): Atem {
 	state.info.apiVersion = apiVersion
 
 	// conn.on('error', () => null)
-	conn.sendCommand = jest.fn()
+	conn.sendCommand = vi.fn()
 	;(conn as any).client._state = state
 
 	return conn

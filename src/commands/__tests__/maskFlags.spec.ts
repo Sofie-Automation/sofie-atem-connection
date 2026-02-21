@@ -1,3 +1,5 @@
+import { describe, expect, test } from 'vitest'
+
 import { WritableCommand } from '../CommandBase.js'
 import * as Commands from '../index.js'
 

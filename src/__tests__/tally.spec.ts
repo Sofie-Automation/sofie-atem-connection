@@ -1,6 +1,8 @@
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 
+import { describe, expect, test } from 'vitest'
+
 import { Commands } from '../index.js'
 import { getComponents } from '../lib/atemUtil.js'
 import { listVisibleInputs } from '../lib/tally.js'

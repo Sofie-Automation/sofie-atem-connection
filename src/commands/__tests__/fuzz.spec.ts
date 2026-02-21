@@ -1,5 +1,7 @@
 import { types } from 'util'
 
+import { describe, expect, test } from 'vitest'
+
 import { ProtocolVersion } from '../../enums/index.js'
 import { CommandParser } from '../../lib/atemCommandParser.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'

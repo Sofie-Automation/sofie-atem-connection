@@ -35,7 +35,7 @@ nb.on('connected', async () => {
 	const transfer = new DataTransferManager(async (cmds) => {
 		for (const cmd of cmds) commands.push(procCmd(cmd, 'send'))
 		return nb.sendCommands(cmds)
-	})
+	}, console.error)
 	transfer.startCommandSending()
 	nb.on('receivedCommands', (cmds) => {
 		cmds.forEach(async (cmd): Promise<void> => {

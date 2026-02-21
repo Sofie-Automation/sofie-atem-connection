@@ -1,3 +1,5 @@
+import { describe, expect, test } from 'vitest'
+
 import { DataTransferCompleteCommand, DataTransferDataCommand } from '../../commands/DataTransfer/index.js'
 import { DataTransferState } from '../dataTransfer.js'
 import { DataTransferDownloadMacro } from '../dataTransferDownloadMacro.js'

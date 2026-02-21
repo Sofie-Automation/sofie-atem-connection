@@ -1,6 +1,8 @@
 import { readdirSync, readFileSync } from 'fs'
 import { resolve } from 'path'
 
+import { describe, expect, test } from 'vitest'
+
 import { IDeserializedCommand, VersionCommand } from '../commands/index.js'
 import { CommandParser } from '../lib/atemCommandParser.js'
 import { AtemState, AtemStateUtil } from '../state/index.js'
