@@ -1,3 +1,3 @@
-export * from './FadeToBlackAutoCommand'
-export * from './FadeToBlackRateCommand'
-export * from './FadeToBlackStateCommand'
+export * from './FadeToBlackAutoCommand.js'
+export * from './FadeToBlackRateCommand.js'
+export * from './FadeToBlackStateCommand.js'

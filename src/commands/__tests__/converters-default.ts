@@ -1,6 +1,6 @@
-import { PropertyAliasResult, CommandTestConverterSet } from './index.spec'
-import { UpstreamKeyerMaskSettings } from '../../state/video/upstreamKeyers'
-import { Enums, Util } from '../..'
+import { PropertyAliasResult, CommandTestConverterSet } from './index.spec.js'
+import { UpstreamKeyerMaskSettings } from '../../state/video/upstreamKeyers.js'
+import { Enums, Util } from '../../index.js'
 
 export const DefaultCommandConverters: CommandTestConverterSet = {
 	_ver: {

@@ -1,4 +1,4 @@
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase'
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
 
 export enum DataTransferState {
 	/** Waiting for strt */

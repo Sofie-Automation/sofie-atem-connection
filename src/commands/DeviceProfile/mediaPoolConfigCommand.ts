@@ -1,6 +1,6 @@
-import { DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import { MediaPoolInfo } from '../../state/info'
+import { DeserializedCommand } from '../CommandBase.js'
+import { AtemState } from '../../state/index.js'
+import { MediaPoolInfo } from '../../state/info.js'
 
 export class MediaPoolConfigCommand extends DeserializedCommand<MediaPoolInfo> {
 	public static readonly rawName = '_mpl'

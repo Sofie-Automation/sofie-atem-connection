@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Atem, Enums } from '../index'
-import { createEmptyState } from './util'
+import { Atem, Enums } from '../index.js'
+import { createEmptyState } from './util.js'
 
 test('Simple test', async () => {
 	const nb = new Atem({ disableMultithreaded: true })

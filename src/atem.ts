@@ -1,10 +1,10 @@
 import { EventEmitter } from 'eventemitter3'
-import { AtemState, AtemStateUtil, InvalidIdError, ColorGeneratorState } from './state'
-import { AtemSocket } from './lib/atemSocket'
-import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase'
-import * as Commands from './commands'
-import * as DataTransferCommands from './commands/DataTransfer'
-import { MediaPlayer, MediaPlayerSource } from './state/media'
+import { AtemState, AtemStateUtil, InvalidIdError, ColorGeneratorState } from './state/index.js'
+import { AtemSocket } from './lib/atemSocket.js'
+import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase.js'
+import * as Commands from './commands/index.js'
+import * as DataTransferCommands from './commands/DataTransfer/index.js'
+import { MediaPlayer, MediaPlayerSource } from './state/media.js'
 import {
 	DipTransitionSettings,
 	DVETransitionSettings,
@@ -13,24 +13,24 @@ import {
 	SuperSource,
 	TransitionProperties,
 	WipeTransitionSettings,
-} from './state/video'
-import * as USK from './state/video/upstreamKeyers'
-import { InputChannel } from './state/input'
-import { DownstreamKeyerGeneral, DownstreamKeyerMask } from './state/video/downstreamKeyers'
-import * as DT from './dataTransfer'
-import * as Util from './lib/atemUtil'
-import { VideoModeInfo, getVideoModeInfo } from './lib/videoMode'
-import * as Enums from './enums'
+} from './state/video/index.js'
+import * as USK from './state/video/upstreamKeyers.js'
+import { InputChannel } from './state/input.js'
+import { DownstreamKeyerGeneral, DownstreamKeyerMask } from './state/video/downstreamKeyers.js'
+import * as DT from './dataTransfer/index.js'
+import * as Util from './lib/atemUtil.js'
+import { VideoModeInfo, getVideoModeInfo } from './lib/videoMode.js'
+import * as Enums from './enums/index.js'
 import {
 	ClassicAudioMonitorChannel,
 	ClassicAudioMasterChannel,
 	ClassicAudioChannel,
 	ClassicAudioHeadphoneOutputChannel,
-} from './state/audio'
-import { listVisibleInputs } from './lib/tally'
-import { RecordingStateProperties } from './state/recording'
-import { OmitReadonly } from './lib/types'
-import { StreamingServiceProperties } from './state/streaming'
+} from './state/audio.js'
+import { listVisibleInputs } from './lib/tally.js'
+import { RecordingStateProperties } from './state/recording.js'
+import { OmitReadonly } from './lib/types.js'
+import { StreamingServiceProperties } from './state/streaming.js'
 import {
 	FairlightAudioMonitorChannel,
 	FairlightAudioCompressorState,
@@ -40,24 +40,24 @@ import {
 	FairlightAudioRoutingSource,
 	FairlightAudioRoutingOutput,
 	FairlightAudioMonitorSolo,
-} from './state/fairlight'
-import { FairlightDynamicsResetProps } from './commands/Fairlight/common'
-import { MultiViewerPropertiesState } from './state/settings'
+} from './state/fairlight.js'
+import { FairlightDynamicsResetProps } from './commands/Fairlight/common.js'
+import { MultiViewerPropertiesState } from './state/settings.js'
 import {
 	calculateGenerateMultiviewerLabelProps,
 	generateMultiviewerLabel,
 	hasInternalMultiviewerLabelGeneration,
 	loadFont,
-} from './lib/multiviewLabel'
+} from './lib/multiviewLabel.js'
 import { FontFace } from '@julusian/freetype2'
 import PLazy = require('p-lazy')
-import { TimeCommand } from './commands'
-import { TimeInfo } from './state/info'
-import { SomeAtemAudioLevels } from './state/levels'
-import { generateUploadBufferInfo, UploadBufferInfo } from './dataTransfer/dataTransferUploadBuffer'
-import { convertWAVToRaw } from './lib/converters/wavAudio'
-import { decodeRLE } from './lib/converters/rle'
-import { convertYUV422ToRGBA } from './lib/converters/yuv422ToRgba'
+import { TimeCommand } from './commands/index.js'
+import { TimeInfo } from './state/info.js'
+import { SomeAtemAudioLevels } from './state/levels.js'
+import { generateUploadBufferInfo, UploadBufferInfo } from './dataTransfer/dataTransferUploadBuffer.js'
+import { convertWAVToRaw } from './lib/converters/wavAudio.js'
+import { decodeRLE } from './lib/converters/rle.js'
+import { convertYUV422ToRGBA } from './lib/converters/yuv422ToRgba.js'
 
 // Pre-computed once at module load — avoids allocating Object.values() and iterating
 // DataTransferCommands on every received command packet.

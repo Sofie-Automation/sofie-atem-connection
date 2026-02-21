@@ -1,5 +1,5 @@
-import { AtemState } from '../state'
-import { ProtocolVersion } from '../enums'
+import { AtemState } from '../state/index.js'
+import { ProtocolVersion } from '../enums/index.js'
 
 export interface IDeserializedCommand {
 	properties: any

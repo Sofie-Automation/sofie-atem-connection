@@ -1,8 +1,8 @@
-import { WritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import { StreamingServiceProperties } from '../../state/streaming'
-import { ProtocolVersion } from '../../enums'
-import { bufToNullTerminatedString } from '../../lib/atemUtil'
+import { WritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { AtemState } from '../../state/index.js'
+import { StreamingServiceProperties } from '../../state/streaming.js'
+import { ProtocolVersion } from '../../enums/index.js'
+import { bufToNullTerminatedString } from '../../lib/atemUtil.js'
 
 export class StreamingServiceCommand extends WritableCommand<StreamingServiceProperties> {
 	public static readonly rawName = 'CRSS'

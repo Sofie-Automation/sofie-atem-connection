@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from './CommandBase'
+import { BasicWritableCommand } from './CommandBase.js'
 
 export class StartupStateSaveCommand extends BasicWritableCommand<unknown> {
 	public static readonly rawName = 'SRsv'

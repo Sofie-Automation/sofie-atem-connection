@@ -1,5 +1,5 @@
-import { WritableCommand, DeserializedCommand } from './CommandBase'
-import { AtemState, ColorGeneratorState } from '../state'
+import { WritableCommand, DeserializedCommand } from './CommandBase.js'
+import { AtemState, ColorGeneratorState } from '../state/index.js'
 
 export class ColorGeneratorCommand extends WritableCommand<ColorGeneratorState> {
 	public static MaskFlags = {

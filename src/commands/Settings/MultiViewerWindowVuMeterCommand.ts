@@ -1,5 +1,5 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
 
 export class MultiViewerWindowVuMeterCommand extends BasicWritableCommand<{ vuEnabled: boolean }> {
 	public static readonly rawName = 'VuMS'

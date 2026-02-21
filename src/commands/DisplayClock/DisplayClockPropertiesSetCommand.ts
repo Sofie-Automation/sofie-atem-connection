@@ -1,5 +1,5 @@
-import { DisplayClockProperties } from '../../state/displayClock'
-import { WritableCommand } from '../CommandBase'
+import { DisplayClockProperties } from '../../state/displayClock.js'
+import { WritableCommand } from '../CommandBase.js'
 
 export interface DisplayClockPropertiesExt extends DisplayClockProperties {
 	startFromFrames: number

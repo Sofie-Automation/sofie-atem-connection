@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { AtemState } from '../../state'
-import { calculateGenerateMultiviewerLabelProps, generateMultiviewerLabel } from '../multiviewLabel'
+import { AtemState } from '../../state/index.js'
+import { calculateGenerateMultiviewerLabelProps, generateMultiviewerLabel } from '../multiviewLabel.js'
 import { NewMemoryFace } from '@julusian/freetype2'
 import * as fs from 'fs'
 

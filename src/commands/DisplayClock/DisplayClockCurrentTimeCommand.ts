@@ -1,6 +1,6 @@
-import { DisplayClockTime } from '../../state/displayClock'
-import { AtemState, InvalidIdError } from '../../state'
-import { DeserializedCommand } from '../CommandBase'
+import { DisplayClockTime } from '../../state/displayClock.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class DisplayClockCurrentTimeCommand extends DeserializedCommand<{ time: DisplayClockTime }> {
 	public static readonly rawName = 'DSTV'

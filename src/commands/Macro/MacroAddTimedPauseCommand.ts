@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class MacroAddTimedPauseCommand extends BasicWritableCommand<{ frames: number }> {
 	public static readonly rawName = 'MSlp'

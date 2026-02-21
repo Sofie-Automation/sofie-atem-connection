@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class DownstreamKeyOnAirCommand extends BasicWritableCommand<{ onAir: boolean }> {
 	public static readonly rawName = 'CDsL'

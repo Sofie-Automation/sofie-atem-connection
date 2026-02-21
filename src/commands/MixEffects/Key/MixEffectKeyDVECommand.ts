@@ -1,6 +1,6 @@
-import { WritableCommand, DeserializedCommand } from '../../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state'
-import { UpstreamKeyerDVESettings } from '../../../state/video/upstreamKeyers'
+import { WritableCommand, DeserializedCommand } from '../../CommandBase.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
+import { UpstreamKeyerDVESettings } from '../../../state/video/upstreamKeyers.js'
 
 export class MixEffectKeyDVECommand extends WritableCommand<UpstreamKeyerDVESettings> {
 	public static MaskFlags = {

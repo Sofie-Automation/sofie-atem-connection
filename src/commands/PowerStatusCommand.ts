@@ -1,5 +1,5 @@
-import { DeserializedCommand } from './CommandBase'
-import { AtemState } from '../state'
+import { DeserializedCommand } from './CommandBase.js'
+import { AtemState } from '../state/index.js'
 
 /**
  * This command gets the power status from the Atem. As defined in

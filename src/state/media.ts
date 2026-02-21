@@ -1,4 +1,4 @@
-import * as Enums from '../enums'
+import * as Enums from '../enums/index.js'
 
 export interface MediaPlayer {
 	playing: boolean

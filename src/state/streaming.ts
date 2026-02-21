@@ -1,5 +1,5 @@
-import { StreamingError, StreamingStatus } from '../enums'
-import { Timecode } from './common'
+import { StreamingError, StreamingStatus } from '../enums/index.js'
+import { Timecode } from './common.js'
 
 export interface StreamingState {
 	status?: StreamingStateStatus

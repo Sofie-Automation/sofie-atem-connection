@@ -1,5 +1,5 @@
-import { FairlightAudioLevels } from '../../state/levels'
-import { DeserializedCommand } from '../CommandBase'
+import { FairlightAudioLevels } from '../../state/levels.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class FairlightMixerMasterLevelsUpdateCommand extends DeserializedCommand<
 	Omit<FairlightAudioLevels, 'expanderGainReduction'>

@@ -1,6 +1,6 @@
-import { FairlightAudioMasterChannelPropertiesState } from '../../state/fairlight'
-import { AtemState, InvalidIdError } from '../../state'
-import { DeserializedCommand, WritableCommand } from '../CommandBase'
+import { FairlightAudioMasterChannelPropertiesState } from '../../state/fairlight.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 export interface FairlightMixerMasterCommandProperties extends FairlightAudioMasterChannelPropertiesState {
 	equalizerEnabled: boolean

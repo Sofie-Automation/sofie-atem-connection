@@ -1,6 +1,6 @@
-import { BasicWritableCommand, DeserializedCommand, WritableCommand } from '../../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state'
-import { UpstreamKeyerFlyKeyframe } from '../../../state/video/upstreamKeyers'
+import { BasicWritableCommand, DeserializedCommand, WritableCommand } from '../../CommandBase.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
+import { UpstreamKeyerFlyKeyframe } from '../../../state/video/upstreamKeyers.js'
 
 export class MixEffectKeyFlyKeyframeUpdateCommand extends DeserializedCommand<
 	Omit<UpstreamKeyerFlyKeyframe, 'keyFrameId'>

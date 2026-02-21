@@ -1,5 +1,5 @@
-import { DisplayClockClockState } from '../../enums'
-import { BasicWritableCommand } from '../CommandBase'
+import { DisplayClockClockState } from '../../enums/index.js'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class DisplayClockStateSetCommand extends BasicWritableCommand<{ state: DisplayClockClockState }> {
 	public static readonly rawName = 'DCSC'

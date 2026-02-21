@@ -1,7 +1,7 @@
-import * as Enum from '../../enums'
-import * as USK from './upstreamKeyers'
-import * as DSK from './downstreamKeyers'
-import * as SuperSource from './superSource'
+import * as Enum from '../../enums/index.js'
+import * as USK from './upstreamKeyers.js'
+import * as DSK from './downstreamKeyers.js'
+import * as SuperSource from './superSource.js'
 
 export { USK, DSK, SuperSource }
 

@@ -9,14 +9,14 @@ import {
 	ISerializableCommand,
 	BasicWritableCommand,
 	DeserializedCommand,
-} from '../../commands'
-import { ProtocolVersion, Model } from '../../enums'
-import { AtemSocket } from '../atemSocket'
+} from '../../commands/index.js'
+import { ProtocolVersion, Model } from '../../enums/index.js'
+import { AtemSocket } from '../atemSocket.js'
 import { ThreadedClass, ThreadedClassManager } from 'threadedclass'
 import { Buffer } from 'buffer'
-import { CommandParser } from '../atemCommandParser'
+import { CommandParser } from '../atemCommandParser.js'
 import * as fakeTimers from '@sinonjs/fake-timers'
-import { AtemSocketChild } from '../atemSocketChild'
+import { AtemSocketChild } from '../atemSocketChild.js'
 // import { promisify } from 'util'
 jest.mock('../atemSocketChild')
 

@@ -1,5 +1,5 @@
-import { BasicWritableCommand } from '../CommandBase'
-import { MacroAction } from '../../enums'
+import { BasicWritableCommand } from '../CommandBase.js'
+import { MacroAction } from '../../enums/index.js'
 
 export class MacroActionCommand extends BasicWritableCommand<{ action: MacroAction }> {
 	public static readonly rawName = 'MAct'

@@ -1,4 +1,4 @@
-import { DeserializedCommand } from '../CommandBase'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class LockObtainedCommand extends DeserializedCommand<{ index: number }> {
 	public static readonly rawName = 'LKOB'

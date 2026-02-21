@@ -1,4 +1,4 @@
-import * as Enum from '../../enums'
+import * as Enum from '../../enums/index.js'
 
 export interface SuperSourceBox {
 	enabled: boolean

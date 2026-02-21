@@ -1,4 +1,4 @@
-import { SymmetricalCommand } from '../CommandBase'
+import { SymmetricalCommand } from '../CommandBase.js'
 
 export interface DataTransferAckProps {
 	transferId: number

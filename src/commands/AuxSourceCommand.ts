@@ -1,5 +1,5 @@
-import { BasicWritableCommand, DeserializedCommand } from './CommandBase'
-import { AtemState } from '../state'
+import { BasicWritableCommand, DeserializedCommand } from './CommandBase.js'
+import { AtemState } from '../state/index.js'
 
 export interface AuxSourceProps {
 	source: number

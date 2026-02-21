@@ -1,8 +1,8 @@
-import { DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import { AtemCapabilites } from '../../state/info'
-import { ProtocolVersion } from '../../enums'
-import { Mutable } from '../../lib/types'
+import { DeserializedCommand } from '../CommandBase.js'
+import { AtemState } from '../../state/index.js'
+import { AtemCapabilites } from '../../state/info.js'
+import { ProtocolVersion } from '../../enums/index.js'
+import { Mutable } from '../../lib/types.js'
 
 export class TopologyCommand extends DeserializedCommand<AtemCapabilites & { multiviewers: number }> {
 	public static readonly rawName = '_top'

@@ -2,7 +2,7 @@
 import { EventEmitter } from 'events'
 import { SocketType, RemoteInfo } from 'dgram'
 import 'jest-extended'
-import { DEFAULT_PORT } from '../../atem'
+import { DEFAULT_PORT } from '../../atem.js'
 import * as fakeTimers from '@sinonjs/fake-timers'
 
 export class Socket extends EventEmitter {

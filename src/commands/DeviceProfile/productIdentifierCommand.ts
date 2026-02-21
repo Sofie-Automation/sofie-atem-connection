@@ -1,8 +1,8 @@
-import { DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import * as Util from '../../lib/atemUtil'
-import { Enums } from '../..'
-import { DeviceInfo } from '../../state/info'
+import { DeserializedCommand } from '../CommandBase.js'
+import { AtemState } from '../../state/index.js'
+import * as Util from '../../lib/atemUtil.js'
+import { Enums } from '../../index.js'
+import { DeviceInfo } from '../../state/info.js'
 
 export class ProductIdentifierCommand extends DeserializedCommand<Pick<DeviceInfo, 'model' | 'productIdentifier'>> {
 	public static readonly rawName = '_pin'
