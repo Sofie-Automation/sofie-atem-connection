@@ -1,5 +1,5 @@
 /* eslint-disable jest/no-export */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import { CommandParser } from '../../lib/atemCommandParser.js'
 import { ProtocolVersion } from '../../enums/index.js'
 import { IDeserializedCommand, SymmetricalCommand, ISerializableCommand } from '../CommandBase.js'

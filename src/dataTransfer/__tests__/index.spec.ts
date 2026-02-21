@@ -25,7 +25,7 @@ function mangleCommand(cmd: any, dir: string): any {
 	const props = { ...cmd.properties }
 	Object.keys(props).forEach((k) => {
 		if (Buffer.isBuffer(props[k])) {
-			const buf = props[k] as Buffer
+			const buf = props[k]
 			props[k] = { bufferLength: buf.length }
 		}
 	})

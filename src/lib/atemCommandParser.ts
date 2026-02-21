@@ -15,7 +15,7 @@ export class CommandParser {
 					if (!this.commands[rawName]) this.commands[rawName] = []
 					this.commands[rawName].push(cmdConstructor)
 				}
-			} catch (e) {
+			} catch (_e) {
 				// probably not a valid command
 			}
 		}

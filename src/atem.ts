@@ -1,4 +1,4 @@
-import { EventEmitter } from 'eventemitter3'
+import EventEmitter from 'eventemitter3'
 import { AtemState, AtemStateUtil, InvalidIdError, ColorGeneratorState } from './state/index.js'
 import { AtemSocket } from './lib/atemSocket.js'
 import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase.js'
@@ -49,7 +49,7 @@ import {
 	hasInternalMultiviewerLabelGeneration,
 	loadFont,
 } from './lib/multiviewLabel.js'
-import { FontFace } from '@julusian/freetype2'
+import type { FontFace } from '@julusian/freetype2'
 import PLazy from 'p-lazy'
 import { TimeCommand } from './commands/index.js'
 import { TimeInfo } from './state/info.js'

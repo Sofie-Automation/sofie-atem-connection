@@ -1,5 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-function-type */
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/ban-types */
 import {
 	CutCommand,
 	ProductIdentifierCommand,
@@ -40,7 +40,7 @@ class AtemSocketChildMock implements AtemSocketChild {
 
 	public connect = jest.fn(async () => Promise.resolve())
 	public disconnect = jest.fn(async () => Promise.resolve())
-	public sendPackets = jest.fn(async () => Promise.resolve())
+	public sendPackets = jest.fn(() => null)
 }
 
 const AtemSocketChildSingleton = new AtemSocketChildMock()
@@ -64,7 +64,6 @@ class ThreadedClassManagerMock {
 	public handlers: Function[] = []
 
 	public onEvent(_socketProcess: any, _event: string, cb: Function): { stop: () => void } {
-		// eslint-disable-next-line @typescript-eslint/no-use-before-define
 		ThreadedClassManagerSingleton.handlers.push(cb)
 		return {
 			stop: (): void => {
@@ -284,7 +283,7 @@ describe('AtemSocket', () => {
 		mockClear()
 		expect(getChild(socket)).toBeTruthy()
 
-		class MockCommand extends BasicWritableCommand<{}> {
+		class MockCommand extends BasicWritableCommand<Record<string, any>> {
 			public static readonly rawName = 'TEST'
 
 			public serialize(): Buffer {
@@ -527,7 +526,7 @@ describe('AtemSocket', () => {
 		socket.on('error', error)
 		socket.on('receivedCommands', change)
 
-		class BrokenCommand extends DeserializedCommand<{}> {
+		class BrokenCommand extends DeserializedCommand<Record<string, any>> {
 			public static readonly rawName = 'TEST'
 
 			public deserialize(): void {

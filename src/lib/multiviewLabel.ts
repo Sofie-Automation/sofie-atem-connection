@@ -1,9 +1,13 @@
-import { FontFace, NewMemoryFace } from '@julusian/freetype2'
+import type { FontFace } from '@julusian/freetype2'
 import { Model, VideoFormat, VideoMode } from '../enums/index.js'
 import { AtemState } from '../state/index.js'
 import { getVideoModeInfo } from './videoMode.js'
 import { readFile } from 'fs/promises'
-import path = require('path')
+import path from 'path'
+import { createRequire } from 'module'
+
+const require = createRequire(import.meta.url)
+const { NewMemoryFace } = require('@julusian/freetype2') as typeof import('@julusian/freetype2')
 
 /**
  * Colour lookup table for converting 8bit grey to the atem encoding
