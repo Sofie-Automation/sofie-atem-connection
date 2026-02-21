@@ -15,7 +15,6 @@ type MockCallbacks = {
 	onPacketsAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
 }
 
-// eslint-disable-next-line no-var
 declare global {
 	var __atemSocketFake: {
 		mockConnect: ReturnType<typeof vi.fn>
