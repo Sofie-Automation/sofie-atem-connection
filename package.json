@@ -51,7 +51,7 @@
     "lint-staged": "./node_modules/.bin/lint-staged"
   },
   "engines": {
-    "node": "^14.18 || ^16.14 || >=18.0"
+    "node": "^22.12"
   },
   "files": [
     "/dist",
@@ -108,5 +108,5 @@
       "yarn lint-fix"
     ]
   },
-  "packageManager": "yarn@3.5.0"
+  "packageManager": "yarn@4.12.0"
 }

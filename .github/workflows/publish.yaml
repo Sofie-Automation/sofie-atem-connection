@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14.x, 16.x, 18.x, 20.x, 22.x, 24.x]
+        node-version: [22.x, 24.x]
 
     steps:
       - name: Git checkout
@@ -63,10 +63,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Use Node.js 18.x
+      - name: Use Node.js 22.x
         uses: actions/setup-node@v6
         with:
-          node-version: 18.x
+          node-version: 22.x
       - name: Enable corepack
         run: corepack enable
       - name: Determine publish info
