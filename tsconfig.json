@@ -3,6 +3,7 @@
 	"include": ["src/**/*.ts", "examples/**/*.ts"],
 	"exclude": ["node_modules/**", "scratch/**"],
 	"compilerOptions": {
+		"rootDir": "./",
 		"types": ["jest", "node"]
 	}
 }
