@@ -1,7 +1,7 @@
 import { EventEmitter } from 'eventemitter3'
 import { CommandParser } from './atemCommandParser'
 import exitHook = require('exit-hook')
-import { VersionCommand, ISerializableCommand, IDeserializedCommand } from '../commands'
+import { TimeCommand, VersionCommand, ISerializableCommand, IDeserializedCommand } from '../commands'
 import { DEFAULT_PORT } from '../atem'
 import { threadedClass, ThreadedClass, ThreadedClassManager } from 'threadedclass'
 import type { AtemSocketChild, OutboundPacketInfo } from './atemSocketChild'
@@ -25,6 +25,8 @@ export type AtemSocketEvents = {
 	ackPackets: [number[]]
 }
 
+export type ThreadedPayload = Buffer | Uint8Array | { type: 'Buffer'; data: number[] }
+
 export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	private readonly _debugBuffers: boolean
 	private readonly _disableMultithreaded: boolean
@@ -39,6 +41,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	private _socketProcess: ThreadedClass<AtemSocketChild> | undefined
 	private _creatingSocket: Promise<void> | undefined
 	private _exitUnsubscribe?: () => void
+	private _lastTimeCommandRemainder: Buffer | undefined
 
 	constructor(options: AtemSocketOptions) {
 		super()
@@ -145,7 +148,13 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 					this.emit('info', message)
 				}, // onLog
 				async (payload: Buffer): Promise<void> => {
-					this._parseCommands(Buffer.from(payload))
+					const normalizedPayload = this._normalizePayload(payload)
+					if (!normalizedPayload) {
+						this.emit('error', `Received invalid command payload type: ${typeof payload}`)
+						return
+					}
+
+					this._parseCommands(normalizedPayload)
 				}, // onCommandsReceived
 				async (ids: Array<{ packetId: number; trackingId: number }>): Promise<void> => {
 					this.emit(
@@ -179,12 +188,13 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 
 	private _parseCommands(buffer: Buffer): IDeserializedCommand[] {
 		const parsedCommands: IDeserializedCommand[] = []
+		let isFirstCommand = true
 
 		while (buffer.length > 8) {
 			const length = buffer.readUInt16BE(0)
 			const name = buffer.toString('ascii', 4, 8)
 
-			if (length < 8) {
+			if (length < 8 || length > buffer.length) {
 				// Commands are never less than 8, as that is the header
 				break
 			}
@@ -200,6 +210,26 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 					if (cmd instanceof VersionCommand) {
 						// init started
 						this._commandParser.version = cmd.properties.version
+					}
+
+					if (isFirstCommand) {
+						// If the first command is a TimeCommand, we need to check if the remaining data matches
+						// the last batch's remainder.
+						if (cmd instanceof TimeCommand) {
+							const remainder = buffer.slice(length)
+							// Check if the remaining commands match the last batch, if so, skip them.
+							if (this._lastTimeCommandRemainder && remainder.equals(this._lastTimeCommandRemainder)) {
+								parsedCommands.push(cmd)
+								break
+							}
+							// Otherwise, cache the remainder for comparison with the next batch.
+							this._lastTimeCommandRemainder = Buffer.from(remainder)
+						} else {
+							// Clear the cache if the first command is not a TimeCommand,
+							// as the remainder would not be valid anymore.
+							this._lastTimeCommandRemainder = undefined
+						}
+						isFirstCommand = false
 					}
 
 					parsedCommands.push(cmd)
@@ -218,5 +248,21 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 			this.emit('receivedCommands', parsedCommands)
 		}
 		return parsedCommands
+	}
+
+	private _normalizePayload(payload: ThreadedPayload): Buffer | undefined {
+		if (Buffer.isBuffer(payload)) {
+			return payload
+		}
+
+		if (payload instanceof Uint8Array) {
+			return Buffer.from(payload.buffer, payload.byteOffset, payload.byteLength)
+		}
+
+		if (payload && payload.type === 'Buffer' && Array.isArray(payload.data)) {
+			return Buffer.from(payload.data)
+		}
+
+		return undefined
 	}
 }
