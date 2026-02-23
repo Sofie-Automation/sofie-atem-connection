@@ -55,6 +55,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 
 	public async connect(address?: string, port?: number): Promise<void> {
 		this._isDisconnecting = false
+		this._lastTimeCommandRemainder = undefined
 
 		if (address) {
 			this._address = address
@@ -94,6 +95,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 
 	public async disconnect(): Promise<void> {
 		this._isDisconnecting = true
+		this._lastTimeCommandRemainder = undefined
 
 		if (this._socketProcess) {
 			await this._socketProcess.disconnect()
@@ -147,7 +149,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 				async (message: string): Promise<void> => {
 					this.emit('info', message)
 				}, // onLog
-				async (payload: Buffer): Promise<void> => {
+				async (payload: ThreadedPayload): Promise<void> => {
 					const normalizedPayload = this._normalizePayload(payload)
 					if (!normalizedPayload) {
 						this.emit('error', `Received invalid command payload type: ${typeof payload}`)
@@ -229,7 +231,6 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 							// as the remainder would not be valid anymore.
 							this._lastTimeCommandRemainder = undefined
 						}
-						isFirstCommand = false
 					}
 
 					parsedCommands.push(cmd)
@@ -239,6 +240,9 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 			} else {
 				this.emit('debug', `Unknown command ${name} (${length}b)`)
 			}
+
+			// Always clear the first command flag after processing the first command.
+			isFirstCommand = false
 
 			// Trim the buffer
 			buffer = buffer.slice(length)
