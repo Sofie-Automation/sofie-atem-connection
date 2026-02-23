@@ -179,7 +179,7 @@ export abstract class DataTransferUploadBuffer extends DataTransfer<void> {
 			commands.push(
 				new DataTransferDataCommand({
 					transferId: props.transferId,
-					body: this.data.slice(this.#bytesSent, this.#bytesSent + chunkSize - shortenBy),
+					body: this.data.subarray(this.#bytesSent, this.#bytesSent + chunkSize - shortenBy),
 				})
 			)
 			this.#bytesSent += chunkSize - shortenBy

@@ -90,7 +90,7 @@ function runTestForCommand(commandParser: CommandParser, i: number, testCase: Te
 			matchedCase = true
 			test(`Test #${i}: ${testCase.name} (${versionName}) - Deserialize`, () => {
 				const cmd: IDeserializedCommand = cmdConstructor.deserialize(
-					buffer.slice(0, length).slice(8),
+					buffer.subarray(0, length).subarray(8),
 					testCase.firstVersion
 				)
 
@@ -164,9 +164,9 @@ function runTestForCommand(commandParser: CommandParser, i: number, testCase: Te
 				}
 
 				const encodedBytes = cmd.serialize(testCase.firstVersion)
-				// console.log(hexStr(buffer.slice(4)))
+				// console.log(hexStr(buffer.subarray(4)))
 				expect(length).toEqual(encodedBytes.length + 8)
-				expect(hexStr(buffer.slice(8))).toEqual(hexStr(encodedBytes))
+				expect(hexStr(buffer.subarray(8))).toEqual(hexStr(encodedBytes))
 			})
 		}
 	}

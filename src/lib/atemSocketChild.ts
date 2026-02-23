@@ -280,7 +280,7 @@ export class AtemSocketChild {
 
 					// It might have commands
 					if (length > 12) {
-						ps.push(this.onCommandsReceived(packet.slice(12), remotePacketId))
+						ps.push(this.onCommandsReceived(packet.subarray(12), remotePacketId))
 					}
 				} else if (this._isPacketCoveredByAck(this._lastReceivedPacketId, remotePacketId)) {
 					// We got a retransmit of something we have already acked, so reack it

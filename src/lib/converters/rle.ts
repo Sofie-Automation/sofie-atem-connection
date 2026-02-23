@@ -49,7 +49,7 @@ export function encodeRLE(data: Buffer): Buffer {
 		resultOffset += differentCount * 8
 	}
 
-	return result.slice(0, resultOffset + 8)
+	return result.subarray(0, resultOffset + 8)
 }
 
 export function decodeRLE(data: Buffer, fullSize: number): Buffer {

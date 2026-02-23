@@ -193,7 +193,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 			if (cmdConstructor && typeof cmdConstructor.deserialize === 'function') {
 				try {
 					const cmd: IDeserializedCommand = cmdConstructor.deserialize(
-						buffer.slice(8, length),
+						buffer.subarray(8, length),
 						this._commandParser.version
 					)
 
@@ -211,7 +211,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 			}
 
 			// Trim the buffer
-			buffer = buffer.slice(length)
+			buffer = buffer.subarray(length)
 		}
 
 		if (parsedCommands.length > 0) {
