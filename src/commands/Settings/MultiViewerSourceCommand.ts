@@ -56,7 +56,7 @@ export class MultiViewerSourceUpdateCommand extends DeserializedCommand<MultiVie
 		const multiviewer = AtemStateUtil.getMultiViewer(state, this.multiViewerId)
 		const currentWindow = multiviewer.windows[this.properties.windowIndex]
 
-		// The Constellation HD range has a bug where it sends this command for every window on every frame
+		// The Constellation HD range had a bug where it sends this command for every window on every frame
 		// This hides that from library consumers by doing a deep diff, when we usually do not.
 		if (currentWindow && !isRunningInTests()) {
 			let isChanged = false

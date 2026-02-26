@@ -203,7 +203,12 @@ describe('Commands vs LibAtem', () => {
 				!n.startsWith('TlSr') &&
 				!n.startsWith('_VMC') &&
 				!n.startsWith('FAMS') &&
-				!n.startsWith('CFMS')
+				!n.startsWith('CFMS') &&
+				// new multiviewer border
+				!n.startsWith('CMvO') &&
+				!n.startsWith('MvBC') &&
+				!n.startsWith('MvOv') &&
+				!n.startsWith('StMw')
 		)
 
 		knownNames.sort()

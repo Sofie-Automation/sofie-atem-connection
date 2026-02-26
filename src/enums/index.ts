@@ -423,3 +423,8 @@ export enum TimeMode {
 	FreeRun = 0,
 	TimeOfDay = 1,
 }
+
+export enum SafeTitlePattern {
+	Horizontal = 1,
+	Vertical = 2,
+}
