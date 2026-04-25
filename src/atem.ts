@@ -42,7 +42,11 @@ import {
 	FairlightAudioMonitorSolo,
 } from './state/fairlight'
 import { FairlightDynamicsResetProps } from './commands/Fairlight/common'
-import { MultiViewerPropertiesState } from './state/settings'
+import {
+	MultiViewerPropertiesState,
+	MultiViewerBorderColorState,
+	MultiViewerWindowOverlayPropertiesState,
+} from './state/settings'
 import {
 	calculateGenerateMultiviewerLabelProps,
 	generateMultiviewerLabel,
@@ -567,6 +571,27 @@ export class Atem extends BasicAtem {
 	public async setMultiViewerProperties(props: Partial<MultiViewerPropertiesState>, mv = 0): Promise<void> {
 		const command = new Commands.MultiViewerPropertiesCommand(mv)
 		command.updateProps(props)
+		return this.sendCommand(command)
+	}
+	public async setMultiViewerBorderColor(color: MultiViewerBorderColorState, mv = 0): Promise<void> {
+		const command = new Commands.MultiViewerBorderColorCommand(mv, color)
+		return this.sendCommand(command)
+	}
+	public async setMultiViewerWindowOverlayProperties(
+		props: Partial<MultiViewerWindowOverlayPropertiesState>,
+		mv = 0,
+		window = 0
+	): Promise<void> {
+		const command = new Commands.MultiViewerWindowOverlayPropertiesCommand(mv, window)
+		command.updateProps(props)
+		return this.sendCommand(command)
+	}
+	public async setMultiViewerWindowSafeAreaPattern(
+		safeTitlePattern: Enums.SafeTitlePattern[],
+		mv = 0,
+		window = 0
+	): Promise<void> {
+		const command = new Commands.MultiViewerWindowOverlaySafeAreaPatternCommand(mv, window, safeTitlePattern)
 		return this.sendCommand(command)
 	}
 
