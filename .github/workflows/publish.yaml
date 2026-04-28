@@ -133,7 +133,7 @@ jobs:
         run: |
           yarn docs:html
       - name: Upload docs artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         if: ${{ steps.do-publish.outputs.tag == 'latest' }}
         with:
           path: ./docs
