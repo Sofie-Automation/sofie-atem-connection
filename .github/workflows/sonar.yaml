@@ -25,6 +25,8 @@ jobs:
           node-version: 16
       - name: Prepare Environment
         run: |
+          corepack enable
+
           yarn
         env:
           CI: true

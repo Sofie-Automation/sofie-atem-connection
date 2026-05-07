@@ -22,6 +22,8 @@ jobs:
           node-version: 18.x
       - name: Prepare Environment
         run: |
+          corepack enable
+
           yarn install
           yarn build
         env:
@@ -53,6 +55,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Prepare Environment
         run: |
+          corepack enable
+
           yarn install
         env:
           CI: true
