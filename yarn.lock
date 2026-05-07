@@ -1062,7 +1062,6 @@ __metadata:
     husky: "npm:^9.1.7"
     lint-staged: "npm:^17.6.1"
     object-path: "npm:^0.11.8"
-    p-lazy: "npm:^5.0.0"
     p-queue: "npm:^10.0.0"
     pinst: "npm:^3.0.0"
     prettier: "npm:^3.10.1"
@@ -2334,11 +2333,11 @@ __metadata:
   linkType: hard
 
 "minimatch@npm:^3.1.1":
-  version: 3.1.2
-  resolution: "minimatch@npm:3.1.2"
+  version: 3.1.5
+  resolution: "minimatch@npm:3.1.5"
   dependencies:
     brace-expansion: "npm:^1.1.7"
-  checksum: 10/e0b25b04cd4ec6732830344e5739b13f8690f8a012d73445a4a19fbc623f5dd481ef7a5827fde25954cd6026fede7574cc54dc4643c99d6c6b653d6203f94634
+  checksum: 10/b11a7ee5773cd34c1a0c8436cdbe910901018fb4b6cb47aa508a18d567f6efd2148507959e35fba798389b161b8604a2d704ccef751ea36bd4582f9852b7d63f
   languageName: node
   linkType: hard
 
@@ -2548,13 +2547,6 @@ __metadata:
     os-homedir: "npm:^1.0.0"
     os-tmpdir: "npm:^1.0.0"
   checksum: 10/779d261920f2a13e5e18cf02446484f12747d3f2ff82280912f52b213162d43d312647a40c332373cbccd5e3fb8126915d3bfea8dde4827f70f82da76e52d359
-  languageName: node
-  linkType: hard
-
-"p-lazy@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "p-lazy@npm:5.0.0"
-  checksum: 10/c36b6c792cec2cc5134a5ff195bb3d5beea6f9f4f195ce2eea340ee10095d9ad7cc3e12e84fee9dfff713699dc81c8bb3deab65c803136dcf73ca089539d3adc
   languageName: node
   linkType: hard
 

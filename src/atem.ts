@@ -1,7 +1,6 @@
 import EventEmitter from 'node:events'
 
 import { FontFace } from '@julusian/freetype2'
-import PLazy from 'p-lazy'
 
 import { IDeserializedCommand, ISerializableCommand } from './commands/CommandBase.js'
 import * as DataTransferCommands from './commands/DataTransfer/index.js'
@@ -399,14 +398,22 @@ export class BasicAtem extends EventEmitter<AtemEvents> implements IBasicAtem {
 }
 
 export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem>(BasicAtem, async () => undefined) {
-	#multiviewerFontFace: Promise<FontFace>
+	#multiviewerFontFace: Promise<FontFace> | null = null
 	#multiviewerFontScale: number
 
 	constructor(options?: AtemOptions) {
 		super(options)
 
-		this.#multiviewerFontFace = PLazy.from(async () => loadFont())
 		this.#multiviewerFontScale = 1.0
+	}
+
+	async #loadMultiviewerFontFace(): Promise<FontFace> {
+		if (this.#multiviewerFontFace) {
+			return this.#multiviewerFontFace
+		} else {
+			this.#multiviewerFontFace = loadFont()
+			return this.#multiviewerFontFace
+		}
 	}
 
 	/**
@@ -639,7 +646,7 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 		const props = calculateGenerateMultiviewerLabelProps(this.state ?? null)
 		if (!props) throw new Error(`Failed to determine render properties`)
 
-		const fontFace = await this.#multiviewerFontFace
+		const fontFace = await this.#loadMultiviewerFontFace()
 
 		const buffer = generateMultiviewerLabel(fontFace, this.#multiviewerFontScale, text, props)
 		// Note: we should probably validate the buffer looks like it doesn't contain crashy data, but as we generate we can trust it
