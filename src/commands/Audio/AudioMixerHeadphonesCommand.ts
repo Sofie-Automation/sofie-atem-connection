@@ -1,7 +1,7 @@
-import { WritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState, InvalidIdError } from '../../state'
-import { Util } from '../..'
-import { ClassicAudioHeadphoneOutputChannel } from '../../state/audio'
+import { WritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { Util } from '../../index.js'
+import { ClassicAudioHeadphoneOutputChannel } from '../../state/audio.js'
 
 export class AudioMixerHeadphonesCommand extends WritableCommand<ClassicAudioHeadphoneOutputChannel> {
 	public static MaskFlags = {

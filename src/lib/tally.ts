@@ -1,5 +1,5 @@
-import { AtemState, AtemStateUtil } from '../state'
-import * as Enums from '../enums'
+import { AtemState, AtemStateUtil } from '../state/index.js'
+import * as Enums from '../enums/index.js'
 
 /**
  * Helper method used by listVisibleInputs.

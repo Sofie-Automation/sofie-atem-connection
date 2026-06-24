@@ -1,17 +1,15 @@
-import exitHook = require('exit-hook')
-
-import { DataTransferLockingQueue, DataTransferSimpleQueue, DataTransferQueueBase } from './dataTransferQueue'
-import DataTransferUploadStill from './dataTransferUploadStill'
-import { DataTransferUploadClipFrame, DataTransferUploadClip } from './dataTransferUploadClip'
-import DataTransferUploadAudio from './dataTransferUploadAudio'
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase'
-import DataTransferUploadMultiViewerLabel from './dataTransferUploadMultiViewerLabel'
-import { DataTransferDownloadMacro } from './dataTransferDownloadMacro'
-import { DataTransferUploadMacro } from './dataTransferUploadMacro'
-import { LockObtainedCommand, LockStateUpdateCommand } from '../commands/DataTransfer'
+import { DataTransferLockingQueue, DataTransferSimpleQueue, DataTransferQueueBase } from './dataTransferQueue.js'
+import DataTransferUploadStill from './dataTransferUploadStill.js'
+import { DataTransferUploadClipFrame, DataTransferUploadClip } from './dataTransferUploadClip.js'
+import DataTransferUploadAudio from './dataTransferUploadAudio.js'
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
+import DataTransferUploadMultiViewerLabel from './dataTransferUploadMultiViewerLabel.js'
+import { DataTransferDownloadMacro } from './dataTransferDownloadMacro.js'
+import { DataTransferUploadMacro } from './dataTransferUploadMacro.js'
+import { LockObtainedCommand, LockStateUpdateCommand } from '../commands/DataTransfer/index.js'
 import debug0 from 'debug'
-import type { UploadBufferInfo } from './dataTransferUploadBuffer'
-import { DataTransferDownloadStill } from './dataTransferDownloadStill'
+import type { UploadBufferInfo } from './dataTransferUploadBuffer.js'
+import { DataTransferDownloadStill } from './dataTransferDownloadStill.js'
 
 const MAX_PACKETS_TO_SEND_PER_TICK = 50
 const MAX_TRANSFER_INDEX = (1 << 16) - 1 // Inclusive maximum
@@ -43,8 +41,7 @@ export class DataTransferManager {
 
 	readonly #rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>
 
-	private interval?: NodeJS.Timer
-	private exitUnsubscribe?: () => void
+	private interval?: NodeJS.Timeout
 
 	constructor(rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>) {
 		this.#rawSendCommands = rawSendCommands
@@ -83,13 +80,6 @@ export class DataTransferManager {
 				}
 			}, 2) // TODO - refine this. perhaps we can stop and restart the interval?
 		}
-		if (!this.exitUnsubscribe) {
-			this.exitUnsubscribe = exitHook(() => {
-				debug(`Exit auto-cleanup`)
-				// TODO - replace this with a WeakRef to the parent class?
-				this.stopCommandSending()
-			})
-		}
 	}
 
 	/**
@@ -102,10 +92,6 @@ export class DataTransferManager {
 			lock.clearQueueAndAbort(new Error('Stopping connection'))
 		}
 
-		if (this.exitUnsubscribe) {
-			this.exitUnsubscribe()
-			this.exitUnsubscribe = undefined
-		}
 		if (this.interval) {
 			clearInterval(this.interval)
 			this.interval = undefined

@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class DownstreamKeyRateCommand extends BasicWritableCommand<{ rate: number }> {
 	public static readonly rawName = 'CDsR'

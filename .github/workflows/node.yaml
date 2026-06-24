@@ -22,6 +22,8 @@ jobs:
           node-version: 18.x
       - name: Prepare Environment
         run: |
+          corepack enable
+
           yarn install
           yarn build
         env:
@@ -40,7 +42,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node-version: [14.x, 16.x, 18.x, 20.x, 22.x, 24.x]
+        node-version: [22.x, 24.x]
 
     steps:
       - name: Git checkout
@@ -53,6 +55,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Prepare Environment
         run: |
+          corepack enable
+
           yarn install
         env:
           CI: true
@@ -65,9 +69,9 @@ jobs:
         uses: codecov/codecov-action@v7
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        if: matrix.node-version == '18.x'
+        if: matrix.node-version == '22.x'
       - name: Check docs generation
-        if: matrix.node-version == '18.x'
+        if: matrix.node-version == '22.x'
         run: |
           yarn docs:test
         env:

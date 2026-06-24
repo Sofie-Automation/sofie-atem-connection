@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class DisplayClockRequestTimeCommand extends BasicWritableCommand<Record<string, unknown>> {
 	public static readonly rawName = 'DSTR'

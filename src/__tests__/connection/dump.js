@@ -1,9 +1,8 @@
-/* eslint-disable no-process-exit */
-/* eslint-disable node/no-missing-require */
-const fs = require('fs')
-const path = require('path')
-const { AtemSocket } = require('../../../dist/lib/atemSocket')
-const { DEFAULT_PORT } = require('../../../dist')
+/* eslint-disable n/no-process-exit */
+import fs from 'fs'
+import path from 'path'
+import { AtemSocket } from '../../../dist/lib/atemSocket.js'
+import { DEFAULT_PORT } from '../../../dist/index.js'
 
 const args = process.argv.slice(2)
 if (args.length < 2) {

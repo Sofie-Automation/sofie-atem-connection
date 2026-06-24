@@ -1,11 +1,10 @@
-/* eslint-disable jest/no-export */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { CommandParser } from '../../lib/atemCommandParser'
-import { ProtocolVersion } from '../../enums'
-import { IDeserializedCommand, SymmetricalCommand, ISerializableCommand } from '../CommandBase'
-import { createEmptyState } from '../../__tests__/util'
-import { DefaultCommandConverters } from './converters-default'
-import { V8_0CommandConverters } from './converters-8.0'
+import { describe, test, expect } from 'vitest'
+import { CommandParser } from '../../lib/atemCommandParser.js'
+import { ProtocolVersion } from '../../enums/index.js'
+import { IDeserializedCommand, SymmetricalCommand, ISerializableCommand } from '../CommandBase.js'
+import { createEmptyState } from '../../__tests__/util.js'
+import { DefaultCommandConverters } from './converters-default.js'
+import { V8_0CommandConverters } from './converters-8.0.js'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 
@@ -147,7 +146,7 @@ function runTestForCommand(commandParser: CommandParser, i: number, testCase: Te
 				const maskProps = (cmd as any).constructor.MaskFlags
 				if (maskProps) {
 					for (const key of Object.keys(mutatedCommand)) {
-						// eslint-disable-next-line jest/no-conditional-expect
+						// eslint-disable-next-line vitest/no-conditional-expect
 						expect(maskProps).toHaveProperty(key)
 						// expect(maskProps[key]).not.toBeUndefined()
 					}

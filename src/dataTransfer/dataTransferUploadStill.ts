@@ -1,7 +1,7 @@
-import { ISerializableCommand } from '../commands/CommandBase'
-import { DataTransferFileDescriptionCommand, DataTransferUploadRequestCommand } from '../commands/DataTransfer'
-import { ProgressTransferResult, DataTransferState } from './dataTransfer'
-import { DataTransferUploadBuffer, UploadBufferInfo } from './dataTransferUploadBuffer'
+import { ISerializableCommand } from '../commands/CommandBase.js'
+import { DataTransferFileDescriptionCommand, DataTransferUploadRequestCommand } from '../commands/DataTransfer/index.js'
+import { ProgressTransferResult, DataTransferState } from './dataTransfer.js'
+import { DataTransferUploadBuffer, UploadBufferInfo } from './dataTransferUploadBuffer.js'
 
 export default class DataTransferUploadStill extends DataTransferUploadBuffer {
 	readonly #stillIndex: number

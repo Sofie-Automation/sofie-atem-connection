@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Atem, Enums } from '../index'
-import { createEmptyState } from './util'
+import { test, expect, vi } from 'vitest'
+import { Atem, Enums } from '../index.js'
+import { createEmptyState } from './util.js'
 
 test('Simple test', async () => {
 	const nb = new Atem({ disableMultithreaded: true })
@@ -21,7 +22,7 @@ function createConnection(apiVersion: Enums.ProtocolVersion): Atem {
 	state.info.apiVersion = apiVersion
 
 	// conn.on('error', () => null)
-	conn.sendCommand = jest.fn()
+	conn.sendCommand = vi.fn()
 	;(conn as any)._state = state
 
 	return conn

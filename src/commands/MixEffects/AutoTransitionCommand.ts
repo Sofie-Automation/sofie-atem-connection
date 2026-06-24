@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class AutoTransitionCommand extends BasicWritableCommand<null> {
 	public static readonly rawName = 'DAut'

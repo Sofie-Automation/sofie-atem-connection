@@ -1,7 +1,7 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState, InvalidIdError } from '../../state'
-import { RecordingStateStatus } from '../../state/recording'
-import { RecordingError, RecordingStatus, ProtocolVersion } from '../../enums'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { RecordingStateStatus } from '../../state/recording.js'
+import { RecordingError, RecordingStatus, ProtocolVersion } from '../../enums/index.js'
 
 export class RecordingStatusCommand extends BasicWritableCommand<{ recording: boolean }> {
 	public static readonly rawName = 'RcTM'
@@ -43,7 +43,7 @@ export class RecordingStatusUpdateCommand extends DeserializedCommand<RecordingS
 		for (const e of errorEnumValues) {
 			if (e !== 0 && (rawStatus & e) === e) {
 				error = e
-				if (e !== RecordingError.None) break
+				if (e !== (RecordingError.None as number)) break
 			}
 		}
 

@@ -5,15 +5,18 @@ import {
 	DataTransferDownloadRequestCommand,
 	DataTransferErrorCommand,
 	ErrorCode,
-} from '../commands/DataTransfer'
-import { IDeserializedCommand } from '../commands/CommandBase'
-import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataTransfer'
+} from '../commands/DataTransfer/index.js'
+import { IDeserializedCommand } from '../commands/CommandBase.js'
+import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataTransfer.js'
 
 // TODO - this should be reimplemented on top of a generic DataTransferDownloadBuffer class
 export class DataTransferDownloadStill extends DataTransfer<Buffer> {
 	#data: Buffer[] = []
 
-	constructor(public readonly poolIndex: number, public readonly stillIndex: number) {
+	constructor(
+		public readonly poolIndex: number,
+		public readonly stillIndex: number
+	) {
 		super()
 	}
 

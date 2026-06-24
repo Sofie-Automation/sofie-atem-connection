@@ -5,9 +5,9 @@ import {
 	DataTransferDownloadRequestCommand,
 	DataTransferErrorCommand,
 	ErrorCode,
-} from '../commands/DataTransfer'
-import { IDeserializedCommand } from '../commands/CommandBase'
-import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataTransfer'
+} from '../commands/DataTransfer/index.js'
+import { IDeserializedCommand } from '../commands/CommandBase.js'
+import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataTransfer.js'
 
 // TODO - this should be reimplemented on top of a generic DataTransferDownloadBuffer class
 export class DataTransferDownloadMacro extends DataTransfer<Buffer> {

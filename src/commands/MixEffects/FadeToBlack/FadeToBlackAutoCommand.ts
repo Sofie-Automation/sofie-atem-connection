@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../../CommandBase'
+import { BasicWritableCommand } from '../../CommandBase.js'
 
 export class FadeToBlackAutoCommand extends BasicWritableCommand<null> {
 	public static readonly rawName = 'FtbA'

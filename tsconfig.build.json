@@ -3,12 +3,17 @@
 	"include": ["src/**/*.ts"],
 	"exclude": ["node_modules/**", "src/**/*spec.ts", "src/**/__tests__/*", "src/**/__mocks__/*", "scratch/**"],
 	"compilerOptions": {
+		"rootDir": "./src",
 		"outDir": "./dist",
 		"baseUrl": "./",
 		"paths": {
 			"*": ["./node_modules/*"],
 			"atem-connection": ["./src/index.ts"]
 		},
-		"types": ["node"]
+		"types": ["node"],
+		"module": "node16",
+		"moduleResolution": "node16",
+		"skipLibCheck": true,
+		"composite": true
 	}
 }

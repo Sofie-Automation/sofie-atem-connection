@@ -1,11 +1,14 @@
-import { EventEmitter } from 'eventemitter3'
-import { CommandParser } from './atemCommandParser'
-import exitHook = require('exit-hook')
-import { VersionCommand, ISerializableCommand, IDeserializedCommand } from '../commands'
-import { DEFAULT_PORT } from '../atem'
-import { threadedClass, ThreadedClass, ThreadedClassManager } from 'threadedclass'
-import type { AtemSocketChild, OutboundPacketInfo } from './atemSocketChild'
-import { PacketBuilder } from './packetBuilder'
+import EventEmitter from 'node:events'
+import { CommandParser } from './atemCommandParser.js'
+import { VersionCommand, ISerializableCommand, IDeserializedCommand } from '../commands/index.js'
+import { DEFAULT_PORT } from '../atem.js'
+import threadedClassPkg, { ThreadedClassManager } from 'threadedclass'
+import type { ThreadedClass } from 'threadedclass'
+import type { AtemSocketChild, OutboundPacketInfo } from './atemSocketChild.js'
+import { PacketBuilder } from './packetBuilder.js'
+import { isRunningInTests } from './atemUtil.js'
+
+const { threadedClass } = threadedClassPkg
 
 export interface AtemSocketOptions {
 	address: string
@@ -38,7 +41,6 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	private _port: number = DEFAULT_PORT
 	private _socketProcess: ThreadedClass<AtemSocketChild> | undefined
 	private _creatingSocket: Promise<void> | undefined
-	private _exitUnsubscribe?: () => void
 
 	constructor(options: AtemSocketOptions) {
 		super()
@@ -83,10 +85,6 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 			await ThreadedClassManager.destroy(this._socketProcess)
 			this._socketProcess = undefined
 		}
-		if (this._exitUnsubscribe) {
-			this._exitUnsubscribe()
-			this._exitUnsubscribe = undefined
-		}
 	}
 
 	public async disconnect(): Promise<void> {
@@ -130,7 +128,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 
 	private async _createSocketProcess(): Promise<void> {
 		this._socketProcess = await threadedClass<AtemSocketChild, typeof AtemSocketChild>(
-			'./atemSocketChild',
+			isRunningInTests() ? './__tests__/atemSocketChildFake.js' : './atemSocketChild.js',
 			'AtemSocketChild',
 			[
 				{
@@ -159,6 +157,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 				freezeLimit: this._childProcessTimeout,
 				autoRestart: true,
 				disableMultithreading: this._disableMultithreaded,
+				importWorkerFile: true,
 			}
 		)
 
@@ -170,10 +169,6 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		})
 		ThreadedClassManager.onEvent(this._socketProcess, 'thread_closed', () => {
 			this.emit('disconnect')
-		})
-
-		this._exitUnsubscribe = exitHook(() => {
-			this.destroy().catch(() => null)
 		})
 	}
 

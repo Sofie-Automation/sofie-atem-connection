@@ -1,9 +1,7 @@
-/* eslint-disable jest/no-standalone-expect */
 import { EventEmitter } from 'events'
 import { SocketType, RemoteInfo } from 'dgram'
-import 'jest-extended'
-import { DEFAULT_PORT } from '../../atem'
-import * as fakeTimers from '@sinonjs/fake-timers'
+import { DEFAULT_PORT } from '../../atem.js'
+import { expect, vi } from 'vitest'
 
 export class Socket extends EventEmitter {
 	public isOpen = false
@@ -17,7 +15,7 @@ export class Socket extends EventEmitter {
 
 	public sendImpl?: (msg: Buffer) => void
 
-	public async emitMessage(clock: fakeTimers.Clock, msg: Buffer): Promise<void> {
+	public async emitMessage(msg: Buffer): Promise<void> {
 		expect(Buffer.isBuffer(msg)).toBeTruthy()
 
 		const rinfo: RemoteInfo = {
@@ -28,7 +26,7 @@ export class Socket extends EventEmitter {
 		}
 		this.emit('message', msg, rinfo)
 
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 	}
 
 	public bind(port?: number, address?: string, callback?: () => void): void {
@@ -48,10 +46,10 @@ export class Socket extends EventEmitter {
 		callback?: (error: Error | null, bytes: number) => void
 	): void {
 		expect(Buffer.isBuffer(msg)).toBeTruthy()
-		expect(offset).toBeNumber()
-		expect(length).toBeNumber()
-		expect(port).toBeNumber()
-		expect(address).toBeString()
+		expect(offset).toBeTypeOf('number')
+		expect(length).toBeTypeOf('number')
+		expect(port).toBeTypeOf('number')
+		expect(address).toBeTypeOf('string')
 		expect(callback).toBeUndefined()
 
 		if (this.expectedAddress) {

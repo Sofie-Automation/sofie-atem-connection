@@ -1,5 +1,5 @@
-import * as Commands from '../commands'
-import { ProtocolVersion } from '../enums'
+import * as Commands from '../commands/index.js'
+import { ProtocolVersion } from '../enums/index.js'
 
 type CommandConstructor = any
 export class CommandParser {
@@ -15,7 +15,7 @@ export class CommandParser {
 					if (!this.commands[rawName]) this.commands[rawName] = []
 					this.commands[rawName].push(cmdConstructor)
 				}
-			} catch (e) {
+			} catch (_e) {
 				// probably not a valid command
 			}
 		}

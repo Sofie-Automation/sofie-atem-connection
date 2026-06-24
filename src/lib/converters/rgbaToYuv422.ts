@@ -3,7 +3,7 @@
  * Create util functions that handle proper colour spaces in UHD.
  */
 
-import { ColorConvertConstantsBT709, ColorConvertConstantsBT601 } from './colorConstants'
+import { ColorConvertConstantsBT709, ColorConvertConstantsBT601 } from './colorConstants.js'
 
 export function convertRGBAToYUV422(width: number, height: number, data: Buffer): Buffer {
 	const constants = height >= 720 ? ColorConvertConstantsBT709 : ColorConvertConstantsBT601

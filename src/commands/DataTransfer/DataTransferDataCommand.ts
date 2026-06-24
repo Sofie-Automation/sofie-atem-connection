@@ -1,4 +1,4 @@
-import { BasicWritableCommand, IDeserializedCommand } from '../CommandBase'
+import { BasicWritableCommand, IDeserializedCommand } from '../CommandBase.js'
 
 export interface DataTransferDataProps {
 	transferId: number

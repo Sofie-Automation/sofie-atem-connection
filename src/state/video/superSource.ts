@@ -1,4 +1,4 @@
-import * as Enum from '../../enums'
+import * as Enum from '../../enums/index.js'
 
 export interface SuperSourceBox {
 	enabled: boolean
@@ -45,7 +45,7 @@ export interface SuperSource {
 		SuperSourceBox | undefined,
 		SuperSourceBox | undefined,
 		SuperSourceBox | undefined,
-		SuperSourceBox | undefined
+		SuperSourceBox | undefined,
 	]
 	properties?: SuperSourceProperties
 	border?: SuperSourceBorder

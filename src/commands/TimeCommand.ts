@@ -1,7 +1,7 @@
-import { TimeInfo } from '../state/info'
-import * as Enums from '../enums'
-import { BasicWritableCommand } from '.'
-import { SymmetricalCommand } from './CommandBase'
+import { TimeInfo } from '../state/info.js'
+import * as Enums from '../enums/index.js'
+import { BasicWritableCommand } from './index.js'
+import { SymmetricalCommand } from './CommandBase.js'
 
 export class TimeCommand extends SymmetricalCommand<TimeInfo> {
 	public static readonly rawName = 'Time'

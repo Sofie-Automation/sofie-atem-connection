@@ -7,7 +7,7 @@ import {
 	FairlightInputType,
 	AudioChannelPair,
 	AudioInternalPortType,
-} from '../enums'
+} from '../enums/index.js'
 
 export interface FairlightAudioDynamicsState {
 	makeUpGain?: number

@@ -1,7 +1,7 @@
-import { AtemState, AtemStateUtil } from '../../state'
-import { StillFrame } from '../../state/media'
-import { DeserializedCommand } from '../CommandBase'
-import * as Util from '../../lib/atemUtil'
+import { AtemState, AtemStateUtil } from '../../state/index.js'
+import { StillFrame } from '../../state/media.js'
+import { DeserializedCommand } from '../CommandBase.js'
+import * as Util from '../../lib/atemUtil.js'
 
 export class MediaPoolFrameDescriptionCommand extends DeserializedCommand<StillFrame> {
 	public static readonly rawName = 'MPfe'

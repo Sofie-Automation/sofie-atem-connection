@@ -1,4 +1,4 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 
 export interface LockStateProps {
 	index: number

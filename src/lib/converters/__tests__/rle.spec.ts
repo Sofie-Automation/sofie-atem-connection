@@ -1,4 +1,5 @@
-import { decodeRLE, encodeRLE } from '../rle'
+import { describe, test, expect } from 'vitest'
+import { decodeRLE, encodeRLE } from '../rle.js'
 
 describe('encodeRLE', () => {
 	test('no repetitions', () => {

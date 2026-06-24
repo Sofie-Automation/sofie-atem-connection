@@ -1,6 +1,6 @@
-import type { IDeserializedCommand, ISerializableCommand } from '../commands'
+import type { IDeserializedCommand, ISerializableCommand } from '../commands/index.js'
 
-export { getVideoModeInfo } from './videoMode'
+export { getVideoModeInfo } from './videoMode.js'
 
 export function bufToBase64String(buffer: Buffer, start: number, length: number): string {
 	return buffer.toString('base64', start, start + length)
@@ -73,5 +73,5 @@ export function assertNever(_val: never): void {
 }
 
 export function isRunningInTests(): boolean {
-	return process.env.JEST_WORKER_ID !== undefined
+	return process.env.VITEST_POOL_ID !== undefined
 }

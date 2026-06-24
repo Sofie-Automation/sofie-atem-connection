@@ -1,5 +1,5 @@
-import type { ProtocolVersion } from '../enums'
-import type { ISerializableCommand } from '../commands'
+import type { ProtocolVersion } from '../enums/index.js'
+import type { ISerializableCommand } from '../commands/index.js'
 
 export class PacketBuilder {
 	readonly #maxPacketSize: number

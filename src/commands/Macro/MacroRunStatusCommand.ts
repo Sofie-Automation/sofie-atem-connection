@@ -1,6 +1,6 @@
-import { DeserializedCommand, WritableCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import { MacroPlayerState } from '../../state/macro'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
+import { AtemState } from '../../state/index.js'
+import { MacroPlayerState } from '../../state/macro.js'
 
 export class MacroRunStatusUpdateCommand extends DeserializedCommand<MacroPlayerState> {
 	public static readonly rawName = 'MRPr'
