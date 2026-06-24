@@ -1,8 +1,6 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-
 import { Buffer } from 'buffer'
 
-import { ThreadedClass, ThreadedClassManager } from 'threadedclass'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 
 import {
@@ -19,6 +17,7 @@ import { Model, ProtocolVersion } from '../../enums/index.js'
 import { CommandParser } from '../atemCommandParser.js'
 import { AtemSocket } from '../atemSocket.js'
 import {
+	createInProcessChild,
 	mockCallbacks,
 	mockConnect,
 	mockConstructor,
@@ -26,21 +25,6 @@ import {
 	mockSendPackets,
 	resetMocks,
 } from './atemSocketChildFake.js'
-
-class ThreadedClassManagerMock {
-	public handlers: Array<(...args: any[]) => void> = []
-
-	public onEvent(_socketProcess: any, _event: string, cb: (...args: any[]) => void): { stop: () => void } {
-		ThreadedClassManagerSingleton.handlers.push(cb)
-		return {
-			stop: (): void => {
-				// Ignore
-			},
-		}
-	}
-}
-const ThreadedClassManagerSingleton = new ThreadedClassManagerMock()
-vi.spyOn(ThreadedClassManager, 'onEvent').mockImplementation(ThreadedClassManagerSingleton.onEvent as any)
 
 describe('AtemSocket', () => {
 	function mockClear(lite?: boolean): void {
@@ -56,7 +40,6 @@ describe('AtemSocket', () => {
 	beforeEach(() => {
 		vi.useFakeTimers()
 		mockClear()
-		ThreadedClassManagerSingleton.handlers = []
 	})
 	afterEach(() => {
 		vi.useRealTimers()
@@ -67,14 +50,13 @@ describe('AtemSocket', () => {
 			debugBuffers: false,
 			address: '',
 			port: 890,
-			disableMultithreaded: true,
-			childProcessTimeout: 100,
 			maxPacketSize: 1416,
+			createChildBridge: createInProcessChild,
 		})
 	}
 
-	function getChild(socket: AtemSocket): ThreadedClass<unknown> | undefined {
-		return (socket as any)._socketProcess
+	function getChild(socket: AtemSocket): unknown {
+		return (socket as any)._monitor
 	}
 
 	test('connect initial', async () => {
@@ -94,13 +76,7 @@ describe('AtemSocket', () => {
 
 		// New child was constructed
 		expect(mockConstructor).toHaveBeenCalledTimes(1)
-		expect(mockConstructor).toHaveBeenCalledWith(
-			{ address: '', port: 890, debugBuffers: false },
-			expect.any(Function),
-			expect.any(Function),
-			expect.any(Function),
-			expect.any(Function)
-		)
+		expect(mockConstructor).toHaveBeenCalledWith({ address: '', port: 890, debugBuffers: false })
 	})
 	test('connect initial with params', async () => {
 		const socket = createSocket()
@@ -119,13 +95,7 @@ describe('AtemSocket', () => {
 
 		// New child was constructed
 		expect(mockConstructor).toHaveBeenCalledTimes(1)
-		expect(mockConstructor).toHaveBeenCalledWith(
-			{ address: 'abc', port: 765, debugBuffers: false },
-			expect.any(Function),
-			expect.any(Function),
-			expect.any(Function),
-			expect.any(Function)
-		)
+		expect(mockConstructor).toHaveBeenCalledWith({ address: 'abc', port: 765, debugBuffers: false })
 	})
 	test('connect change details', async () => {
 		const socket = createSocket()
@@ -317,9 +287,8 @@ describe('AtemSocket', () => {
 		const parserSpy = vi.spyOn(parser, 'commandFromRawName')
 
 		const testBuffer = Buffer.from([0, 8, 0, 0, ...Buffer.from('InCm', 'ascii')])
-		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
-		await mockCallbacks.onCommandsReceived(testBuffer, pktId)
+		await mockCallbacks.onCommandsReceived(testBuffer)
 		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(0)
@@ -347,9 +316,8 @@ describe('AtemSocket', () => {
 		expect(parser.version).toEqual(ProtocolVersion.V7_2) // Default
 
 		const testBuffer = Buffer.from([0, 12, 0, 0, ...Buffer.from('_ver', 'ascii'), 0x01, 0x02, 0x03, 0x04])
-		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
-		await mockCallbacks.onCommandsReceived(testBuffer, pktId)
+		await mockCallbacks.onCommandsReceived(testBuffer)
 		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(0)
@@ -408,9 +376,8 @@ describe('AtemSocket', () => {
 			0x04,
 			0x44,
 		])
-		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
-		await mockCallbacks.onCommandsReceived(Buffer.concat([testCmd1, testCmd2]), pktId)
+		await mockCallbacks.onCommandsReceived(Buffer.concat([testCmd1, testCmd2]))
 		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(0)
@@ -438,9 +405,8 @@ describe('AtemSocket', () => {
 		socket.on('receivedCommands', change)
 
 		const testBuffer = Buffer.alloc(0)
-		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
-		await mockCallbacks.onCommandsReceived(testBuffer, pktId)
+		await mockCallbacks.onCommandsReceived(testBuffer)
 		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(0)
@@ -468,7 +434,7 @@ describe('AtemSocket', () => {
 		// Offset into a larger buffer, to check the view is taken correctly
 		const backing = new Uint8Array(command.length + 4)
 		backing.set(command, 4)
-		await mockCallbacks.onCommandsReceived(backing.subarray(4) as any, 822)
+		await mockCallbacks.onCommandsReceived(backing.subarray(4) as any)
 		await vi.advanceTimersByTimeAsync(0)
 
 		expect(change).toHaveBeenCalledWith([new ProgramInputUpdateCommand(0, { source: 0x0123 })])
@@ -489,9 +455,8 @@ describe('AtemSocket', () => {
 		socket.on('receivedCommands', change)
 
 		const testBuffer = Buffer.alloc(10, 0)
-		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
-		await mockCallbacks.onCommandsReceived(testBuffer, pktId)
+		await mockCallbacks.onCommandsReceived(testBuffer)
 		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(0)
@@ -519,7 +484,7 @@ describe('AtemSocket', () => {
 			1,
 			0x23,
 		])
-		await mockCallbacks.onCommandsReceived(testCmd, 822)
+		await mockCallbacks.onCommandsReceived(testCmd)
 		await vi.advanceTimersByTimeAsync(0)
 
 		expect(change).toHaveBeenCalledTimes(0)
@@ -580,9 +545,8 @@ describe('AtemSocket', () => {
 			0x04,
 			0x44,
 		])
-		const pktId = 822
 		expect(mockCallbacks.onCommandsReceived).toBeDefined()
-		await mockCallbacks.onCommandsReceived(Buffer.concat([testCmd1, testCmd2]), pktId)
+		await mockCallbacks.onCommandsReceived(Buffer.concat([testCmd1, testCmd2]))
 		await vi.advanceTimersByTimeAsync(0)
 
 		expect(error).toHaveBeenCalledTimes(1)
@@ -610,11 +574,14 @@ describe('AtemSocket', () => {
 		const disconnected = vi.fn()
 		socket.on('disconnect', disconnected)
 
-		expect(ThreadedClassManagerSingleton.handlers).toHaveLength(2) // 2 eventHandlers: 1 for restart, 1 for thread_closed
-		// simulate a restart
-		ThreadedClassManagerSingleton.handlers.forEach((handler) => handler())
-
+		// Simulate a disconnect notification from the child
+		await mockCallbacks.onDisconnect()
+		await vi.advanceTimersByTimeAsync(0)
 		expect(disconnected).toHaveBeenCalledTimes(1)
+
+		// Simulate a worker respawn (triggers reconnect via the spawn handler)
+		;(socket as any)._monitor?.emit?.('spawn')
+		await vi.advanceTimersByTimeAsync(0)
 		expect(connect).toHaveBeenCalledTimes(1)
 	})
 	// testIgnore('receive - thread restart with error', async () => {

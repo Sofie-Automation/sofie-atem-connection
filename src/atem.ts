@@ -27,6 +27,7 @@ import { getVideoModeInfo, VideoModeInfo } from './lib/videoMode.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from './state/index.js'
 import { TimeInfo } from './state/info.js'
 import { SomeAtemAudioLevels } from './state/levels.js'
+import type { ChildBridgeFactory } from './lib/atemSocket.js'
 
 // Pre-computed once at module load — avoids allocating Object.values() and iterating
 // DataTransferCommands on every received command packet.
@@ -43,12 +44,21 @@ export interface AtemOptions {
 	 * Default: 30000
 	 */
 	maxReconnectDelay?: number
-	disableMultithreaded?: boolean
-	childProcessTimeout?: number
 	/**
 	 * Maximum size of packets to transmit
 	 */
 	maxPacketSize?: number
+	/**
+	 * Path to the worker JS file. When not set, resolves relative to this file.
+	 * Override this when the on-disk layout differs from the default.
+	 */
+	workerFilePath?: string | URL
+	/**
+	 * When provided, this factory is called instead of spawning a real worker thread.
+	 * Useful for testing or embedding the socket child in-process.
+	 * See `ChildBridgeFactory` and `createInProcessChild` from the test utilities.
+	 */
+	createChildBridge?: ChildBridgeFactory
 }
 
 export type AtemEvents = {
@@ -111,9 +121,9 @@ class AtemWrapper {
 			maxReconnectDelay: options?.maxReconnectDelay,
 			address: options?.address || '',
 			port: options?.port || DEFAULT_PORT,
-			disableMultithreaded: options?.disableMultithreaded ?? false,
-			childProcessTimeout: options?.childProcessTimeout || 600,
 			maxPacketSize: options?.maxPacketSize ?? DEFAULT_MAX_PACKET_SIZE,
+			workerFilePath: options?.workerFilePath,
+			createChildBridge: options?.createChildBridge,
 		})
 		this.dataTransferManager = new DT.DataTransferManager(this.sendCommands.bind(this), (message) =>
 			this._safeEmit('error', message)

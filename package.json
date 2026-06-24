@@ -87,7 +87,7 @@
     "@julusian/freetype2": "^1.3.1",
     "debug": "^4.4.3",
     "p-queue": "^10.0.0",
-    "threadedclass": "^1.4.1"
+    "thread-tools": "^0.1.2"
   },
   "prettier": "@sofie-automation/code-standard-preset/prettier.config.mjs",
   "lint-staged": {

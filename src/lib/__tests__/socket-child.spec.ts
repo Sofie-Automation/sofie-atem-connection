@@ -35,7 +35,7 @@ function fakeConnect(child: AtemSocketChild): void {
 }
 
 function createSocketChild(
-	onCommandsReceived?: (payload: Buffer, packetId: number) => Promise<void>,
+	onCommandsReceived?: (payload: Uint8Array, packetId: number) => Promise<void>,
 	onPacketsAcknowledged?: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>,
 	onDisconnect?: () => Promise<void>
 ): AtemSocketChild {
@@ -944,7 +944,7 @@ describe('SocketChild', () => {
 		const delivered: number[] = []
 		const child = createSocketChild(async (buf, packetId) => {
 			// The payload must belong to the packet id it is delivered with
-			expect(buf.readUInt16BE(0)).toEqual(packetId)
+			expect(Buffer.from(buf).readUInt16BE(0)).toEqual(packetId)
 			delivered.push(packetId)
 			return Promise.resolve()
 		})

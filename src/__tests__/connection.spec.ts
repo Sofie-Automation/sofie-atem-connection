@@ -8,7 +8,7 @@ import { beforeEach, describe, expect, test } from 'vitest'
 import { BasicAtem } from '../atem.js'
 import { IDeserializedCommand, ProductIdentifierCommand, VersionCommand } from '../commands/index.js'
 import { Model, ProtocolVersion } from '../enums/index.js'
-import { mockCallbacks, resetMocks } from '../lib/__tests__/atemSocketChildFake.js'
+import { createInProcessChild, mockCallbacks, resetMocks } from '../lib/__tests__/atemSocketChildFake.js'
 import { AtemState, InvalidIdError } from '../state/index.js'
 
 function createConnection(): BasicAtem {
@@ -16,7 +16,7 @@ function createConnection(): BasicAtem {
 		debugBuffers: false,
 		address: '',
 		port: 890,
-		disableMultithreaded: true,
+		createChildBridge: createInProcessChild,
 	})
 }
 
@@ -47,7 +47,7 @@ function runTest(name: string, filename: string): void {
 			// eslint-disable-next-line @typescript-eslint/no-for-in-array
 			for (const i in fileData) {
 				const buffer = Buffer.from(fileData[i].trim(), 'hex')
-				await mockCallbacks.onCommandsReceived(buffer, Number(i))
+				await mockCallbacks.onCommandsReceived(buffer)
 			}
 
 			expect(errors).toEqual([])

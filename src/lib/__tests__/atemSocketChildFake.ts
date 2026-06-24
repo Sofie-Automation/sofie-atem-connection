@@ -1,34 +1,34 @@
+/**
+ * Fake child bridge for in-process use in tests.
+ *
+ * Pass `createInProcessChild` as `createChildBridge` in AtemOptions/AtemSocketOptions
+ * to wire an in-memory bridge instead of spawning a real worker thread.
+ */
 import { vi } from 'vitest'
 import type { Mock } from 'vitest'
 
+import type { ChildBridgeFactory, ChildBridgeHandle } from '../atemSocket.js'
 import type { OutboundPacketInfo } from '../atemSocketChild.js'
 
-/**
- * Fake AtemSocketChild for tests.
- *
- * This file may be loaded twice: once by Vitest's module system (for the test's
- * imports) and once by Node's native import() inside threadedclass's worker.js.
- * We use globalThis to share spy instances across both module contexts.
- */
+type AnyMock = Mock<(...args: any[]) => any>
 
 type MockCallbacks = {
 	onDisconnect: () => Promise<void>
 	onLog: (message: string) => Promise<void>
-	onCommandsReceived: (payload: Buffer, packetId: number) => Promise<void>
+	onCommandsReceived: (payload: Buffer) => Promise<void>
 	onPacketsAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
 }
 
 declare global {
 	var __atemSocketFake: {
-		mockConnect: Mock<(...args: any[]) => any>
-		mockDisconnect: Mock<(...args: any[]) => any>
-		mockSendPackets: Mock<(...args: any[]) => any>
-		mockConstructor: Mock<(...args: any[]) => any>
+		mockConnect: AnyMock
+		mockDisconnect: AnyMock
+		mockSendPackets: AnyMock
+		mockConstructor: AnyMock
 		mockCallbacks: MockCallbacks
 	}
 }
 
-// Initialise on first load (always the Vitest context, which has vi.fn available)
 if (!globalThis.__atemSocketFake) {
 	globalThis.__atemSocketFake = {
 		mockConnect: vi.fn(async () => undefined),
@@ -51,7 +51,7 @@ export const mockDisconnect = fake.mockDisconnect
 export const mockSendPackets = fake.mockSendPackets
 export const mockConstructor = fake.mockConstructor
 
-// mockCallbacks is a live proxy so reassignment in resetMocks/constructor is always visible
+// mockCallbacks is a live proxy so reassignment in resetMocks/createInProcessChild is always visible
 export const mockCallbacks = new Proxy({} as MockCallbacks, {
 	get(_: MockCallbacks, prop: string | symbol) {
 		return (fake.mockCallbacks as Record<string | symbol, unknown>)[prop]
@@ -67,40 +67,34 @@ export function resetMocks(): void {
 	fake.mockDisconnect.mockReset().mockImplementation(() => undefined)
 	fake.mockSendPackets.mockReset().mockReturnValue(null)
 	fake.mockConstructor.mockReset()
-	fake.mockCallbacks = {
-		onDisconnect: async () => undefined,
-		onLog: async () => undefined,
-		onCommandsReceived: async () => undefined,
-		onPacketsAcknowledged: async () => undefined,
-	}
+	// Do not reset fake.mockCallbacks here — they are owned by the bridge lifecycle
+	// and get updated when createInProcessChild is called during socket.connect().
 }
 
-export class AtemSocketChild {
-	constructor(
-		options: { address: string; port: number; debugBuffers: boolean },
-		onDisconnect: () => Promise<void>,
-		onLog: (message: string) => Promise<void>,
-		onCommandReceived: (payload: Buffer, packetId: number) => Promise<void>,
-		onCommandAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
-	) {
-		fake.mockConstructor(options, onDisconnect, onLog, onCommandReceived, onCommandAcknowledged)
-		fake.mockCallbacks = {
-			onDisconnect,
-			onLog,
-			onCommandsReceived: onCommandReceived,
-			onPacketsAcknowledged: onCommandAcknowledged,
-		}
+/**
+ * In-process child bridge factory. Pass as `createChildBridge` in AtemSocketOptions/AtemOptions.
+ */
+export const createInProcessChild: ChildBridgeFactory = (options, callbacks): ChildBridgeHandle => {
+	fake.mockConstructor(options)
+
+	// Wire the parent's callbacks so tests can trigger them via mockCallbacks
+	fake.mockCallbacks = {
+		onDisconnect: async () => callbacks.onDisconnect(),
+		onLog: async (message: string) => callbacks.onLog(message),
+		onCommandsReceived: async (payload: Buffer) => callbacks.onCommandsReceived(new Uint8Array(payload)),
+		onPacketsAcknowledged: async (ids: Array<{ packetId: number; trackingId: number }>) =>
+			callbacks.onPacketsAcknowledged(ids),
 	}
 
-	async connect(address: string, port: number): Promise<void> {
-		return fake.mockConnect(address, port)
-	}
-
-	async disconnect(): Promise<void> {
-		return fake.mockDisconnect()
-	}
-
-	sendPackets(packets: OutboundPacketInfo[]): void {
-		return fake.mockSendPackets(packets)
+	return {
+		connect: async (address: string, port: number) => {
+			await fake.mockConnect(address, port)
+		},
+		disconnect: async () => {
+			await fake.mockDisconnect()
+		},
+		sendPackets: (packets: OutboundPacketInfo[]) => {
+			fake.mockSendPackets(packets)
+		},
 	}
 }

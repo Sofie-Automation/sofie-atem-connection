@@ -1,10 +1,11 @@
 import { expect, test, vi } from 'vitest'
 
 import { Atem, Enums } from '../index.js'
+import { createInProcessChild } from '../lib/__tests__/atemSocketChildFake.js'
 import { createEmptyState } from './util.js'
 
 test('Simple test', async () => {
-	const nb = new Atem({ disableMultithreaded: true })
+	const nb = new Atem({ createChildBridge: createInProcessChild })
 	try {
 		nb.on('error', () => null)
 
@@ -15,7 +16,7 @@ test('Simple test', async () => {
 })
 
 function createConnection(apiVersion: Enums.ProtocolVersion): Atem {
-	const conn = new Atem({ debugBuffers: true, disableMultithreaded: true })
+	const conn = new Atem({ debugBuffers: true, createChildBridge: createInProcessChild })
 
 	// Create a state object
 	const state = createEmptyState()

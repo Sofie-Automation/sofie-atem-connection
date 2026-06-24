@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { Atem, DEFAULT_MAX_PACKET_SIZE, DEFAULT_PORT } from '../atem.js'
 import { CutCommand, ProductIdentifierCommand, VersionCommand } from '../commands/index.js'
 import { Model, ProtocolVersion } from '../enums/index.js'
+import { createInProcessChild } from '../lib/__tests__/atemSocketChildFake.js'
 import { AtemSocket } from '../lib/atemSocket.js'
 
 vi.mock('../lib/atemSocket.js')
@@ -25,7 +26,7 @@ describe('Atem', () => {
 	})
 
 	test('constructor test 1', async () => {
-		const conn = new Atem({ disableMultithreaded: true })
+		const conn = new Atem({ createChildBridge: createInProcessChild })
 
 		try {
 			const socket = (conn as any).client.socket as AtemSocket
@@ -34,12 +35,11 @@ describe('Atem', () => {
 			expect(AtemSocket).toHaveBeenCalledTimes(1)
 			expect(AtemSocket).toHaveBeenCalledWith({
 				address: '',
-				childProcessTimeout: 600,
 				debugBuffers: false,
-				disableMultithreaded: true,
-				log: (conn as any)._log,
 				port: DEFAULT_PORT,
 				maxPacketSize: DEFAULT_MAX_PACKET_SIZE,
+				workerFilePath: undefined,
+				createChildBridge: createInProcessChild,
 			})
 		} finally {
 			await conn.destroy()
@@ -55,12 +55,11 @@ describe('Atem', () => {
 			expect(AtemSocket).toHaveBeenCalledTimes(1)
 			expect(AtemSocket).toHaveBeenCalledWith({
 				address: 'test1',
-				childProcessTimeout: 600,
 				debugBuffers: true,
-				disableMultithreaded: false,
-				log: (conn as any)._log,
 				port: 23,
 				maxPacketSize: 500,
+				workerFilePath: undefined,
+				createChildBridge: undefined,
 			})
 		} finally {
 			await conn.destroy()

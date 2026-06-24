@@ -108,7 +108,7 @@ export class AtemSocketChild {
 		options: { address: string; port: number; debugBuffers: boolean; maxReconnectDelay?: number },
 		onDisconnect: () => Promise<void>,
 		onLog: (message: string) => Promise<void>,
-		onCommandReceived: (payload: Buffer, packetId: number) => Promise<void>,
+		onCommandReceived: (payload: Uint8Array, packetId: number) => Promise<void>,
 		onCommandAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
 	) {
 		this._debugBuffers = options.debugBuffers
