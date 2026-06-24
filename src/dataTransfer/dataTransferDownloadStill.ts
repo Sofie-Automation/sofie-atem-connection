@@ -1,20 +1,15 @@
-import {
-	DataTransferAckCommand,
-	DataTransferCompleteCommand,
-	DataTransferDataCommand,
-	DataTransferDownloadRequestCommand,
-	DataTransferErrorCommand,
-	ErrorCode,
-} from '../commands/DataTransfer'
-import { IDeserializedCommand } from '../commands/CommandBase'
-import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataTransfer'
+import { DataTransferDownloadRequestCommand } from '../commands/DataTransfer'
+import { ProgressTransferResult, DataTransferState } from './dataTransfer'
+import { DataTransferDownloadBuffer } from './dataTransferDownloadBuffer'
 
-// TODO - this should be reimplemented on top of a generic DataTransferDownloadBuffer class
-export class DataTransferDownloadStill extends DataTransfer<Buffer> {
-	#data: Buffer[] = []
+// The largest frame the ATEM can produce is 8K (7680x4320), stored as 10bit YUV422 (4 bytes per
+// pixel). The downloaded buffer is RLE encoded, so allow 10% headroom for encoding overhead. This
+// bounds memory usage if a device streams data without ever completing the transfer.
+const MAX_STILL_DOWNLOAD_SIZE = Math.ceil(7680 * 4320 * 4 * 1.1)
 
+export class DataTransferDownloadStill extends DataTransferDownloadBuffer {
 	constructor(public readonly poolIndex: number, public readonly stillIndex: number) {
-		super()
+		super(stillIndex, MAX_STILL_DOWNLOAD_SIZE)
 	}
 
 	public async startTransfer(transferId: number): Promise<ProgressTransferResult> {
@@ -29,56 +24,5 @@ export class DataTransferDownloadStill extends DataTransfer<Buffer> {
 			newState: DataTransferState.Ready,
 			commands: [command],
 		}
-	}
-
-	public async handleCommand(
-		command: IDeserializedCommand,
-		oldState: DataTransferState
-	): Promise<ProgressTransferResult> {
-		if (command instanceof DataTransferErrorCommand) {
-			switch (command.properties.errorCode) {
-				case ErrorCode.Retry:
-					return this.restartTransfer(command.properties.transferId)
-
-				case ErrorCode.NotFound:
-					this.abort(new Error('Invalid download'))
-
-					return {
-						newState: DataTransferState.Finished,
-						commands: [],
-					}
-				default:
-					// Abort the transfer.
-					this.abort(new Error(`Unknown error ${command.properties.errorCode}`))
-
-					return {
-						newState: DataTransferState.Finished,
-						commands: [],
-					}
-			}
-		} else if (command instanceof DataTransferDataCommand) {
-			this.#data.push(command.properties.body)
-
-			// todo - have we received all data? maybe check if the command.body < max_len
-
-			return {
-				newState: oldState,
-				commands: [
-					new DataTransferAckCommand({
-						transferId: command.properties.transferId,
-						transferIndex: this.stillIndex,
-					}),
-				],
-			}
-		} else if (command instanceof DataTransferCompleteCommand) {
-			this.resolvePromise(Buffer.concat(this.#data))
-
-			return {
-				newState: DataTransferState.Finished,
-				commands: [],
-			}
-		}
-
-		return { newState: oldState, commands: [] }
 	}
 }
