@@ -17,7 +17,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Use Node.js 18.x
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: 18.x
       - name: Prepare Environment
@@ -48,7 +48,7 @@ jobs:
         with:
           persist-credentials: false
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
       - name: Prepare Environment
@@ -82,7 +82,7 @@ jobs:
   #   steps:
   #     - uses: actions/checkout@v7
   #     - name: Use Node.js 18.x
-  #       uses: actions/setup-node@v6
+  #       uses: actions/setup-node@v7
   #       with:
   #         node-version: 18.x
   #     - name: Prepare Environment
@@ -109,7 +109,7 @@ jobs:
   #   steps:
   #     - uses: actions/checkout@v7
   #     - name: Use Node.js 18.x
-  #       uses: actions/setup-node@v6
+  #       uses: actions/setup-node@v7
   #       with:
   #         node-version: 18.x
   #     - name: Prepare Environment
