@@ -71,5 +71,13 @@ export interface SuperSource {
 		SuperSourceBox | undefined
 	]
 	properties?: SuperSourceProperties
+	/** Per-SuperSource border, on older ATEM models. See {@link SuperSourceBorder}. */
 	border?: SuperSourceBorder
+	/** Per-box border, on the Constellation HD range and newer. See {@link SuperSourceBoxBorder}. */
+	boxBorders?: [
+		SuperSourceBoxBorder | undefined,
+		SuperSourceBoxBorder | undefined,
+		SuperSourceBoxBorder | undefined,
+		SuperSourceBoxBorder | undefined
+	]
 }

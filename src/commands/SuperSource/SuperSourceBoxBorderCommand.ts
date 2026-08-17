@@ -1,38 +1,33 @@
 import { DeserializedCommand, WritableCommand } from '../CommandBase'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
-import { SuperSourceBorder, SuperSourceBoxBorder } from '../../state/video/superSource'
-import { ProtocolVersion, BorderBevel } from '../../enums'
+import { SuperSourceBoxBorder } from '../../state/video/superSource'
+import { ProtocolVersion } from '../../enums'
 
 /**
  * Reports the per-box SuperSource border on the Constellation HD range and
  * newer (firmware 9.6.0+). See {@link SuperSourceBoxBorderCommand} for the
  * write side.
- *
- * NOTE: this parser collapses the six real width fields into
- * borderOuterWidth/borderInnerWidth and is lossy for asymmetric borders.
  */
 export class SuperSourceBoxBorderUpdateCommand extends DeserializedCommand<{
 	ssrcId: number
 	boxId: number
-	border: Pick<
-		SuperSourceBorder,
-		'borderEnabled' | 'borderOuterWidth' | 'borderInnerWidth' | 'borderHue' | 'borderSaturation' | 'borderLuma'
-	>
+	border: SuperSourceBoxBorder
 }> {
 	public static readonly rawName = 'SSSB'
 	public static readonly minimumVersion = ProtocolVersion.V9_6
 
 	public static deserialize(rawCommand: Buffer): SuperSourceBoxBorderUpdateCommand {
-		const rawOuterWidth = rawCommand.readUInt16BE(4)
-		const rawInnerWidth = rawCommand.readUInt16BE(8)
-
 		return new SuperSourceBoxBorderUpdateCommand({
 			ssrcId: rawCommand.readUInt8(0),
 			boxId: rawCommand.readUInt8(1),
 			border: {
 				borderEnabled: rawCommand.readUInt8(2) === 1,
-				borderOuterWidth: Math.round((rawOuterWidth * 1600) / 0xffff),
-				borderInnerWidth: Math.round((rawInnerWidth * 1600) / 0xffff),
+				borderWidthOutVertical: rawCommand.readUInt16BE(4),
+				borderWidthOutHorizontal: rawCommand.readUInt16BE(6),
+				borderWidthInLeft: rawCommand.readUInt16BE(8),
+				borderWidthInRight: rawCommand.readUInt16BE(10),
+				borderWidthInTop: rawCommand.readUInt16BE(12),
+				borderWidthInBottom: rawCommand.readUInt16BE(14),
 				borderHue: rawCommand.readUInt16BE(16),
 				borderSaturation: rawCommand.readUInt16BE(18),
 				borderLuma: rawCommand.readUInt16BE(20),
@@ -46,23 +41,10 @@ export class SuperSourceBoxBorderUpdateCommand extends DeserializedCommand<{
 		}
 
 		const supersource = AtemStateUtil.getSuperSource(state, this.properties.ssrcId)
-		const previous = supersource.border
+		if (!supersource.boxBorders) supersource.boxBorders = [undefined, undefined, undefined, undefined]
+		supersource.boxBorders[this.properties.boxId] = this.properties.border
 
-		supersource.border = {
-			// Fields this packet doesn't carry: keep whatever was already known,
-			// or fall back to a neutral default (0, ie no bevel/softness/offset).
-			borderBevel: previous?.borderBevel ?? BorderBevel.None,
-			borderOuterSoftness: previous?.borderOuterSoftness ?? 0,
-			borderInnerSoftness: previous?.borderInnerSoftness ?? 0,
-			borderBevelSoftness: previous?.borderBevelSoftness ?? 0,
-			borderBevelPosition: previous?.borderBevelPosition ?? 0,
-			borderLightSourceDirection: previous?.borderLightSourceDirection ?? 0,
-			borderLightSourceAltitude: previous?.borderLightSourceAltitude ?? 0,
-			// Fields this packet does carry: always take the fresh value.
-			...this.properties.border,
-		}
-
-		return `video.superSources.${this.properties.ssrcId}.border`
+		return `video.superSources.${this.properties.ssrcId}.boxBorders.${this.properties.boxId}`
 	}
 }
 

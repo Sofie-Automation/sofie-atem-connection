@@ -209,9 +209,8 @@ describe('Commands vs LibAtem', () => {
 				!n.startsWith('MvBC') &&
 				!n.startsWith('MvOv') &&
 				!n.startsWith('StMw') &&
-				// reverse-engineered SuperSource per-box border update, not part of the
-				// official libatem test fixture set - see SuperSourceBoxBorderCommand.ts
-				!n.startsWith('SSSB')
+				!n.startsWith('SSSB') &&
+				!n.startsWith('CSSB')
 		)
 
 		knownNames.sort()
