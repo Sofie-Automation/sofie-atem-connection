@@ -11,6 +11,8 @@ export interface SuperSourceBox {
 	cropBottom: number
 	cropLeft: number
 	cropRight: number
+	/** Per-box border, on the Constellation HD range and newer. See {@link SuperSourceBoxBorder}. */
+	border?: SuperSourceBoxBorder
 }
 
 export interface SuperSourceProperties {

@@ -41,10 +41,10 @@ export class SuperSourceBoxBorderUpdateCommand extends DeserializedCommand<{
 		}
 
 		const supersource = AtemStateUtil.getSuperSource(state, this.properties.ssrcId)
-		if (!supersource.boxBorders) supersource.boxBorders = [undefined, undefined, undefined, undefined]
-		supersource.boxBorders[this.properties.boxId] = this.properties.border
+		const box = AtemStateUtil.getSuperSourceBox(supersource, this.properties.boxId)
+		box.border = this.properties.border
 
-		return `video.superSources.${this.properties.ssrcId}.boxBorders.${this.properties.boxId}`
+		return `video.superSources.${this.properties.ssrcId}.boxes.${this.properties.boxId}.border`
 	}
 }
 
