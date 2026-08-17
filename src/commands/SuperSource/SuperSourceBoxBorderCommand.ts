@@ -1,49 +1,17 @@
-import { DeserializedCommand } from '../CommandBase'
+import { DeserializedCommand, WritableCommand } from '../CommandBase'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
-import { SuperSourceBorder } from '../../state/video/superSource'
+import { SuperSourceBorder, SuperSourceBoxBorder } from '../../state/video/superSource'
 import { ProtocolVersion, BorderBevel } from '../../enums'
 
 /**
- * Reverse-engineered command, NOT part of the documented ATEM protocol used
- * elsewhere in this library.
+ * Reports the per-box SuperSource border on the Constellation HD range and
+ * newer (firmware 9.6.0+). See {@link SuperSourceBoxBorderCommand} for the
+ * write side.
  *
- * Some units (confirmed on an ATEM 4 M/E Constellation HD, model 20,
- * apiVersion 0x00020020 / ProtocolVersion.V9_6) never send the expected
- * `SSBd` (SuperSourceBorderUpdateCommand) packet - not on connect, and not
- * even in response to a `CSBd` write. Their SuperSource border state is
- * instead only observable via `SSSB`, which this library previously had no
- * parser for (it was silently dropped as an "Unknown command").
- *
- * `SSSB` is emitted per SuperSource *box* (4 boxes x N superSources) even
- * though border is conceptually a per-SuperSource property - all box
- * entries for a given ssrcId simply carry identical values.
- *
- * 24 byte payload layout, as reverse engineered by diffing packets against
- * live UI changes in ATEM Software Control:
- *   0:     ssrcId (u8)
- *   1:     boxId (u8)
- *   2:     borderEnabled (u8, 0/1)
- *   3:     unknown, box-specific, unaffected by border changes
- *   4-7:   outerWidth, duplicated across two u16 BE values
- *   8-15:  innerWidth, duplicated across four u16 BE values
- *   16-17: hue (u16 BE)
- *   18-19: saturation (u16 BE)
- *   20-21: luma (u16 BE, default 1000 - matches the known SSBd luma scale)
- *   22-23: unknown, box-specific, unaffected by border changes
- *
- * outerWidth/innerWidth use the full u16 range (0-65535) to represent
- * 0.00-16.00, rather than the 0-1600 (hundredths) scale used by the
- * documented `SSBd`/`CSBd` commands. They are rescaled to that convention
- * here so `SuperSourceBorder.borderOuterWidth`/`borderInnerWidth` stay
- * consistent with what `setSuperSourceBorder()` expects to be sent.
- *
- * Bevel, bevel softness/position, outer/inner softness, and light source
- * direction/altitude are NOT present in this packet - those controls are
- * greyed out in ATEM Software Control on the reference unit, suggesting
- * this hardware doesn't support them at all. They are left as whatever was
- * already in state (or a neutral default), rather than guessed at.
+ * NOTE: this parser collapses the six real width fields into
+ * borderOuterWidth/borderInnerWidth and is lossy for asymmetric borders.
  */
-export class SuperSourceBoxBorderCommand extends DeserializedCommand<{
+export class SuperSourceBoxBorderUpdateCommand extends DeserializedCommand<{
 	ssrcId: number
 	boxId: number
 	border: Pick<
@@ -52,13 +20,13 @@ export class SuperSourceBoxBorderCommand extends DeserializedCommand<{
 	>
 }> {
 	public static readonly rawName = 'SSSB'
-	public static readonly minimumVersion = ProtocolVersion.V8_0
+	public static readonly minimumVersion = ProtocolVersion.V9_6
 
-	public static deserialize(rawCommand: Buffer): SuperSourceBoxBorderCommand {
+	public static deserialize(rawCommand: Buffer): SuperSourceBoxBorderUpdateCommand {
 		const rawOuterWidth = rawCommand.readUInt16BE(4)
 		const rawInnerWidth = rawCommand.readUInt16BE(8)
 
-		return new SuperSourceBoxBorderCommand({
+		return new SuperSourceBoxBorderUpdateCommand({
 			ssrcId: rawCommand.readUInt8(0),
 			boxId: rawCommand.readUInt8(1),
 			border: {
@@ -95,5 +63,61 @@ export class SuperSourceBoxBorderCommand extends DeserializedCommand<{
 		}
 
 		return `video.superSources.${this.properties.ssrcId}.border`
+	}
+}
+
+/**
+ * Sets the per-box SuperSource border on the ATEM Constellation HD range and
+ * newer (firmware 9.6.0+); {@link SuperSourceBoxBorderUpdateCommand} reports
+ * it back. Older models use {@link SuperSourceBorderCommand} instead - the two
+ * ranges each ignore the other's command.
+ */
+export class SuperSourceBoxBorderCommand extends WritableCommand<SuperSourceBoxBorder> {
+	public static MaskFlags = {
+		borderEnabled: 1 << 0,
+		borderWidthOutVertical: 1 << 1,
+		borderWidthOutHorizontal: 1 << 2,
+		borderWidthInLeft: 1 << 3,
+		borderWidthInRight: 1 << 4,
+		borderWidthInTop: 1 << 5,
+		borderWidthInBottom: 1 << 6,
+		borderHue: 1 << 7,
+		borderSaturation: 1 << 8,
+		borderLuma: 1 << 9,
+	}
+
+	public static readonly rawName = 'CSSB'
+	public static readonly minimumVersion = ProtocolVersion.V9_6
+
+	public readonly ssrcId: number
+	public readonly boxId: number
+
+	constructor(ssrcId: number, boxId: number) {
+		super()
+
+		this.ssrcId = ssrcId
+		this.boxId = boxId
+	}
+
+	public serialize(): Buffer {
+		const buffer = Buffer.alloc(24)
+
+		buffer.writeUInt16BE(this.flag, 0)
+		buffer.writeUInt8(this.ssrcId, 2)
+		buffer.writeUInt8(this.boxId, 3)
+		buffer.writeUInt8(this.properties.borderEnabled ? 1 : 0, 4)
+		// byte 5: padding for 2-byte alignment
+
+		buffer.writeUInt16BE(this.properties.borderWidthOutVertical || 0, 6)
+		buffer.writeUInt16BE(this.properties.borderWidthOutHorizontal || 0, 8)
+		buffer.writeUInt16BE(this.properties.borderWidthInLeft || 0, 10)
+		buffer.writeUInt16BE(this.properties.borderWidthInRight || 0, 12)
+		buffer.writeUInt16BE(this.properties.borderWidthInTop || 0, 14)
+		buffer.writeUInt16BE(this.properties.borderWidthInBottom || 0, 16)
+		buffer.writeUInt16BE(this.properties.borderHue || 0, 18)
+		buffer.writeUInt16BE(this.properties.borderSaturation || 0, 20)
+		buffer.writeUInt16BE(this.properties.borderLuma || 0, 22)
+
+		return buffer
 	}
 }

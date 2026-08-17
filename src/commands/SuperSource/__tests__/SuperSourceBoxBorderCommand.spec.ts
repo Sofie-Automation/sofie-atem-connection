@@ -1,4 +1,4 @@
-import { SuperSourceBoxBorderCommand } from '../SuperSourceBoxBorderCommand'
+import { SuperSourceBoxBorderUpdateCommand } from '../SuperSourceBoxBorderCommand'
 import { AtemStateUtil } from '../../../state'
 import { BorderBevel } from '../../../enums'
 
@@ -9,7 +9,7 @@ const rawBox0 = Buffer.from('000001010000000000000000000000000050001e03e80000', 
 
 describe('SuperSourceBoxBorderCommand', () => {
 	test('deserializes the known fields', () => {
-		const cmd = SuperSourceBoxBorderCommand.deserialize(rawBox0)
+		const cmd = SuperSourceBoxBorderUpdateCommand.deserialize(rawBox0)
 
 		expect(cmd.properties.ssrcId).toEqual(0)
 		expect(cmd.properties.boxId).toEqual(0)
@@ -24,7 +24,7 @@ describe('SuperSourceBoxBorderCommand', () => {
 	test('rescales outer/inner width from the full u16 range to the 0-1600 convention', () => {
 		// bytes 4-7 & 8-15 at 0xffff === the observed maximum (16.00)
 		const raw = Buffer.from('00000101ffffffffffffffffffffffff0050001e03e80000', 'hex')
-		const cmd = SuperSourceBoxBorderCommand.deserialize(raw)
+		const cmd = SuperSourceBoxBorderUpdateCommand.deserialize(raw)
 
 		expect(cmd.properties.border.borderOuterWidth).toEqual(1600)
 		expect(cmd.properties.border.borderInnerWidth).toEqual(1600)
@@ -50,7 +50,7 @@ describe('SuperSourceBoxBorderCommand', () => {
 			onlyConfigurableOutputs: false,
 		}
 
-		const cmd = SuperSourceBoxBorderCommand.deserialize(rawBox0)
+		const cmd = SuperSourceBoxBorderUpdateCommand.deserialize(rawBox0)
 		cmd.applyToState(state)
 
 		const border = AtemStateUtil.getSuperSource(state, 0).border
@@ -100,7 +100,7 @@ describe('SuperSourceBoxBorderCommand', () => {
 			borderLightSourceAltitude: 0,
 		}
 
-		SuperSourceBoxBorderCommand.deserialize(rawBox0).applyToState(state)
+		SuperSourceBoxBorderUpdateCommand.deserialize(rawBox0).applyToState(state)
 
 		const border = AtemStateUtil.getSuperSource(state, 0).border
 		// carried by SSSB: overwritten with the fresh value
