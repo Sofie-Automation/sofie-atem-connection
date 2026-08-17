@@ -208,7 +208,9 @@ describe('Commands vs LibAtem', () => {
 				!n.startsWith('CMvO') &&
 				!n.startsWith('MvBC') &&
 				!n.startsWith('MvOv') &&
-				!n.startsWith('StMw')
+				!n.startsWith('StMw') &&
+				!n.startsWith('SSSB') &&
+				!n.startsWith('CSSB')
 		)
 
 		knownNames.sort()

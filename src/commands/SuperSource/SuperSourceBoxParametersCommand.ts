@@ -100,6 +100,8 @@ export class SuperSourceBoxParametersUpdateCommand extends DeserializedCommand<S
 
 		const supersource = AtemStateUtil.getSuperSource(state, this.ssrcId)
 		supersource.boxes[this.boxId] = {
+			// Preserve the per-box border, which arrives via a separate command.
+			border: supersource.boxes[this.boxId]?.border,
 			...this.properties,
 		}
 		return `video.superSources.${this.ssrcId}.boxes.${this.boxId}`
