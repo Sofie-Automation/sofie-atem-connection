@@ -180,4 +180,56 @@ describe('Atem', () => {
 			await conn.destroy()
 		}
 	}, 500)
+
+	test('sendCommands - default group sent together in a single call', async () => {
+		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
+
+		try {
+			const socket = (conn as any).socket as AtemSocket
+			socket.sendCommands = jest.fn(() => Promise.resolve([]) as any)
+
+			// All commands use the default runOrderGroup (0), so they are sent as one batch
+			const cmds = [new CutCommand(0), new CutCommand(1), new CutCommand(2)]
+			await conn.sendCommands(cmds)
+
+			expect(socket.sendCommands).toHaveBeenCalledTimes(1)
+			expect(socket.sendCommands).toHaveBeenCalledWith(cmds)
+		} finally {
+			await conn.destroy()
+		}
+	})
+
+	test('sendCommands - splits by runOrderGroup and sends groups in ascending numeric order', async () => {
+		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
+
+		try {
+			const socket = (conn as any).socket as AtemSocket
+			socket.sendCommands = jest.fn(() => Promise.resolve([]) as any)
+
+			const mk = (group: number): CutCommand => {
+				const cmd = new CutCommand(0)
+				cmd.runOrderGroup = group
+				return cmd
+			}
+
+			// Deliberately out of order, mixing a negative and a multi-digit group.
+			// A lexicographic sort would place group 10 before group 2 - this catches that.
+			const gNeg = mk(-5)
+			const g0a = mk(0)
+			const g0b = mk(0)
+			const g2 = mk(2)
+			const g10 = mk(10)
+
+			await conn.sendCommands([g10, g2, g0a, gNeg, g0b])
+
+			// One socket.sendCommands call per group, ordered by ascending runOrderGroup,
+			// with same-group commands preserving their original input order
+			const callArgs = (socket.sendCommands as jest.Mock).mock.calls.map((call) => call[0])
+			expect(callArgs).toEqual([[gNeg], [g0a, g0b], [g2], [g10]])
+		} finally {
+			await conn.destroy()
+		}
+	})
 })
