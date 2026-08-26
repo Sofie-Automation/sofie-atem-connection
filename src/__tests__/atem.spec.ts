@@ -186,7 +186,7 @@ describe('Atem', () => {
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
 
 		try {
-			const socket = (conn as any).socket as AtemSocket
+			const socket = (conn as any).client.socket as AtemSocket
 			socket.sendCommands = jest.fn(() => Promise.resolve([]) as any)
 
 			// All commands use the default runOrderGroup (0), so they are sent as one batch
@@ -205,7 +205,7 @@ describe('Atem', () => {
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
 
 		try {
-			const socket = (conn as any).socket as AtemSocket
+			const socket = (conn as any).client.socket as AtemSocket
 			socket.sendCommands = jest.fn(() => Promise.resolve([]) as any)
 
 			const mk = (group: number): CutCommand => {

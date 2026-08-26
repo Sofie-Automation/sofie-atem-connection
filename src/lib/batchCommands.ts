@@ -6,8 +6,11 @@ import { AtemCommandSenderMixin } from './atemCommands'
 /**
  * Holds the state for a command batch: the queue of commands, and the way to flush them.
  * The command-building methods are added by {@link AtemCommandSenderMixin}.
+ *
+ * Exported so that declaration emit can name it as the base of {@link AtemCommandBatch}
+ * (which extends it through the mixin). Not intended to be used directly.
  */
-class AtemCommandBatchBase {
+export class AtemCommandBatchBase {
 	readonly #client: IBasicAtem
 
 	#queuedCommands: ISerializableCommand[] = []
