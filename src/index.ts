@@ -6,6 +6,8 @@ import * as Commands from './commands'
 import * as Util from './lib/atemUtil'
 export { Enums, Commands, Util }
 export { listVisibleInputs } from './lib/tally'
+export * from './lib/atemCommands'
+export * from './lib/batchCommands'
 
 import * as VideoState from './state/video'
 import * as AudioState from './state/audio'
