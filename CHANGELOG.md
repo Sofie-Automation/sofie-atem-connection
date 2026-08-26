@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.10.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.9.0...v3.10.0) (Wed Aug 26 2026)
+
+
+### Features
+
+* batching api (#173) [68f836c9](https://github.com/Sofie-Automation/sofie-atem-connection/commit/68f836c9972ec8b87ef5adf4939a074b36481c53)
+* support SuperSource box specific borders (#202) [886d5a4e](https://github.com/Sofie-Automation/sofie-atem-connection/commit/886d5a4e67b7294a79fa39fc59e5908758df63d0)
+* multiviewer border and additional box properties (#169) [c2451c3d](https://github.com/Sofie-Automation/sofie-atem-connection/commit/c2451c3d40e830f87631f380a52f7adf3043a0a4)
+
+### Fixes
+
+* sort runOrderGroup numerically [60ad6402](https://github.com/Sofie-Automation/sofie-atem-connection/commit/60ad6402f9405f06dafcc232a0f4ec378fcba738)
+* protect against OOM from download packet handling [4af35432](https://github.com/Sofie-Automation/sofie-atem-connection/commit/4af354321d7fdf4be5381c9343f28a50e25c43f1)
+* small performance tweaks [fd53b772](https://github.com/Sofie-Automation/sofie-atem-connection/commit/fd53b77253dacb05adebd54a7fa63623e6b446be)
+
 ## [3.9.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.8.2...v3.9.0) (Wed Feb 18 2026)
 
 
