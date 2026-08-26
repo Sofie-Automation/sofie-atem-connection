@@ -1,4 +1,4 @@
-import EventEmitter from 'eventemitter3'
+import * as EventEmitter from 'eventemitter3'
 import { AtemState, AtemStateUtil, InvalidIdError } from './state'
 import { AtemSocket } from './lib/atemSocket'
 import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase'
@@ -292,12 +292,12 @@ class AtemWrapper {
 }
 
 export class BasicAtem extends EventEmitter<AtemEvents> implements IBasicAtem {
-	readonly #client: AtemWrapper
+	private readonly client: AtemWrapper
 
 	constructor(options?: AtemOptions) {
 		super()
 
-		this.#client = new AtemWrapper(this, options || {})
+		this.client = new AtemWrapper(this, options || {})
 	}
 
 	/**
@@ -305,49 +305,53 @@ export class BasicAtem extends EventEmitter<AtemEvents> implements IBasicAtem {
 	 * Exposed to subclasses (eg {@link Atem}) which build higher level helpers on top of it.
 	 */
 	protected get dataTransferManager(): DT.DataTransferManager {
-		return this.#client.dataTransferManager
+		return this.client.dataTransferManager
 	}
 
 	get status(): AtemConnectionStatus {
-		return this.#client.status
+		return this.client.status
 	}
 
 	get state(): Readonly<AtemState> | undefined {
-		return this.#client.state
+		return this.client.state
 	}
 
 	/**
 	 * Get the apiVersion of the connected ATEM, if known
 	 */
 	public get apiVersion(): Enums.ProtocolVersion | undefined {
-		return this.#client.state?.info?.apiVersion
+		return this.client.state?.info?.apiVersion
 	}
 
 	/**
 	 * Get the current videomode of the ATEM, if known
 	 */
 	get videoMode(): Readonly<VideoModeInfo> | undefined {
-		return this.#client.videoMode
+		return this.client.videoMode
 	}
 
 	public async connect(address: string, port?: number): Promise<void> {
-		return this.#client.connect(address, port)
+		return this.client.connect(address, port)
 	}
 
 	public async disconnect(): Promise<void> {
-		return this.#client.disconnect()
+		return this.client.disconnect()
 	}
 
 	public async destroy(): Promise<void> {
-		return this.#client.destroy()
+		return this.client.destroy()
 	}
 
 	public async sendCommands(commands: ISerializableCommand[]): Promise<void> {
-		return this.#client.sendCommands(commands)
+		return this.client.sendCommands(commands)
+	}
+
+	public async sendUnprioritizedCommands(commands: ISerializableCommand[]): Promise<void> {
+		return this.client.sendUnprioritizedCommands(commands)
 	}
 
 	public async sendCommand(command: ISerializableCommand): Promise<void> {
-		return this.#client.sendCommands([command])
+		return this.client.sendCommands([command])
 	}
 
 	/**

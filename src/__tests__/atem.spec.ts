@@ -24,7 +24,7 @@ describe('Atem', () => {
 		const conn = new Atem({ disableMultithreaded: true })
 
 		try {
-			const socket = (conn as any).socket as AtemSocket
+			const socket = (conn as any).client.socket as AtemSocket
 			expect(socket).toBeTruthy()
 
 			expect(AtemSocket).toHaveBeenCalledTimes(1)
@@ -45,7 +45,7 @@ describe('Atem', () => {
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23, maxPacketSize: 500 })
 
 		try {
-			const socket = (conn as any).socket as AtemSocket
+			const socket = (conn as any).client.socket as AtemSocket
 			expect(socket).toBeTruthy()
 
 			expect(AtemSocket).toHaveBeenCalledTimes(1)
@@ -67,7 +67,7 @@ describe('Atem', () => {
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
 
 		try {
-			const socket = (conn as any).socket as AtemSocket
+			const socket = (conn as any).client.socket as AtemSocket
 			expect(socket).toBeTruthy()
 
 			socket.connect = jest.fn(() => Promise.resolve(5) as any)
@@ -86,7 +86,7 @@ describe('Atem', () => {
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
 
 		try {
-			const socket = (conn as any).socket as AtemSocket
+			const socket = (conn as any).client.socket as AtemSocket
 			expect(socket).toBeTruthy()
 
 			socket.disconnect = jest.fn(() => Promise.resolve(35) as any)
@@ -106,7 +106,7 @@ describe('Atem', () => {
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
 
 		try {
-			const socket = (conn as any).socket as AtemSocket
+			const socket = (conn as any).client.socket as AtemSocket
 			expect(socket).toBeTruthy()
 
 			let nextId = 123
@@ -118,7 +118,7 @@ describe('Atem', () => {
 
 			socket.sendCommands = jest.fn(() => Promise.resolve([124]) as any)
 
-			const sentQueue = (conn as any)._sentQueue as Record<string, unknown>
+			const sentQueue = (conn as any).client._sentQueue as Record<string, unknown>
 			expect(Object.keys(sentQueue)).toHaveLength(0)
 
 			const cmd = new CutCommand(0)
@@ -146,7 +146,7 @@ describe('Atem', () => {
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
 
 		try {
-			const socket = (conn as any).socket as AtemSocket
+			const socket = (conn as any).client.socket as AtemSocket
 			expect(socket).toBeTruthy()
 
 			let nextId = 123
@@ -158,7 +158,7 @@ describe('Atem', () => {
 
 			socket.sendCommands = jest.fn(() => Promise.reject(35) as any)
 
-			const sentQueue = (conn as any)._sentQueue as Record<string, unknown>
+			const sentQueue = (conn as any).client._sentQueue as Record<string, unknown>
 			expect(Object.keys(sentQueue)).toHaveLength(0)
 
 			const cmd = new CutCommand(0)

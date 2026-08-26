@@ -60,7 +60,7 @@ function createConnection(): BasicAtem {
 }
 
 function getChild(conn: BasicAtem): ThreadedClass<AtemSocketChildMock> {
-	return (conn as any).socket._socketProcess
+	return (conn as any).client.socket._socketProcess
 }
 
 function expectIsValidEnumValue<T>(enumObj: Record<string, T>, value: T): void {
@@ -102,8 +102,8 @@ function runTest(name: string, filename: string): void {
 
 		describe('Paths', () => {
 			const conn = createConnection()
-			const parser: (b: Buffer) => IDeserializedCommand[] = (conn as any).socket._parseCommands.bind(
-				(conn as any).socket
+			const parser: (b: Buffer) => IDeserializedCommand[] = (conn as any).client.socket._parseCommands.bind(
+				(conn as any).client.socket
 			)
 
 			const commands: IDeserializedCommand[] = []

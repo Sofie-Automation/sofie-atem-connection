@@ -22,7 +22,7 @@ function createConnection(apiVersion: Enums.ProtocolVersion): Atem {
 
 	// conn.on('error', () => null)
 	conn.sendCommand = jest.fn()
-	;(conn as any)._state = state
+	;(conn as any).client._state = state
 
 	return conn
 }
