@@ -50,6 +50,8 @@ export interface SuperSourceBorder {
  * Per-box SuperSource border of the ATEM Constellation HD range and newer
  * (firmware 9.6.0+). Unlike the older-model {@link SuperSourceBorder}, it has
  * six independent width fields and no bevel/softness/light-source controls.
+ *
+ * Widths are in hundredths (0-1600 = 0.00-16.00), matching {@link SuperSourceBorder}.
  */
 export interface SuperSourceBoxBorder {
 	borderEnabled: boolean

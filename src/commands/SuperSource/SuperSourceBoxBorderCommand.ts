@@ -3,6 +3,15 @@ import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
 import { SuperSourceBoxBorder } from '../../state/video/superSource'
 import { ProtocolVersion } from '../../enums'
 
+// SSSB/CSSB transmit border widths across the full u16 range (0xffff = 16.00),
+// whereas this library expresses widths in hundredths (0-1600), matching the
+// documented SuperSourceBorder/CSBd convention. Convert at the protocol
+// boundary so both border types use the same scale in state.
+const WIDTH_API_MAX = 1600
+const WIDTH_WIRE_MAX = 0xffff
+const widthFromWire = (raw: number): number => Math.round((raw * WIDTH_API_MAX) / WIDTH_WIRE_MAX)
+const widthToWire = (val: number): number => Math.round((val * WIDTH_WIRE_MAX) / WIDTH_API_MAX)
+
 /**
  * Reports the per-box SuperSource border on the Constellation HD range and
  * newer (firmware 9.6.0+). See {@link SuperSourceBoxBorderCommand} for the
@@ -22,12 +31,12 @@ export class SuperSourceBoxBorderUpdateCommand extends DeserializedCommand<{
 			boxId: rawCommand.readUInt8(1),
 			border: {
 				borderEnabled: rawCommand.readUInt8(2) === 1,
-				borderWidthOutVertical: rawCommand.readUInt16BE(4),
-				borderWidthOutHorizontal: rawCommand.readUInt16BE(6),
-				borderWidthInLeft: rawCommand.readUInt16BE(8),
-				borderWidthInRight: rawCommand.readUInt16BE(10),
-				borderWidthInTop: rawCommand.readUInt16BE(12),
-				borderWidthInBottom: rawCommand.readUInt16BE(14),
+				borderWidthOutVertical: widthFromWire(rawCommand.readUInt16BE(4)),
+				borderWidthOutHorizontal: widthFromWire(rawCommand.readUInt16BE(6)),
+				borderWidthInLeft: widthFromWire(rawCommand.readUInt16BE(8)),
+				borderWidthInRight: widthFromWire(rawCommand.readUInt16BE(10)),
+				borderWidthInTop: widthFromWire(rawCommand.readUInt16BE(12)),
+				borderWidthInBottom: widthFromWire(rawCommand.readUInt16BE(14)),
 				borderHue: rawCommand.readUInt16BE(16),
 				borderSaturation: rawCommand.readUInt16BE(18),
 				borderLuma: rawCommand.readUInt16BE(20),
@@ -90,12 +99,12 @@ export class SuperSourceBoxBorderCommand extends WritableCommand<SuperSourceBoxB
 		buffer.writeUInt8(this.properties.borderEnabled ? 1 : 0, 4)
 		// byte 5: padding for 2-byte alignment
 
-		buffer.writeUInt16BE(this.properties.borderWidthOutVertical || 0, 6)
-		buffer.writeUInt16BE(this.properties.borderWidthOutHorizontal || 0, 8)
-		buffer.writeUInt16BE(this.properties.borderWidthInLeft || 0, 10)
-		buffer.writeUInt16BE(this.properties.borderWidthInRight || 0, 12)
-		buffer.writeUInt16BE(this.properties.borderWidthInTop || 0, 14)
-		buffer.writeUInt16BE(this.properties.borderWidthInBottom || 0, 16)
+		buffer.writeUInt16BE(widthToWire(this.properties.borderWidthOutVertical || 0), 6)
+		buffer.writeUInt16BE(widthToWire(this.properties.borderWidthOutHorizontal || 0), 8)
+		buffer.writeUInt16BE(widthToWire(this.properties.borderWidthInLeft || 0), 10)
+		buffer.writeUInt16BE(widthToWire(this.properties.borderWidthInRight || 0), 12)
+		buffer.writeUInt16BE(widthToWire(this.properties.borderWidthInTop || 0), 14)
+		buffer.writeUInt16BE(widthToWire(this.properties.borderWidthInBottom || 0), 16)
 		buffer.writeUInt16BE(this.properties.borderHue || 0, 18)
 		buffer.writeUInt16BE(this.properties.borderSaturation || 0, 20)
 		buffer.writeUInt16BE(this.properties.borderLuma || 0, 22)
