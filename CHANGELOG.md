@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.10.2](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.10.1...v3.10.2) (Wed Aug 26 2026)
+
+
+### Fixes
+
+* bad eventemitter3 import [6dc73087](https://github.com/Sofie-Automation/sofie-atem-connection/commit/6dc730878c07b9ec642e72d3acde59192cad341f)
+
 ## [3.10.1](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.10.0...v3.10.1) (Wed Aug 26 2026)
 
 
