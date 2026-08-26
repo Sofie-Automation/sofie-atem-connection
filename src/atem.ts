@@ -1,4 +1,4 @@
-import { EventEmitter } from 'eventemitter3'
+import EventEmitter = require('eventemitter3')
 import { AtemState, AtemStateUtil, InvalidIdError } from './state'
 import { AtemSocket } from './lib/atemSocket'
 import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase'
