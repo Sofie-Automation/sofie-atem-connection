@@ -1,11 +1,13 @@
 import type { IDeserializedCommand, ISerializableCommand } from '../commands'
 
+export { getVideoModeInfo } from './videoMode'
+
 export function bufToBase64String(buffer: Buffer, start: number, length: number): string {
 	return buffer.toString('base64', start, start + length)
 }
 
 export function bufToNullTerminatedString(buffer: Buffer, start: number, length: number): string {
-	const slice = buffer.slice(start, start + length)
+	const slice = buffer.subarray(start, start + length)
 	const nullIndex = slice.indexOf('\0')
 	return slice.toString('utf8', 0, nullIndex < 0 ? slice.length : nullIndex)
 }

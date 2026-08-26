@@ -137,6 +137,36 @@ export function getSuperSource(state: AtemState, index: number, dontCreate?: boo
 	return ssrc
 }
 
+export function getSuperSourceBox(
+	supersource: SuperSource.SuperSource,
+	boxId: number,
+	dontCreate?: boolean
+): SuperSource.SuperSourceBox {
+	let box = supersource.boxes[boxId]
+	if (!box) {
+		// A box may be addressed (eg by a border update) before its parameters
+		// have arrived, so fall back to a zeroed/disabled box.
+		box = {
+			enabled: false,
+			source: 0,
+			x: 0,
+			y: 0,
+			size: 0,
+			cropped: false,
+			cropTop: 0,
+			cropBottom: 0,
+			cropLeft: 0,
+			cropRight: 0,
+		}
+
+		if (!dontCreate) {
+			supersource.boxes[boxId] = box
+		}
+	}
+
+	return box
+}
+
 export function getDownstreamKeyer(state: AtemState, index: number, dontCreate?: boolean): DSK.DownstreamKeyer {
 	let dsk = state.video.downstreamKeyers[index]
 	if (!dsk) {

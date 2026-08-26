@@ -9,11 +9,18 @@ function specToCommandClass(spec: any): Commands.IDeserializedCommand | undefine
 	for (const commandName in DataTransferCommands) {
 		if (spec.name === commandName) {
 			const cmdCons = (DataTransferCommands as any)[commandName]
-			const cmd = new cmdCons(spec.properties)
+			// Rehydrate buffers which mangleCommand() reduced to a `{ bufferLength }` placeholder
+			const props = { ...spec.properties }
+			Object.keys(props).forEach((k) => {
+				if (props[k] && typeof props[k] === 'object' && typeof props[k].bufferLength === 'number') {
+					props[k] = Buffer.alloc(props[k].bufferLength)
+				}
+			})
+			const cmd = new cmdCons(props)
 			if ('_properties' in cmd) {
-				cmd._properties = spec.properties
+				cmd._properties = props
 			} else {
-				cmd.properties = spec.properties
+				cmd.properties = props
 			}
 			return cmd
 		}

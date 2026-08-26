@@ -23,7 +23,7 @@ export class DataTransferDataCommand
 		const properties = {
 			transferId: rawCommand.readUInt16BE(0),
 			size: rawCommand.readUInt16BE(2),
-			body: rawCommand.slice(4, 4 + rawCommand.readUInt16BE(2)),
+			body: rawCommand.subarray(4, 4 + rawCommand.readUInt16BE(2)),
 		}
 
 		return new DataTransferDataCommand(properties)

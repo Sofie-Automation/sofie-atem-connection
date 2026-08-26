@@ -391,7 +391,7 @@ describe('SocketChild', () => {
 
 				received.push({
 					id: msg.readUInt16BE(10),
-					payload: msg.slice(12),
+					payload: msg.subarray(12),
 				})
 			}
 

@@ -27,6 +27,12 @@ import { AtemCommandSenderMixin } from './lib/atemCommands'
 import { AtemCommandBatch } from './lib/batchCommands'
 import * as Enums from './enums'
 
+// Pre-computed once at module load — avoids allocating Object.values() and iterating
+// DataTransferCommands on every received command packet.
+const dtCommandConstructors = new Set<object>(
+	Object.values<unknown>(DataTransferCommands).filter((v): v is object => typeof v === 'function')
+)
+
 export interface AtemOptions {
 	address?: string
 	port?: number
@@ -157,6 +163,24 @@ class AtemWrapper {
 	}
 
 	public async sendCommands(commands: ISerializableCommand[]): Promise<void> {
+		// Split commands into map by priority
+		const groups: Map<number, ISerializableCommand[]> = new Map()
+		commands.forEach((cmd) => {
+			const orderGroup = cmd.runOrderGroup || 0
+			if (!groups.has(orderGroup)) {
+				groups.set(orderGroup, [])
+			}
+			groups.get(orderGroup)?.push(cmd)
+		})
+
+		await Promise.all(
+			Array.from(groups.keys())
+				.sort() // Ensure they run in correct order
+				.map(async (orderGroup) => this.sendUnprioritizedCommands(groups.get(orderGroup) || []))
+		)
+	}
+
+	public async sendUnprioritizedCommands(commands: ISerializableCommand[]): Promise<void> {
 		const trackingIds = await this.socket.sendCommands(commands)
 
 		const promises: Promise<void>[] = []
@@ -177,17 +201,21 @@ class AtemWrapper {
 
 	private _mutateState(commands: IDeserializedCommand[]): void {
 		// Is this the start of a new connection?
-		if (commands.find((cmd) => cmd instanceof Commands.VersionCommand)) {
+		if (commands.some((cmd) => cmd instanceof Commands.VersionCommand)) {
 			// On start of connection, create a new state object
 			this._state = AtemStateUtil.Create()
 			this._status = AtemConnectionStatus.CONNECTING
 		}
 
 		const allChangedPaths: string[] = []
+		let hasInitComplete = false
 
 		const state = this._state
 		for (const command of commands) {
-			if (command instanceof TimeCommand) {
+			// Track InitCompleteCommand with a flag so we avoid a second find() pass below
+			if (command instanceof Commands.InitCompleteCommand) {
+				hasInitComplete = true
+			} else if (command instanceof TimeCommand) {
 				this.emitter.emit('updatedTime', command.properties)
 			} else if (command instanceof Commands.FairlightMixerMasterLevelsUpdateCommand) {
 				this.emitter.emit('levelChanged', {
@@ -230,16 +258,13 @@ class AtemWrapper {
 				}
 			}
 
-			for (const commandName in DataTransferCommands) {
-				// TODO - this is fragile
-				if (command.constructor.name === commandName) {
-					this.dataTransferManager.queueHandleCommand(command)
-				}
+			// O(1) constructor lookup instead of iterating Object.values(DataTransferCommands) per command
+			if (dtCommandConstructors.has(command.constructor)) {
+				this.dataTransferManager.queueHandleCommand(command)
 			}
 		}
 
-		const initComplete = commands.find((cmd) => cmd instanceof Commands.InitCompleteCommand)
-		if (initComplete) {
+		if (hasInitComplete) {
 			this._status = AtemConnectionStatus.CONNECTED
 			this._onInitComplete()
 		} else if (state && this._status === AtemConnectionStatus.CONNECTED && allChangedPaths.length > 0) {
@@ -378,6 +403,43 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	}
 	public async uploadMacro(index: number, name: string, data: Buffer): Promise<void> {
 		return this.dataTransferManager.uploadMacro(index, data, name)
+	}
+
+	/**
+	 * Download a frame of a clip from the ATEM media pool
+	 *
+	 * Note: This performs colour conversions in JS, which is not very CPU efficient. If performance is important,
+	 * consider using [@atem-connection/image-tools](https://www.npmjs.com/package/@atem-connection/image-tools) to
+	 * pre-convert the images with more optimal algorithms
+	 * @param clipIndex Clip index to download
+	 * @param frameIndex Frame index to download from the clip
+	 * @param format The pixel format to return for the downloaded image. 'raw' passes through unchanged, and will be RLE encoded.
+	 * @returns Promise which returns the image once downloaded. If the still slot is not in use, this will throw
+	 */
+	public async downloadClipFrame(
+		clipIndex: number,
+		frameIndex: number,
+		format: 'raw' | 'rgba' | 'yuv' = 'rgba'
+	): Promise<Buffer> {
+		let rawBuffer = await this.dataTransferManager.downloadClipFrame(clipIndex, frameIndex)
+
+		if (format === 'raw') {
+			return rawBuffer
+		}
+
+		if (!this.state) throw new Error('Unable to check current resolution')
+		const resolution = getVideoModeInfo(this.state.settings.videoMode)
+		if (!resolution) throw new Error('Failed to determine required resolution')
+
+		rawBuffer = decodeRLE(rawBuffer, resolution.width * resolution.height * 4)
+
+		switch (format) {
+			case 'yuv':
+				return rawBuffer
+			case 'rgba':
+			default:
+				return convertYUV422ToRGBA(resolution.width, resolution.height, rawBuffer)
+		}
 	}
 
 	/**

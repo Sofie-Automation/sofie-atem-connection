@@ -2,6 +2,72 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.9.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.8.2...v3.9.0) (Wed Feb 18 2026)
+
+
+### Features
+
+* make retransmit timer use `setTimeout` instead of `setInterval` #96 [2fc828a8](https://github.com/Sofie-Automation/sofie-atem-connection/commit/2fc828a8d536696815574810178b133781830367)
+* remove use of nanotimer [a4b8a6f0](https://github.com/Sofie-Automation/sofie-atem-connection/commit/a4b8a6f02512849222ff7cd726db1b7ab52af2d3)
+
+## [3.8.2](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.8.1...v3.8.2) (Mon Feb 09 2026)
+
+
+### Fixes
+
+* update @julusian/freetype2 #189 [222e0d3d](https://github.com/Sofie-Automation/sofie-atem-connection/commit/222e0d3d8fce3bd6307677766b26035ac34c70ec)
+
+## [3.8.1](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.8.0...v3.8.1) (Fri Feb 06 2026)
+
+
+### Fixes
+
+* macro download transfer type (#188) [d2ec5164](https://github.com/Sofie-Automation/sofie-atem-connection/commit/d2ec516462bc081c73fe72df6d09d47b172c7491)
+
+## [3.8.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.7.0...v3.8.0) (Sun Dec 21 2025)
+
+
+### Features
+
+* add some recent enum additions [c57a0f76](https://github.com/Sofie-Automation/sofie-atem-connection/commit/c57a0f769cd58937e63b3e8839ba8ff6d4ab9763)
+
+### Fixes
+
+* add MiniExtremeISOG2 model [e522d538](https://github.com/Sofie-Automation/sofie-atem-connection/commit/e522d53823dfa4acd0e9409bfc950726a103513b)
+
+## [3.7.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.6.1...v3.7.0) (Wed Nov 12 2025)
+
+
+### Fixes
+
+* Allow installing direct from git repository (#184) [ebbbcc5d](https://github.com/Sofie-Automation/sofie-atem-connection/commit/ebbbcc5d1764544f9a7b0ce1e2e939687166b773)
+
+### Features
+
+* Run order groups for ATEM commands (#178) [f3e5c351](https://github.com/Sofie-Automation/sofie-atem-connection/commit/f3e5c35146893080120d8e41f795915745ece329)
+
+## [3.6.1](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.6.0...v3.6.1) (Mon Oct 20 2025)
+
+
+### Fixes
+
+* bring back getVideoModeInfo export [f30b6d78](https://github.com/Sofie-Automation/sofie-atem-connection/commit/f30b6d78e9ce30bf0d265e450e2d7adc452ca38f)
+
+## [3.6.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.5.0...v3.6.0) (Fri May 30 2025)
+
+
+### Features
+
+* download clip frames [5c879b69](https://github.com/Sofie-Automation/sofie-atem-connection/commit/5c879b6996e2447f702d359240e3a9270a3ca4e2)
+* downloadStill from media pool (#167) [9036d5cf](https://github.com/Sofie-Automation/sofie-atem-connection/commit/9036d5cf13e64552e8bbb79647a5619327dce99f)
+* fairlight talkback mute and solo [84fbd738](https://github.com/Sofie-Automation/sofie-atem-connection/commit/84fbd7385e04a88358d3ba8b7ffbb09bbb9dee77)
+* time mode [9e469df9](https://github.com/Sofie-Automation/sofie-atem-connection/commit/9e469df96591fc11c1d9d84e01ebd1321379f626)
+
+### Fixes
+
+* cleanup fragile command check [c89d8677](https://github.com/Sofie-Automation/sofie-atem-connection/commit/c89d8677be8effcec55f9412a3ce94fbf411a883)
+* add 9.4 and 9.6 protocol versions [36bf64f8](https://github.com/Sofie-Automation/sofie-atem-connection/commit/36bf64f88a218ad295627a1b2e290c3e125d1b2d)
+
 ## [3.5.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.4.0...v3.5.0) (Wed Feb 07 2024)
 
 

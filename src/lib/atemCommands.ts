@@ -17,7 +17,11 @@ import type {
 import type { InputChannel } from '../state/input'
 import type { MediaPlayer, MediaPlayerSource } from '../state/media'
 import type { RecordingStateProperties } from '../state/recording'
-import type { MultiViewerPropertiesState } from '../state/settings'
+import type {
+	MultiViewerBorderColorState,
+	MultiViewerPropertiesState,
+	MultiViewerWindowOverlayPropertiesState,
+} from '../state/settings'
 import type { StreamingServiceProperties } from '../state/streaming'
 import type { ColorGeneratorState } from '../state/color'
 import type {
@@ -43,6 +47,7 @@ import type { FairlightDynamicsResetProps } from '../commands/Fairlight/common'
  */
 export interface AtemCommandSenderControl<T> {
 	sendCommand(command: ISerializableCommand): T
+	sendCommands(commands: ISerializableCommand[]): T
 	readonly apiVersion: Enums.ProtocolVersion | undefined
 }
 
@@ -50,7 +55,7 @@ export interface AtemCommandSenderControl<T> {
  * Mixin which adds all of the command-sending helper methods to a base class.
  * Any sending of commands should be done through these methods, allowing them to be used in both a direct or batched manner.
  *
- * The return type of each method matches the base class's `sendCommand`, so a direct client returns `Promise<void>`
+ * The return type of each method matches the base class's `sendCommand`, so a direct client returns `T`
  * while a batching client returns `void`.
  */
 // The return type is an anonymous mixin class which cannot be practically named, so let it be inferred.
@@ -271,6 +276,23 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			command.updateProps(props)
 			return this.sendCommand(command)
 		}
+		public setMultiViewerBorderColor(color: MultiViewerBorderColorState, mv = 0): T {
+			const command = new Commands.MultiViewerBorderColorCommand(mv, color)
+			return this.sendCommand(command)
+		}
+		public setMultiViewerWindowOverlayProperties(
+			props: Partial<MultiViewerWindowOverlayPropertiesState>,
+			mv = 0,
+			window = 0
+		): T {
+			const command = new Commands.MultiViewerWindowOverlayPropertiesCommand(mv, window)
+			command.updateProps(props)
+			return this.sendCommand(command)
+		}
+		public setMultiViewerWindowSafeAreaPattern(safeTitlePattern: Enums.SafeTitlePattern[], mv = 0, window = 0): T {
+			const command = new Commands.MultiViewerWindowOverlaySafeAreaPatternCommand(mv, window, safeTitlePattern)
+			return this.sendCommand(command)
+		}
 
 		public setColorGeneratorColour(newProps: Partial<ColorGeneratorState>, index = 0): T {
 			const command = new Commands.ColorGeneratorCommand(index)
@@ -338,6 +360,25 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 				command.updateProps(newProps)
 				return this.sendCommand(command)
 			}
+		}
+
+		/**
+		 * Set the per-box SuperSource border (Constellation HD range and newer,
+		 * firmware 9.6.0+). When `box` is omitted the same values are applied to all
+		 * four boxes.
+		 */
+		public setSuperSourceBoxBorder(
+			newProps: Partial<SuperSource.SuperSourceBoxBorder>,
+			box?: number | null,
+			ssrcId = 0
+		): T {
+			const boxIds = box === undefined || box === null ? [0, 1, 2, 3] : [box]
+			const commands = boxIds.map((boxId) => {
+				const command = new Commands.SuperSourceBoxBorderCommand(ssrcId, boxId)
+				command.updateProps(newProps)
+				return command
+			})
+			return this.sendCommands(commands)
 		}
 
 		public setInputSettings(newProps: Partial<OmitReadonly<InputChannel>>, input = 0): T {

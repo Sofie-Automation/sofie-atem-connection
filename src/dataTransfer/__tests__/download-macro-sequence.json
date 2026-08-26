@@ -5,7 +5,7 @@
 			"transferId": 0,
 			"transferStoreId": 65535,
 			"transferIndex": 4,
-			"transferType": 3
+			"transferType": 1022
 		},
 		"direction": "send"
 	},

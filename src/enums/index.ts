@@ -30,8 +30,9 @@ export enum Model {
 	Constellation4K1ME = 0x1c,
 	Constellation4K2ME = 0x1d,
 	Constellation4K4ME = 0x1e,
-	// 0x1f ??
+	Constellation4K4MEPlus = 0x1f,
 	TelevisionStudio4K8 = 0x20,
+	MiniExtremeISOG2 = 0x21,
 }
 
 export enum ProtocolVersion {
@@ -144,6 +145,8 @@ export enum InternalPortType {
 	Mask = 130,
 	// Since V8_1_1
 	MultiViewer = 131,
+	// Since v9_4/v9_6
+	AudioMonitor = 132,
 }
 
 export enum SourceAvailability {
@@ -155,7 +158,8 @@ export enum SourceAvailability {
 	KeySource = 1 << 4,
 	Auxiliary1 = 1 << 5,
 	Auxiliary2 = 1 << 6,
-	All = Auxiliary | Multiviewer | SuperSourceArt | SuperSourceBox | KeySource | Auxiliary1 | Auxiliary2,
+	WebcamOut = 1 << 7,
+	All = Auxiliary | Multiviewer | SuperSourceArt | SuperSourceBox | KeySource | Auxiliary1 | Auxiliary2 | WebcamOut,
 }
 
 export enum MeAvailability {
@@ -418,4 +422,9 @@ export enum AudioInternalPortType {
 export enum TimeMode {
 	FreeRun = 0,
 	TimeOfDay = 1,
+}
+
+export enum SafeTitlePattern {
+	Horizontal = 1,
+	Vertical = 2,
 }

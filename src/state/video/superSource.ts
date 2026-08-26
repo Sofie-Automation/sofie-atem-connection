@@ -11,6 +11,8 @@ export interface SuperSourceBox {
 	cropBottom: number
 	cropLeft: number
 	cropRight: number
+	/** Per-box border, on the Constellation HD range and newer. See {@link SuperSourceBoxBorder}. */
+	border?: SuperSourceBoxBorder
 }
 
 export interface SuperSourceProperties {
@@ -23,6 +25,11 @@ export interface SuperSourceProperties {
 	artInvertKey: boolean
 }
 
+/**
+ * Per-SuperSource border, used by ATEM models older than the Constellation HD
+ * range. Newer units (Constellation HD and up, firmware 9.6.0+) instead use the
+ * per-box {@link SuperSourceBoxBorder}.
+ */
 export interface SuperSourceBorder {
 	borderEnabled: boolean
 	borderBevel: Enum.BorderBevel
@@ -39,6 +46,26 @@ export interface SuperSourceBorder {
 	borderLightSourceAltitude: number
 }
 
+/**
+ * Per-box SuperSource border of the ATEM Constellation HD range and newer
+ * (firmware 9.6.0+). Unlike the older-model {@link SuperSourceBorder}, it has
+ * six independent width fields and no bevel/softness/light-source controls.
+ *
+ * Widths are in hundredths (0-1600 = 0.00-16.00), matching {@link SuperSourceBorder}.
+ */
+export interface SuperSourceBoxBorder {
+	borderEnabled: boolean
+	borderWidthOutHorizontal: number
+	borderWidthOutVertical: number
+	borderWidthInLeft: number
+	borderWidthInRight: number
+	borderWidthInTop: number
+	borderWidthInBottom: number
+	borderHue: number
+	borderSaturation: number
+	borderLuma: number
+}
+
 export interface SuperSource {
 	readonly index: number
 	readonly boxes: [
@@ -48,5 +75,6 @@ export interface SuperSource {
 		SuperSourceBox | undefined
 	]
 	properties?: SuperSourceProperties
+	/** Per-SuperSource border, on older ATEM models. See {@link SuperSourceBorder}. */
 	border?: SuperSourceBorder
 }

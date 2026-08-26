@@ -34,6 +34,10 @@ class AtemCommandBatchBase {
 	public sendCommand(command: ISerializableCommand): void {
 		this.#queuedCommands.push(command)
 	}
+
+	public sendCommands(commands: ISerializableCommand[]): void {
+		this.#queuedCommands.push(...commands)
+	}
 }
 
 /**
