@@ -175,7 +175,7 @@ class AtemWrapper {
 
 		await Promise.all(
 			Array.from(groups.keys())
-				.sort() // Ensure they run in correct order
+				.sort((a, b) => a - b) // Ensure they run in correct numeric order
 				.map(async (orderGroup) => this.sendUnprioritizedCommands(groups.get(orderGroup) || []))
 		)
 	}
