@@ -670,6 +670,25 @@ export class Atem extends BasicAtem {
 		}
 	}
 
+	/**
+	 * Set the per-box SuperSource border (Constellation HD range and newer,
+	 * firmware 9.6.0+). When `box` is omitted the same values are applied to all
+	 * four boxes.
+	 */
+	public async setSuperSourceBoxBorder(
+		newProps: Partial<SuperSource.SuperSourceBoxBorder>,
+		box?: number | null,
+		ssrcId = 0
+	): Promise<void> {
+		const boxIds = box === undefined || box === null ? [0, 1, 2, 3] : [box]
+		const commands = boxIds.map((boxId) => {
+			const command = new Commands.SuperSourceBoxBorderCommand(ssrcId, boxId)
+			command.updateProps(newProps)
+			return command
+		})
+		return this.sendCommands(commands)
+	}
+
 	public async setInputSettings(newProps: Partial<OmitReadonly<InputChannel>>, input = 0): Promise<void> {
 		const command = new Commands.InputPropertiesCommand(input)
 		command.updateProps(newProps)
