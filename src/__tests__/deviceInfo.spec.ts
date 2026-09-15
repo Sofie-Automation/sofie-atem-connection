@@ -1,5 +1,6 @@
 /* eslint-disable jest/expect-expect */ // Some assertions live in the helpers above
-import { ProtocolVersion } from '../enums'
+import { ExternalPortType, ProtocolVersion } from '../enums'
+import { InputChannel } from '../state/input'
 import { AtemCapabilites } from '../state/info'
 import { listFixtures, parseFixtureState } from './fixtureUtil'
 
@@ -18,10 +19,12 @@ function getCapabilities(fixture: string): AtemCapabilites {
  * The multiviewer count only exists in _top from v8.1.1, so it is expected to differ
  * between captures of the same device on either side of that change
  */
-function expectSameCapabilities(fixtureA: string, fixtureB: string): void {
+function expectSameCapabilities(fixtureA: string, fixtureB: string, ignoreFields: string[] = []): void {
 	const trim = (fixture: string): Record<string, unknown> => {
 		const capabilities: Record<string, unknown> = { ...getCapabilities(fixture) }
-		delete capabilities.multiviewers
+		for (const field of ['multiviewers', ...ignoreFields]) {
+			delete capabilities[field]
+		}
 		return capabilities
 	}
 
@@ -36,16 +39,19 @@ describe('deviceInfo', () => {
 		 * so each of these pairs pins one of those shifts.
 		 */
 		test('4 M/E Broadcast Studio 4K - v7.5.2 vs v8.1.1 layout', () => {
-			expectSameCapabilities('4me4k-v7.5.2', '4me4k-v8.2')
+			// hasSDI and talkbackOverSDIChannels are only claimed from v8.0
+			expectSameCapabilities('4me4k-v7.5.2', '4me4k-v8.2', ['hasSDI', 'talkbackOverSDIChannels'])
 		})
 		test('Constellation 8K - v8.0 vs v8.1.1 layout', () => {
-			expectSameCapabilities('constellation-v8.0.2', 'constellation-v8.2.3')
+			// hasSDI is only claimed from v8.1.1
+			expectSameCapabilities('constellation-v8.0.2', 'constellation-v8.2.3', ['hasSDI'])
 		})
 		test('Television Studio HD - v8.0 vs v8.0.1 layout', () => {
 			expectSameCapabilities('tvshd-v8.0.0', 'tvshd-v8.1.0')
 		})
 		test('Television Studio HD - v8.0.1 vs v8.1.1 layout', () => {
-			expectSameCapabilities('tvshd-v8.1.0', 'tvshd-v8.2.0')
+			// hasSDI is only claimed from v8.1.1
+			expectSameCapabilities('tvshd-v8.1.0', 'tvshd-v8.2.0', ['hasSDI'])
 		})
 
 		test('v7.5.2 values', () => {
@@ -57,6 +63,47 @@ describe('deviceInfo', () => {
 			expect(capabilities.onlyConfigurableOutputs).toBe(false)
 		})
 
+		test('hasSDI matches the inputs the device describes', () => {
+			let fixtureCount = 0
+
+			for (const fixture of listFixtures()) {
+				const state = parseFixtureState(fixture)
+				const capabilities = getCapabilities(fixture)
+				if (capabilities.hasSDI === undefined) continue
+
+				const anySdiInput = Object.values<InputChannel | undefined>(state.inputs).some((input) =>
+					input?.externalPorts?.includes(ExternalPortType.SDI)
+				)
+
+				fixtureCount++
+				expect([fixture, capabilities.hasSDI]).toEqual([fixture, anySdiInput])
+			}
+
+			expect(fixtureCount).toBe(19)
+		})
+
+		test('talkbackOverSDIChannels matches the SDI inputs of devices with talkback', () => {
+			let fixtureCount = 0
+
+			for (const fixture of listFixtures()) {
+				const state = parseFixtureState(fixture)
+				const capabilities = getCapabilities(fixture)
+				if (capabilities.talkbackOverSDIChannels === undefined) continue
+
+				const sdiInputCount = Object.values<InputChannel | undefined>(state.inputs).filter(
+					(input) => input?.externalPortType === ExternalPortType.SDI
+				).length
+
+				// Devices without talkback report no channels, the rest report every SDI input
+				const expected = capabilities.talkbackChannels === 0 ? 0 : sdiInputCount
+
+				fixtureCount++
+				expect([fixture, capabilities.talkbackOverSDIChannels]).toEqual([fixture, expected])
+			}
+
+			expect(fixtureCount).toBe(25)
+		})
+
 		test('v7.2 leaves the fields it does not describe at their defaults', () => {
 			// The v7.2 layout is shorter again, and no reading of the one capture of it is
 			// self consistent past superSources, so nothing beyond that is claimed for it
@@ -64,6 +111,8 @@ describe('deviceInfo', () => {
 
 			expect(capabilities.superSources).toBe(0)
 			expect(capabilities.talkbackChannels).toBe(0)
+			expect(capabilities.talkbackOverSDIChannels).toBeUndefined()
+			expect(capabilities.hasSDI).toBeUndefined()
 			expect(capabilities.cameraControl).toBe(false)
 			expect(capabilities.advancedChromaKeyers).toBe(false)
 			expect(capabilities.onlyConfigurableOutputs).toBe(false)

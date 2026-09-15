@@ -1,4 +1,5 @@
 import { PropertyAliasResult, CommandTestConverterSet } from './index.spec'
+import { DefaultCommandConverters } from './converters-default'
 import { Util } from '../..'
 
 export const V8_0CommandConverters: CommandTestConverterSet = {
@@ -149,6 +150,23 @@ export const V8_0CommandConverters: CommandTestConverterSet = {
 				props.canChangeLayout = false
 			}
 			return props
+		},
+	},
+	_top: {
+		...DefaultCommandConverters._top,
+		customMutate: (props: Record<string, unknown>): any => {
+			const mutated = DefaultCommandConverters._top.customMutate?.(props) ?? props
+
+			// LibAtem does not parse these, but always serializes them as 0
+			if (mutated.talkbackOverSDIChannels === undefined) {
+				mutated.talkbackOverSDIChannels = 0
+			}
+			// hasSDI is only read from v8.1.1, which is also the version which added the multiviewer count
+			if (mutated.multiviewers !== -1 && mutated.hasSDI === undefined) {
+				mutated.hasSDI = false
+			}
+
+			return mutated
 		},
 	},
 }

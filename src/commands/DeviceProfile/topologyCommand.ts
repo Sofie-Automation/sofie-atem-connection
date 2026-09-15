@@ -17,7 +17,9 @@ interface TopologyLayout {
 	stingers: number
 	superSources: number
 	talkbackChannels?: number
+	talkbackOverSDIChannels?: number
 	cameraControl?: number
+	hasSDI?: number
 	advancedChromaKeyers?: number
 	onlyConfigurableOutputs?: number
 }
@@ -30,8 +32,12 @@ const LAYOUT_V8_1_1: TopologyLayout = {
 	DVEs: 9,
 	stingers: 10,
 	superSources: 11,
+	// [12] is set for devices with a classic audio mixer, and [15] for devices with a fairlight one.
+	// Both are redundant with the presence of the _AMC and _FAC commands, so are not read here
 	talkbackChannels: 13,
+	talkbackOverSDIChannels: 14,
 	cameraControl: 18,
+	hasSDI: 21,
 	advancedChromaKeyers: 22,
 	onlyConfigurableOutputs: 23,
 }
@@ -44,7 +50,10 @@ const LAYOUT_V8_0: TopologyLayout = {
 	stingers: 9,
 	superSources: 10,
 	talkbackChannels: 12,
+	talkbackOverSDIChannels: 13,
 	cameraControl: 17,
+	// [20] is the hasSDI flag, but the 1 M/E and 2 M/E Production Switchers report 0 there
+	// despite having SDI inputs, so it is only read from v8.1.1
 	advancedChromaKeyers: 21,
 	onlyConfigurableOutputs: 22,
 }
@@ -119,6 +128,15 @@ export class TopologyCommand extends DeserializedCommand<AtemCapabilites & { mul
 			cameraControl: readOptional(layout.cameraControl) === 1,
 			advancedChromaKeyers: readOptional(layout.advancedChromaKeyers) === 1,
 			onlyConfigurableOutputs: readOptional(layout.onlyConfigurableOutputs) === 1,
+		}
+
+		const talkbackOverSDIChannels = readOptional(layout.talkbackOverSDIChannels)
+		if (talkbackOverSDIChannels !== undefined) {
+			properties.talkbackOverSDIChannels = talkbackOverSDIChannels
+		}
+		const hasSDI = readOptional(layout.hasSDI)
+		if (hasSDI !== undefined) {
+			properties.hasSDI = hasSDI === 1
 		}
 
 		return new TopologyCommand(properties)

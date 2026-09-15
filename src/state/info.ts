@@ -12,8 +12,12 @@ export interface AtemCapabilites {
 	readonly stingers: number
 	readonly superSources: number
 	readonly talkbackChannels: number
+	/** The number of inputs which can carry embedded talkback. Not reported before v8.0 */
+	readonly talkbackOverSDIChannels?: number
 	readonly downstreamKeyers: number
 	readonly cameraControl: boolean
+	/** Whether any of the inputs are SDI, rather than every input being HDMI. Not reported before v8.1.1 */
+	readonly hasSDI?: boolean
 	readonly advancedChromaKeyers: boolean
 	readonly onlyConfigurableOutputs: boolean
 }
