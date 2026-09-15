@@ -12,9 +12,10 @@ export class MultiviewerConfigCommand extends DeserializedCommand<MultiviewerInf
 
 	public static deserialize(rawCommand: Buffer, version: ProtocolVersion): MultiviewerConfigCommand {
 		if (version >= ProtocolVersion.V8_1_1) {
+			// The multiviewer count moved into _top, and everything else shifted down a byte
 			return new MultiviewerConfigCommand({
 				count: -1,
-				windowCount: rawCommand.readUInt8(1),
+				windowCount: rawCommand.readUInt8(0),
 			})
 		} else {
 			return new MultiviewerConfigCommand({
