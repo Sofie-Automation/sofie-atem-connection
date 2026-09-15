@@ -1,5 +1,5 @@
 /* eslint-disable jest/expect-expect */ // Some assertions live in the helpers above
-import { DVEEffect, ExternalPortType, ProtocolVersion } from '../enums'
+import { DVEEffect, ExternalPortType, Model, ProtocolVersion } from '../enums'
 import { InputChannel } from '../state/input'
 import { AtemCapabilites } from '../state/info'
 import { listFixtures, parseFixtureRawCommands, parseFixtureState } from './fixtureUtil'
@@ -312,6 +312,28 @@ describe('deviceInfo', () => {
 			expect(fullSet?.canScaleUp).toBe(true)
 			expect(fullSet?.supportedEffects).toHaveLength(35)
 			expect(new Set(fullSet?.supportedEffects)).toEqual(new Set(ALL_EFFECTS))
+		})
+	})
+
+	describe('media pool', () => {
+		test('canCaptureStills is only reported from v8.1.1', () => {
+			let fixtureCount = 0
+
+			for (const fixture of listFixtures()) {
+				const state = parseFixtureState(fixture)
+				const mediaPool = state.info.mediaPool
+				expect(mediaPool).toBeTruthy()
+
+				// Before v8.1.1 the byte is padding, and reads as junk
+				const isReported = state.info.apiVersion >= ProtocolVersion.V8_1_1
+				if (isReported) fixtureCount++
+
+				// This is what consumers previously had to guess from the model number
+				const expected = isReported ? !!mediaPool?.stillCount && state.info.model >= Model.Mini : undefined
+				expect([fixture, mediaPool?.canCaptureStills]).toEqual([fixture, expected])
+			}
+
+			expect(fixtureCount).toBe(19)
 		})
 	})
 })

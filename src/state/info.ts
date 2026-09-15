@@ -64,6 +64,8 @@ export interface MacroPoolInfo {
 export interface MediaPoolInfo {
 	readonly stillCount: number
 	readonly clipCount: number
+	/** Whether the device can capture stills from its program output. Not reported before v8.1.1 */
+	readonly canCaptureStills?: boolean
 }
 
 export interface MultiviewerInfo {
