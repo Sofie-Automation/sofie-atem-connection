@@ -1,5 +1,5 @@
 /* eslint-disable jest/expect-expect */ // Some assertions live in the helpers above
-import { ExternalPortType, ProtocolVersion } from '../enums'
+import { DVEEffect, ExternalPortType, ProtocolVersion } from '../enums'
 import { InputChannel } from '../state/input'
 import { AtemCapabilites } from '../state/info'
 import { listFixtures, parseFixtureRawCommands, parseFixtureState } from './fixtureUtil'
@@ -250,6 +250,68 @@ describe('deviceInfo', () => {
 
 				expect([fixture, tallyChannels]).toEqual([fixture, tlIn?.body.readUInt16BE(0)])
 			}
+		})
+	})
+
+	describe('dve', () => {
+		const ALL_EFFECTS = Object.values<unknown>(DVEEffect).filter((v): v is DVEEffect => typeof v === 'number')
+
+		const SQUEEZE_PUSH_AND_LOGO = [
+			DVEEffect.SqueezeTopLeft,
+			DVEEffect.SqueezeTop,
+			DVEEffect.SqueezeTopRight,
+			DVEEffect.SqueezeLeft,
+			DVEEffect.SqueezeRight,
+			DVEEffect.SqueezeBottomLeft,
+			DVEEffect.SqueezeBottom,
+			DVEEffect.SqueezeBottomRight,
+			DVEEffect.PushTopLeft,
+			DVEEffect.PushTop,
+			DVEEffect.PushTopRight,
+			DVEEffect.PushLeft,
+			DVEEffect.PushRight,
+			DVEEffect.PushBottomLeft,
+			DVEEffect.PushBottom,
+			DVEEffect.PushBottomRight,
+			DVEEffect.GraphicLogoWipe,
+		]
+
+		test('every device reports a valid set of effects', () => {
+			let fixtureCount = 0
+
+			for (const fixture of listFixtures()) {
+				const info = parseFixtureState(fixture).info.dve
+				if (!info) continue
+
+				fixtureCount++
+
+				for (const effect of info.supportedEffects) {
+					expect([fixture, effect, ALL_EFFECTS.includes(effect)]).toEqual([fixture, effect, true])
+				}
+				expect(new Set(info.supportedEffects).size).toBe(info.supportedEffects.length)
+
+				// Only the devices which can rotate offer the spin effects
+				expect([fixture, info.canRotate]).toEqual([
+					fixture,
+					info.supportedEffects.includes(DVEEffect.SpinCWTopLeft),
+				])
+			}
+
+			// Every fixture but the v7.2 one carries _DVE
+			expect(fixtureCount).toBe(26)
+		})
+
+		test('reported effects', () => {
+			const mini = parseFixtureState('mini-v8.6').info.dve
+			expect(mini?.canRotate).toBe(false)
+			expect(mini?.canScaleUp).toBe(true)
+			expect(mini?.supportedEffects).toEqual(SQUEEZE_PUSH_AND_LOGO)
+
+			const fullSet = parseFixtureState('4me4k-v8.2').info.dve
+			expect(fullSet?.canRotate).toBe(true)
+			expect(fullSet?.canScaleUp).toBe(true)
+			expect(fullSet?.supportedEffects).toHaveLength(35)
+			expect(new Set(fullSet?.supportedEffects)).toEqual(new Set(ALL_EFFECTS))
 		})
 	})
 })

@@ -1,4 +1,4 @@
-import { Model, ProtocolVersion, VideoMode } from '../enums'
+import { DVEEffect, Model, ProtocolVersion, VideoMode } from '../enums'
 
 export interface AtemCapabilites {
 	readonly mixEffects: number
@@ -20,6 +20,13 @@ export interface AtemCapabilites {
 	readonly hasSDI?: boolean
 	readonly advancedChromaKeyers: boolean
 	readonly onlyConfigurableOutputs: boolean
+}
+
+export interface DVEInfo {
+	readonly canRotate: boolean
+	readonly canScaleUp: boolean
+	/** The DVE transition styles this device offers */
+	readonly supportedEffects: DVEEffect[]
 }
 
 export interface MixEffectInfo {
@@ -93,6 +100,7 @@ export interface DeviceInfo {
 	macroPool?: MacroPoolInfo
 	mediaPool?: MediaPoolInfo
 	multiviewer?: MultiviewerInfo
+	dve?: DVEInfo
 	/** The number of inputs which report tally */
 	tallyChannels?: number
 	// lastTime?: TimeInfo
