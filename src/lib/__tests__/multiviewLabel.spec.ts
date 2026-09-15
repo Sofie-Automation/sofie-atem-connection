@@ -47,6 +47,12 @@ describe('Multiview Label', () => {
 			multiviewer: {
 				count: 1,
 				windowCount: 10,
+				canChangeLayout: false,
+				canRouteInputs: false,
+				supportsVuMeters: false,
+				canToggleSafeArea: false,
+				canSwapPreviewProgram: false,
+				supportsQuadrants: false,
 			},
 			audioMixer: {
 				inputs: 11,
@@ -159,6 +165,12 @@ describe('Multiview Label', () => {
 			multiviewer: {
 				count: 2,
 				windowCount: 1,
+				canChangeLayout: false,
+				canRouteInputs: false,
+				supportsVuMeters: false,
+				canToggleSafeArea: false,
+				canSwapPreviewProgram: false,
+				supportsQuadrants: false,
 			},
 			mediaPool: {
 				stillCount: 32,
@@ -341,6 +353,12 @@ describe('Multiview Label', () => {
 			multiviewer: {
 				count: 2,
 				windowCount: 1,
+				canChangeLayout: false,
+				canRouteInputs: false,
+				supportsVuMeters: false,
+				canToggleSafeArea: false,
+				canSwapPreviewProgram: false,
+				supportsQuadrants: false,
 			},
 			mediaPool: {
 				stillCount: 64,
@@ -514,6 +532,12 @@ describe('Multiview Label', () => {
 			multiviewer: {
 				count: 4,
 				windowCount: 1,
+				canChangeLayout: false,
+				canRouteInputs: false,
+				supportsVuMeters: false,
+				canToggleSafeArea: false,
+				canSwapPreviewProgram: false,
+				supportsQuadrants: false,
 			},
 			mediaPool: {
 				stillCount: 64,

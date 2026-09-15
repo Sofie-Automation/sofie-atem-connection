@@ -136,4 +136,19 @@ export const V8_0CommandConverters: CommandTestConverterSet = {
 		},
 		propertyAliases: {},
 	},
+	_MvC: {
+		idAliases: {},
+		propertyAliases: {},
+		customMutate: (props: Record<string, unknown>): any => {
+			if (props.count === undefined) {
+				// From v8.1.1 the count comes from _top instead
+				props.count = -1
+			}
+			if (props.canChangeLayout === undefined) {
+				// LibAtem does not parse this for v8.0, but always serializes it as 0
+				props.canChangeLayout = false
+			}
+			return props
+		},
+	},
 }

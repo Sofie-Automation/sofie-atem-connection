@@ -49,6 +49,14 @@ export interface MediaPoolInfo {
 export interface MultiviewerInfo {
 	readonly count: number
 	readonly windowCount: number
+	readonly canChangeLayout: boolean
+	readonly canRouteInputs: boolean
+	readonly supportsVuMeters: boolean
+	readonly canToggleSafeArea: boolean
+	/** Note: not reported by devices before v8.0 */
+	readonly canSwapPreviewProgram: boolean
+	/** Note: not reported by devices before v8.0 */
+	readonly supportsQuadrants: boolean
 }
 
 export interface TimeInfo {

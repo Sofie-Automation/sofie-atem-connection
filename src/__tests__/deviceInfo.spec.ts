@@ -1,6 +1,12 @@
 /* eslint-disable jest/expect-expect */ // Some assertions live in the helpers above
+import { ProtocolVersion } from '../enums'
 import { AtemCapabilites } from '../state/info'
 import { listFixtures, parseFixtureState } from './fixtureUtil'
+
+/** The last couple of _MvC flags are missing from the shorter body used before v8.0 */
+function hasMultiviewerFlags(fixture: string): boolean {
+	return (parseFixtureState(fixture).info.apiVersion ?? 0) >= ProtocolVersion.V8_0
+}
 
 function getCapabilities(fixture: string): AtemCapabilites {
 	const capabilities = parseFixtureState(fixture).info.capabilities
@@ -97,6 +103,50 @@ describe('deviceInfo', () => {
 			expect(parseFixtureState('mini-pro-v8.2').info.multiviewer).toMatchObject({ count: 1, windowCount: 7 })
 			// The pre-v8.1.1 layout
 			expect(parseFixtureState('4me4k-v7.5.2').info.multiviewer).toMatchObject({ count: 2, windowCount: 10 })
+		})
+
+		test('capability flags', () => {
+			expect(parseFixtureState('constellation-2me-hd-v9.6.2').info.multiviewer).toEqual({
+				count: 2,
+				windowCount: 16,
+				canChangeLayout: true,
+				canRouteInputs: true,
+				supportsVuMeters: true,
+				canToggleSafeArea: true,
+				canSwapPreviewProgram: false,
+				supportsQuadrants: true,
+			})
+			expect(parseFixtureState('mini-pro-v8.2').info.multiviewer).toEqual({
+				count: 1,
+				windowCount: 7,
+				canChangeLayout: false,
+				canRouteInputs: false,
+				supportsVuMeters: true,
+				canToggleSafeArea: true,
+				canSwapPreviewProgram: true,
+				supportsQuadrants: false,
+			})
+			// The last two flags are not present in the shorter pre-v8.0 body
+			expect(parseFixtureState('4me4k-v7.5.2').info.multiviewer).toEqual({
+				count: 2,
+				windowCount: 10,
+				canChangeLayout: true,
+				canRouteInputs: true,
+				supportsVuMeters: true,
+				canToggleSafeArea: true,
+				canSwapPreviewProgram: false,
+				supportsQuadrants: false,
+			})
+		})
+
+		test('supportsQuadrants matches the 16 window layout', () => {
+			// Every device which reports the flag reports it exactly when it has 16 windows
+			for (const fixture of listFixtures()) {
+				const info = parseFixtureState(fixture).info.multiviewer
+				if (!info || !hasMultiviewerFlags(fixture)) continue
+
+				expect([fixture, info.supportsQuadrants]).toEqual([fixture, info.windowCount === 16])
+			}
 		})
 	})
 })

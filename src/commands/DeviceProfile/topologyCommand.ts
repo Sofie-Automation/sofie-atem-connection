@@ -1,6 +1,6 @@
 import { DeserializedCommand } from '../CommandBase'
 import { AtemState } from '../../state'
-import { AtemCapabilites } from '../../state/info'
+import { AtemCapabilites, MultiviewerInfo } from '../../state/info'
 import { ProtocolVersion } from '../../enums'
 import { Mutable } from '../../lib/types'
 
@@ -81,6 +81,17 @@ function getLayout(version: ProtocolVersion): TopologyLayout {
 	return LAYOUT_V7_2
 }
 
+const DEFAULT_MULTIVIEWER_INFO: MultiviewerInfo = {
+	count: -1,
+	windowCount: 10,
+	canChangeLayout: false,
+	canRouteInputs: false,
+	supportsVuMeters: false,
+	canToggleSafeArea: false,
+	canSwapPreviewProgram: false,
+	supportsQuadrants: false,
+}
+
 export class TopologyCommand extends DeserializedCommand<AtemCapabilites & { multiviewers: number }> {
 	public static readonly rawName = '_top'
 
@@ -119,8 +130,9 @@ export class TopologyCommand extends DeserializedCommand<AtemCapabilites & { mul
 			...this.properties,
 		}
 		if (this.properties.multiviewers > 0) {
+			// The rest of the multiviewer info comes from _MvC, which always follows this command
 			state.info.multiviewer = {
-				windowCount: 10,
+				...DEFAULT_MULTIVIEWER_INFO,
 				...state.info.multiviewer,
 				count: this.properties.multiviewers,
 			}

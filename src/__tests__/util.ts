@@ -42,6 +42,12 @@ export function createEmptyState(cmd?: IDeserializedCommand): AtemState {
 	state.info.multiviewer = {
 		count: 255,
 		windowCount: 16,
+		canChangeLayout: true,
+		canRouteInputs: true,
+		supportsVuMeters: true,
+		canToggleSafeArea: true,
+		canSwapPreviewProgram: true,
+		supportsQuadrants: true,
 	}
 	state.streaming = {
 		service: {

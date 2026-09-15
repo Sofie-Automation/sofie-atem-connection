@@ -223,7 +223,12 @@ describe('Commands vs LibAtem', () => {
 		switch (testCase.name) {
 			// Temporarily ignore the failures
 			case 'KeFS': // TODO - TMP!
-			case '_MvC': // Not all properties parsed
+			case '_MvC':
+				// LibAtem and this library disagree about where the last flags sit in the shorter
+				// pre-v8.0 body, and no capture can distinguish the two readings.
+				// The newer layouts are compared as normal
+				if (testCase.firstVersion < ProtocolVersion.V8_0) continue
+				break
 			case 'FTSU': // Unkown props getting overwritten by generator: https://github.com/LibAtem/LibAtem/blob/master/LibAtem/Commands/DataTransfer/DataTransferDownloadRequestCommand.cs
 			case 'CCmd': // LibAtem is incorrect
 			case 'CCdP': // LibAtem is incorrect
