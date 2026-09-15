@@ -308,6 +308,15 @@ export const DefaultCommandConverters: CommandTestConverterSet = {
 			sidetoneGain: (v: number): PropertyAliasResult => ({ val: Math.round(v * 100) / 100 }),
 		},
 	},
+	_TlC: {
+		idAliases: {},
+		propertyAliases: {},
+		customMutate: (props: Record<string, unknown>): any => {
+			// A constant which is not parsed
+			delete props.unknown
+			return props
+		},
+	},
 	_top: {
 		idAliases: {},
 		propertyAliases: {

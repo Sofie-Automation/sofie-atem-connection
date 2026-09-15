@@ -93,6 +93,8 @@ export interface DeviceInfo {
 	macroPool?: MacroPoolInfo
 	mediaPool?: MediaPoolInfo
 	multiviewer?: MultiviewerInfo
+	/** The number of inputs which report tally */
+	tallyChannels?: number
 	// lastTime?: TimeInfo
 	supportedVideoModes?: Readonly<Array<SupportedVideoMode>>
 }

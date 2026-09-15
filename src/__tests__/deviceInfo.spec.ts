@@ -2,7 +2,7 @@
 import { ExternalPortType, ProtocolVersion } from '../enums'
 import { InputChannel } from '../state/input'
 import { AtemCapabilites } from '../state/info'
-import { listFixtures, parseFixtureState } from './fixtureUtil'
+import { listFixtures, parseFixtureRawCommands, parseFixtureState } from './fixtureUtil'
 
 /** The last couple of _MvC flags are missing from the shorter body used before v8.0 */
 function hasMultiviewerFlags(fixture: string): boolean {
@@ -235,6 +235,20 @@ describe('deviceInfo', () => {
 					expect(band.frequency).toBeGreaterThanOrEqual(range?.minFrequency ?? 0)
 					expect(band.frequency).toBeLessThanOrEqual(range?.maxFrequency ?? 0)
 				}
+			}
+		})
+	})
+
+	describe('tally', () => {
+		test('the tally channel count matches the tally by index commands', () => {
+			for (const fixture of listFixtures()) {
+				const tallyChannels = parseFixtureState(fixture).info.tallyChannels
+
+				// TlIn is not implemented by this library, but its length is what _TlC describes
+				const tlIn = parseFixtureRawCommands(fixture).find((cmd) => cmd.name === 'TlIn')
+				expect(tlIn).toBeTruthy()
+
+				expect([fixture, tallyChannels]).toEqual([fixture, tlIn?.body.readUInt16BE(0)])
 			}
 		})
 	})

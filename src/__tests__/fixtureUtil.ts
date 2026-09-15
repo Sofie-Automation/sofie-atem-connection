@@ -13,6 +13,37 @@ export function listFixtures(): string[] {
 		.sort()
 }
 
+export interface RawCommand {
+	name: string
+	body: Buffer
+}
+
+/** The raw commands of a fixture, including ones this library does not implement */
+export function parseFixtureRawCommands(filename: string): RawCommand[] {
+	const fileData = readFileSync(resolve(FIXTURE_DIR, `${filename}.data`))
+		.toString()
+		.split('\n')
+
+	const commands: RawCommand[] = []
+	for (const line of fileData) {
+		let buffer = Buffer.from(line.trim(), 'hex')
+
+		while (buffer.length > 8) {
+			const length = buffer.readUInt16BE(0)
+			if (length < 8) break
+
+			commands.push({
+				name: buffer.toString('ascii', 4, 8),
+				body: buffer.subarray(8, length),
+			})
+
+			buffer = buffer.subarray(length)
+		}
+	}
+
+	return commands
+}
+
 export function parseFixtureCommands(filename: string): IDeserializedCommand[] {
 	const fileData = readFileSync(resolve(FIXTURE_DIR, `${filename}.data`))
 		.toString()
