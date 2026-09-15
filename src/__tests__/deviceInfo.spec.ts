@@ -149,4 +149,44 @@ describe('deviceInfo', () => {
 			}
 		})
 	})
+
+	describe('fairlight equalizer', () => {
+		const EXPECTED_RANGES = [
+			{ frequencyRange: 1, minFrequency: 30, maxFrequency: 395 },
+			{ frequencyRange: 2, minFrequency: 100, maxFrequency: 1480 },
+			{ frequencyRange: 4, minFrequency: 450, maxFrequency: 7910 },
+			{ frequencyRange: 8, minFrequency: 1400, maxFrequency: 21700 },
+		]
+
+		test('every fairlight device reports the same frequency ranges', () => {
+			let fixtureCount = 0
+
+			for (const fixture of listFixtures()) {
+				const info = parseFixtureState(fixture).info.fairlightMixer
+				if (!info) continue
+
+				fixtureCount++
+				expect([fixture, info.equalizerFrequencyRanges]).toEqual([fixture, EXPECTED_RANGES])
+			}
+
+			expect(fixtureCount).toBe(17)
+		})
+
+		test('the master equalizer bands sit within the range they select', () => {
+			for (const fixture of listFixtures()) {
+				const state = parseFixtureState(fixture)
+				const ranges = state.info.fairlightMixer?.equalizerFrequencyRanges
+				if (!ranges) continue
+
+				for (const band of state.fairlight?.master?.equalizer?.bands ?? []) {
+					if (!band) continue
+
+					const range = ranges.find((r) => r.frequencyRange === band.frequencyRange)
+					expect(range).toBeTruthy()
+					expect(band.frequency).toBeGreaterThanOrEqual(range?.minFrequency ?? 0)
+					expect(band.frequency).toBeLessThanOrEqual(range?.maxFrequency ?? 0)
+				}
+			}
+		})
+	})
 })

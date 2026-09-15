@@ -204,6 +204,8 @@ describe('Commands vs LibAtem', () => {
 				!n.startsWith('_VMC') &&
 				!n.startsWith('FAMS') &&
 				!n.startsWith('CFMS') &&
+				// device profile commands which LibAtem does not have test cases for
+				!n.startsWith('_FEC') &&
 				// new multiviewer border
 				!n.startsWith('CMvO') &&
 				!n.startsWith('MvBC') &&

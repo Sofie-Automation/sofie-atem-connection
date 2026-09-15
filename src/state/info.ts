@@ -32,9 +32,18 @@ export interface AudioMixerInfo {
 	readonly headphones: number
 }
 
+export interface FairlightEqualizerFrequencyRangeInfo {
+	/** Matches the `frequencyRange` of a FairlightAudioEqualizerBandState */
+	readonly frequencyRange: number
+	readonly minFrequency: number
+	readonly maxFrequency: number
+}
+
 export interface FairlightAudioMixerInfo {
 	readonly inputs: number
 	readonly monitors: number
+	/** The frequency range each equalizer band can be set to, and the frequencies each covers */
+	readonly equalizerFrequencyRanges?: FairlightEqualizerFrequencyRangeInfo[]
 }
 
 export interface MacroPoolInfo {
