@@ -898,4 +898,212 @@ describe('SocketChild', () => {
 			}
 		}
 	})
+
+	function genPayloadMessage(pktId: number): Buffer {
+		// Payload carries the packet id, so delivery order can be checked from the payload itself
+		const payload = Buffer.alloc(2)
+		payload.writeUInt16BE(pktId, 0)
+		return Buffer.concat([genAckRequestMessage(pktId, 2), payload])
+	}
+
+	function genNewSessionMessage(pktId: number): Buffer {
+		const buffer = Buffer.from([
+			0x10,
+			0x0c, // Length & Type
+			0x53,
+			0x1b, // Session Id
+			0x00,
+			0x00, // Not acking
+			0x00,
+			0x00, // Not asking for retransmit
+			0x00,
+			0x00, // 'Client pkt id' Not needed
+			0x00,
+			0x00, // Packet Id
+		])
+		buffer.writeUInt16BE(pktId, 10) // Packet Id
+
+		return buffer
+	}
+
+	function createOutOfOrderHarness() {
+		const delivered: number[] = []
+		const child = createSocketChild(async (buf, packetId) => {
+			// The payload must belong to the packet id it is delivered with
+			expect(buf.readUInt16BE(0)).toEqual(packetId)
+			delivered.push(packetId)
+			return Promise.resolve()
+		})
+		fakeConnect(child)
+		const socket = getSocket(child)
+
+		const acked: number[] = []
+		socket.sendImpl = (msg: Buffer): void => {
+			const opcode = msg.readUInt8(0) >> 3
+			expect(opcode).toEqual(PacketFlag.AckReply)
+			acked.push(msg.readUInt16BE(4))
+		}
+
+		return { child, socket, delivered, acked }
+	}
+
+	test('Inbound commands - out of order packets are buffered until the gap is filled', async () => {
+		const { child, socket, delivered, acked } = createOutOfOrderHarness()
+		try {
+			// Packet 1 is lost, 2-4 arrive ahead of sequence
+			await socket.emitMessage(clock, genPayloadMessage(2))
+			await socket.emitMessage(clock, genPayloadMessage(3))
+			await socket.emitMessage(clock, genPayloadMessage(4))
+			await clock.tickAsync(20)
+			expect(delivered).toEqual([])
+			expect(acked).toEqual([])
+
+			// The missing packet arrives: everything is delivered in order, and acked straight away
+			await socket.emitMessage(clock, genPayloadMessage(1))
+			expect(delivered).toEqual([1, 2, 3, 4])
+			expect(acked).toEqual([4])
+			expect((child as any)._lastReceivedPacketId).toEqual(4)
+
+			// Sequence continues normally afterwards
+			await socket.emitMessage(clock, genPayloadMessage(5))
+			await clock.tickAsync(20)
+			expect(delivered).toEqual([1, 2, 3, 4, 5])
+			expect(acked).toEqual([4, 5])
+		} finally {
+			await child.disconnect()
+		}
+	})
+
+	test('Inbound commands - out of order packets around wrap', async () => {
+		const { child, socket, delivered, acked } = createOutOfOrderHarness()
+		try {
+			;(child as any)._lastReceivedPacketId = 32766 // 32767 is max
+
+			await socket.emitMessage(clock, genPayloadMessage(0))
+			await socket.emitMessage(clock, genPayloadMessage(1))
+			await clock.tickAsync(20)
+			expect(delivered).toEqual([])
+
+			await socket.emitMessage(clock, genPayloadMessage(32767))
+			expect(delivered).toEqual([32767, 0, 1])
+			expect(acked).toEqual([1])
+		} finally {
+			await child.disconnect()
+		}
+	})
+
+	test('Inbound commands - retransmits of buffered packets are not delivered twice', async () => {
+		const { child, socket, delivered, acked } = createOutOfOrderHarness()
+		try {
+			await socket.emitMessage(clock, genPayloadMessage(2))
+			await socket.emitMessage(clock, genPayloadMessage(2))
+			await socket.emitMessage(clock, genPayloadMessage(3))
+			await socket.emitMessage(clock, genPayloadMessage(2))
+			await socket.emitMessage(clock, genPayloadMessage(3))
+			expect(delivered).toEqual([])
+
+			await socket.emitMessage(clock, genPayloadMessage(1))
+			expect(delivered).toEqual([1, 2, 3])
+			expect(acked).toEqual([3])
+
+			// Late retransmits of already delivered packets are re-acked, not re-delivered
+			await socket.emitMessage(clock, genPayloadMessage(1))
+			await socket.emitMessage(clock, genPayloadMessage(2))
+			await socket.emitMessage(clock, genPayloadMessage(3))
+			await clock.tickAsync(20)
+			expect(delivered).toEqual([1, 2, 3])
+			expect(acked).toEqual([3, 3])
+		} finally {
+			await child.disconnect()
+		}
+	})
+
+	test('Inbound commands - packets too far ahead are not buffered', async () => {
+		const { child, socket, delivered } = createOutOfOrderHarness()
+		try {
+			// Way beyond any sane reorder window
+			await socket.emitMessage(clock, genPayloadMessage(5000))
+			expect((child as any)._outOfOrderPackets.size).toEqual(0)
+
+			await socket.emitMessage(clock, genPayloadMessage(1))
+			expect(delivered).toEqual([1])
+		} finally {
+			await child.disconnect()
+		}
+	})
+
+	test('Inbound commands - out of order buffer is cleared by a new session', async () => {
+		const { child, socket, delivered, acked } = createOutOfOrderHarness()
+		try {
+			await socket.emitMessage(clock, genPayloadMessage(3))
+			await socket.emitMessage(clock, genPayloadMessage(4))
+			expect(delivered).toEqual([])
+			expect((child as any)._outOfOrderPackets.size).toEqual(2)
+
+			// The device starts a new session, the buffered packets belong to the old one
+			await socket.emitMessage(clock, genNewSessionMessage(0))
+			expect((child as any)._outOfOrderPackets.size).toEqual(0)
+			expect(acked).toEqual([0])
+
+			await socket.emitMessage(clock, genPayloadMessage(1))
+			await socket.emitMessage(clock, genPayloadMessage(2))
+			expect(delivered).toEqual([1, 2])
+
+			// Buffer again, then a reconnect must also clear it
+			await socket.emitMessage(clock, genPayloadMessage(5))
+			expect((child as any)._outOfOrderPackets.size).toEqual(1)
+			await child.connect(ADDRESS, DEFAULT_PORT)
+			expect((child as any)._outOfOrderPackets.size).toEqual(0)
+		} finally {
+			await child.disconnect()
+		}
+	})
+
+	test('Inbound commands - backlog drains under per-frame retransmit bursts', async () => {
+		// Models a capture against a real ATEM: after one lost packet the ATEM retransmits its unacked window
+		// once per frame in bursts where the packets are interleaved with a stride of 3, while also sending a
+		// new unsolicited packet (Time) every frame. Without a reorder buffer only one packet per frame is
+		// accepted, which equals the arrival rate, so the backlog never drains.
+		const { child, socket, delivered, acked } = createOutOfOrderHarness()
+		try {
+			const lastAcked = (): number => (acked.length ? acked[acked.length - 1] : 0)
+
+			let atemNextId = 1
+			// Initial stream at one packet per frame, with packet 1 lost on the way
+			for (let frame = 0; frame < 22; frame++) {
+				const id = atemNextId++
+				if (id !== 1) await socket.emitMessage(clock, genPayloadMessage(id))
+				await clock.tickAsync(20)
+			}
+
+			const backlogs: number[] = []
+			for (let frame = 0; frame < 30; frame++) {
+				const oldestUnacked = lastAcked() + 1
+				const newestSent = atemNextId - 1
+				// Retransmit burst: the oldest unacked packet, then part of the window at stride 3 with a rotating
+				// phase that never includes oldest + 1. So exactly one packet per burst is next in sequence.
+				const burst: number[] = []
+				if (oldestUnacked <= newestSent) burst.push(oldestUnacked)
+				for (let id = oldestUnacked + 2 + (frame % 3); id <= newestSent; id += 3) burst.push(id)
+				for (const id of burst) await socket.emitMessage(clock, genPayloadMessage(id))
+
+				// Plus one new packet per frame
+				await socket.emitMessage(clock, genPayloadMessage(atemNextId++))
+				await clock.tickAsync(20)
+
+				backlogs.push(atemNextId - 1 - lastAcked())
+			}
+
+			// The backlog must have drained, rather than staying constant
+			expect(backlogs[backlogs.length - 1]).toEqual(0)
+			expect(backlogs.slice(-10)).toEqual(Array(10).fill(0))
+
+			// Every packet delivered exactly once, in order
+			const expected: number[] = []
+			for (let id = 1; id < atemNextId; id++) expected.push(id)
+			expect(delivered).toEqual(expected)
+		} finally {
+			await child.disconnect()
+		}
+	})
 })
