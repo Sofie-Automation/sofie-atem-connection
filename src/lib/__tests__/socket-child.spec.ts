@@ -1032,6 +1032,32 @@ describe('SocketChild', () => {
 		}
 	})
 
+	test('Inbound commands - packet ids beyond 15 bits are ignored', async () => {
+		const { child, socket, delivered } = createOutOfOrderHarness()
+		try {
+			// Fill the whole reorder window, along with the 16 bit alias of every id in it
+			for (let pktId = 2; pktId <= 256; pktId++) {
+				await socket.emitMessage(clock, genPayloadMessage(pktId))
+				await socket.emitMessage(clock, genPayloadMessage(pktId + 32768))
+			}
+			expect((child as any)._outOfOrderPackets.size).toEqual(255)
+			expect([...(child as any)._outOfOrderPackets.keys()].every((pktId: number) => pktId < 32768)).toBeTrue()
+
+			// The alias of the next packet is not accepted in its place
+			await socket.emitMessage(clock, genPayloadMessage(1 + 32768))
+			expect(delivered).toEqual([])
+			expect((child as any)._lastReceivedPacketId).toEqual(0)
+
+			// The real packet drains the whole window, leaving nothing behind
+			await socket.emitMessage(clock, genPayloadMessage(1))
+			expect(delivered).toHaveLength(256)
+			expect((child as any)._outOfOrderPackets.size).toEqual(0)
+			expect((child as any)._outOfOrderStalledSince).toBeUndefined()
+		} finally {
+			await child.disconnect()
+		}
+	})
+
 	test('Inbound commands - out of order buffer is cleared by a new session', async () => {
 		const { child, socket, delivered, acked } = createOutOfOrderHarness()
 		try {

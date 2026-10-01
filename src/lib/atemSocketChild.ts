@@ -293,8 +293,8 @@ export class AtemSocketChild {
 				ps.push(this._retransmitFrom(fromPacketId))
 			}
 
-			// Got a packet that needs an ack
-			if (flags & PacketFlag.AckRequest) {
+			// Got a packet that needs an ack. Ids are only 15 bits, anything larger is malformed and could never be drained
+			if (flags & PacketFlag.AckRequest && remotePacketId < MAX_PACKET_ID) {
 				const distance = (remotePacketId - this._lastReceivedPacketId + MAX_PACKET_ID) % MAX_PACKET_ID
 				// Check if it next in the sequence
 				if (distance === 1) {
