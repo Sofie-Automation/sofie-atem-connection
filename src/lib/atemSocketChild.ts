@@ -71,6 +71,8 @@ export class AtemSocketChild {
 	private _lastReceivedPacketId = 0
 	/** Payloads of AckRequest packets that arrived ahead of sequence, keyed by packet id */
 	private _outOfOrderPackets = new Map<number, Buffer>()
+	/** When the inbound stream last made progress while there were packets waiting in `_outOfOrderPackets` */
+	private _outOfOrderStalledSince: number | undefined
 	private _inFlight: InFlightPacket[] = []
 	private _ackTimer: NodeJS.Timeout | undefined
 	private _receivedWithoutAck = 0
@@ -102,9 +104,18 @@ export class AtemSocketChild {
 	private startTimers(): void {
 		if (!this._reconnectTimer) {
 			this._reconnectTimer = setInterval(() => {
-				if (this._lastReceivedAt + CONNECTION_TIMEOUT > performance.now()) {
-					// We heard from the atem recently
+				const now = performance.now()
+				const heardRecently = this._lastReceivedAt + CONNECTION_TIMEOUT > now
+				const inboundStalled =
+					this._outOfOrderStalledSince !== undefined &&
+					this._outOfOrderStalledSince + CONNECTION_TIMEOUT <= now
+				if (heardRecently && !inboundStalled) {
+					// We heard from the atem recently, and the inbound stream is not stuck behind a lost packet
 					return
+				}
+
+				if (inboundStalled) {
+					this.log(`Inbound stalled waiting for packet ${(this._lastReceivedPacketId + 1) % MAX_PACKET_ID}`)
 				}
 
 				this.restartConnection().catch((e) => {
@@ -126,7 +137,7 @@ export class AtemSocketChild {
 
 		return this._closeSocket().then(async () => {
 			this._connectionState = ConnectionState.Disconnected
-			this._outOfOrderPackets.clear()
+			this._clearOutOfOrderPackets()
 			return this.onDisconnect()
 		})
 	}
@@ -158,7 +169,7 @@ export class AtemSocketChild {
 		this._nextSendPacketId = 1
 		this._sessionId = 0
 		this._inFlight = []
-		this._outOfOrderPackets.clear()
+		this._clearOutOfOrderPackets()
 		this.log('reconnect')
 
 		this.startTimers()
@@ -266,7 +277,7 @@ export class AtemSocketChild {
 		if (flags & PacketFlag.NewSessionId) {
 			this._connectionState = ConnectionState.Established
 			this._lastReceivedPacketId = remotePacketId
-			this._outOfOrderPackets.clear()
+			this._clearOutOfOrderPackets()
 			this._sendAck(remotePacketId)
 			return
 		}
@@ -311,6 +322,9 @@ export class AtemSocketChild {
 						nextPayload = this._outOfOrderPackets.get(nextPacketId)
 					}
 
+					// Progress was made, so restart the stall clock for any packets still waiting behind a new gap
+					this._outOfOrderStalledSince = this._outOfOrderPackets.size > 0 ? performance.now() : undefined
+
 					if (drained > 0) {
 						// Ack immediately, so the atem stops retransmitting what we now have
 						this._sendAckNow()
@@ -320,6 +334,7 @@ export class AtemSocketChild {
 				} else if (distance > 1 && distance <= MAX_OUT_OF_ORDER_PACKETS) {
 					// It is ahead of sequence, so hold onto it until the gap is filled
 					if (!this._outOfOrderPackets.has(remotePacketId)) {
+						if (this._outOfOrderPackets.size === 0) this._outOfOrderStalledSince = performance.now()
 						this._outOfOrderPackets.set(remotePacketId, packet.subarray(12))
 					}
 				} else if (this._isPacketCoveredByAck(this._lastReceivedPacketId, remotePacketId)) {
@@ -359,6 +374,11 @@ export class AtemSocketChild {
 	private _sendPacket(packet: Buffer): void {
 		if (this._debugBuffers) this.log(`SEND ${packet.toString('hex')}`)
 		this._socket.send(packet, 0, packet.length, this._port, this._address)
+	}
+
+	private _clearOutOfOrderPackets(): void {
+		this._outOfOrderPackets.clear()
+		this._outOfOrderStalledSince = undefined
 	}
 
 	private _sendOrQueueAck(): void {

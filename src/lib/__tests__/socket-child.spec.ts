@@ -1059,6 +1059,91 @@ describe('SocketChild', () => {
 		}
 	})
 
+	test('Inbound commands - a gap that never fills triggers a reconnect, even with other traffic', async () => {
+		let connected = true
+		const child = createSocketChild(undefined, undefined, async () => {
+			connected = false
+		})
+		try {
+			fakeConnect(child)
+			const socket = getSocket(child)
+			socket.sendImpl = (): void => {
+				// Ignore acks and the reconnect hello
+			}
+
+			// Packet 1 is lost
+			await socket.emitMessage(clock, genPayloadMessage(2))
+			expect((child as any)._outOfOrderPackets.size).toEqual(1)
+
+			// Keep hearing ack replies from the atem, which would otherwise keep the connection alive
+			for (let i = 0; i < 9; i++) {
+				await clock.tickAsync(500)
+				await socket.emitMessage(clock, genAckCommandMessage(0))
+				// More packets pile up behind the gap
+				await socket.emitMessage(clock, genPayloadMessage(3 + i))
+			}
+			expect(connected).toBeTrue()
+
+			// The stall exceeds the connection timeout
+			await clock.tickAsync(1000)
+			await socket.emitMessage(clock, genAckCommandMessage(0))
+			expect(connected).toBeFalse()
+			expect((child as any)._outOfOrderPackets.size).toEqual(0)
+			expect((child as any)._outOfOrderStalledSince).toBeUndefined()
+		} finally {
+			await child.disconnect()
+		}
+	})
+
+	test('Inbound commands - progress through the buffer restarts the stall clock', async () => {
+		let connected = true
+		const delivered: number[] = []
+		const child = createSocketChild(
+			async (_buf, packetId) => {
+				delivered.push(packetId)
+			},
+			undefined,
+			async () => {
+				connected = false
+			}
+		)
+		try {
+			fakeConnect(child)
+			const socket = getSocket(child)
+			socket.sendImpl = (): void => {
+				// Ignore acks
+			}
+
+			// 1 and 3 lost
+			await socket.emitMessage(clock, genPayloadMessage(2))
+			await socket.emitMessage(clock, genPayloadMessage(4))
+
+			// 1 is recovered after 4s, which drains 2 but leaves 4 waiting behind 3
+			await clock.tickAsync(4000)
+			await socket.emitMessage(clock, genPayloadMessage(1))
+			expect(delivered).toEqual([1, 2])
+			expect((child as any)._outOfOrderPackets.size).toEqual(1)
+
+			// 4s more is beyond 5s since the first gap, but not since the progress
+			await clock.tickAsync(4000)
+			expect(connected).toBeTrue()
+
+			// 3 is recovered, everything drains and the stall is over
+			await socket.emitMessage(clock, genPayloadMessage(3))
+			expect(delivered).toEqual([1, 2, 3, 4])
+			expect((child as any)._outOfOrderStalledSince).toBeUndefined()
+
+			// Normal traffic keeps it alive well past the old stall deadline
+			for (let i = 5; i < 10; i++) {
+				await clock.tickAsync(1000)
+				await socket.emitMessage(clock, genPayloadMessage(i))
+			}
+			expect(connected).toBeTrue()
+		} finally {
+			await child.disconnect()
+		}
+	})
+
 	test('Inbound commands - backlog drains under per-frame retransmit bursts', async () => {
 		// Models a capture against a real ATEM: after one lost packet the ATEM retransmits its unacked window
 		// once per frame in bursts where the packets are interleaved with a stride of 3, while also sending a
