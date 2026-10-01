@@ -11,6 +11,12 @@ const RETRANSMIT_INTERVAL = 10 // ms
 const MAX_PACKET_RETRIES = 10
 const MAX_PACKET_ID = 1 << 15 // Atem expects 15 not 16 bits before wrapping
 const MAX_PACKET_PER_ACK = 16
+/**
+ * How far ahead of the expected packet id an inbound packet may be and still get buffered, which also bounds the
+ * buffer size. The atem keeps resending unacked packets, so this only needs to cover its unacked window (observed
+ * ~20-30 packets deep when one packet was lost at 50 packets/s). Packets are at most 2047 bytes, so this is <512KB.
+ */
+const MAX_OUT_OF_ORDER_PACKETS = 256
 
 export const COMMAND_CONNECT_HELLO = Buffer.from([
 	0x10, 0x14, 0x53, 0xab, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3a, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -63,6 +69,10 @@ export class AtemSocketChild {
 
 	private _lastReceivedAt: number = performance.now()
 	private _lastReceivedPacketId = 0
+	/** Payloads of AckRequest packets that arrived ahead of sequence, keyed by packet id */
+	private _outOfOrderPackets = new Map<number, Buffer>()
+	/** When the inbound stream last made progress while there were packets waiting in `_outOfOrderPackets` */
+	private _outOfOrderStalledSince: number | undefined
 	private _inFlight: InFlightPacket[] = []
 	private _ackTimer: NodeJS.Timeout | undefined
 	private _receivedWithoutAck = 0
@@ -94,9 +104,18 @@ export class AtemSocketChild {
 	private startTimers(): void {
 		if (!this._reconnectTimer) {
 			this._reconnectTimer = setInterval(() => {
-				if (this._lastReceivedAt + CONNECTION_TIMEOUT > performance.now()) {
-					// We heard from the atem recently
+				const now = performance.now()
+				const heardRecently = this._lastReceivedAt + CONNECTION_TIMEOUT > now
+				const inboundStalled =
+					this._outOfOrderStalledSince !== undefined &&
+					this._outOfOrderStalledSince + CONNECTION_TIMEOUT <= now
+				if (heardRecently && !inboundStalled) {
+					// We heard from the atem recently, and the inbound stream is not stuck behind a lost packet
 					return
+				}
+
+				if (inboundStalled) {
+					this.log(`Inbound stalled waiting for packet ${(this._lastReceivedPacketId + 1) % MAX_PACKET_ID}`)
 				}
 
 				this.restartConnection().catch((e) => {
@@ -118,6 +137,7 @@ export class AtemSocketChild {
 
 		return this._closeSocket().then(async () => {
 			this._connectionState = ConnectionState.Disconnected
+			this._clearOutOfOrderPackets()
 			return this.onDisconnect()
 		})
 	}
@@ -149,6 +169,7 @@ export class AtemSocketChild {
 		this._nextSendPacketId = 1
 		this._sessionId = 0
 		this._inFlight = []
+		this._clearOutOfOrderPackets()
 		this.log('reconnect')
 
 		this.startTimers()
@@ -256,6 +277,7 @@ export class AtemSocketChild {
 		if (flags & PacketFlag.NewSessionId) {
 			this._connectionState = ConnectionState.Established
 			this._lastReceivedPacketId = remotePacketId
+			this._clearOutOfOrderPackets()
 			this._sendAck(remotePacketId)
 			return
 		}
@@ -271,16 +293,49 @@ export class AtemSocketChild {
 				ps.push(this._retransmitFrom(fromPacketId))
 			}
 
-			// Got a packet that needs an ack
-			if (flags & PacketFlag.AckRequest) {
+			// Got a packet that needs an ack. Ids are only 15 bits, anything larger is malformed and could never be drained
+			if (flags & PacketFlag.AckRequest && remotePacketId < MAX_PACKET_ID) {
+				const distance = (remotePacketId - this._lastReceivedPacketId + MAX_PACKET_ID) % MAX_PACKET_ID
 				// Check if it next in the sequence
-				if (remotePacketId === (this._lastReceivedPacketId + 1) % MAX_PACKET_ID) {
+				if (distance === 1) {
 					this._lastReceivedPacketId = remotePacketId
-					this._sendOrQueueAck()
 
 					// It might have commands
 					if (length > 12) {
 						ps.push(this.onCommandsReceived(packet.subarray(12), remotePacketId))
+					}
+
+					// Deliver any buffered packets which are now in sequence
+					let drained = 0
+					let nextPacketId = (this._lastReceivedPacketId + 1) % MAX_PACKET_ID
+					let nextPayload = this._outOfOrderPackets.get(nextPacketId)
+					while (nextPayload) {
+						this._outOfOrderPackets.delete(nextPacketId)
+						this._lastReceivedPacketId = nextPacketId
+						drained++
+
+						if (nextPayload.length > 0) {
+							ps.push(this.onCommandsReceived(nextPayload, nextPacketId))
+						}
+
+						nextPacketId = (nextPacketId + 1) % MAX_PACKET_ID
+						nextPayload = this._outOfOrderPackets.get(nextPacketId)
+					}
+
+					// Progress was made, so restart the stall clock for any packets still waiting behind a new gap
+					this._outOfOrderStalledSince = this._outOfOrderPackets.size > 0 ? performance.now() : undefined
+
+					if (drained > 0) {
+						// Ack immediately, so the atem stops retransmitting what we now have
+						this._sendAckNow()
+					} else {
+						this._sendOrQueueAck()
+					}
+				} else if (distance > 1 && distance <= MAX_OUT_OF_ORDER_PACKETS) {
+					// It is ahead of sequence, so hold onto it until the gap is filled
+					if (!this._outOfOrderPackets.has(remotePacketId)) {
+						if (this._outOfOrderPackets.size === 0) this._outOfOrderStalledSince = performance.now()
+						this._outOfOrderPackets.set(remotePacketId, packet.subarray(12))
 					}
 				} else if (this._isPacketCoveredByAck(this._lastReceivedPacketId, remotePacketId)) {
 					// We got a retransmit of something we have already acked, so reack it
@@ -321,17 +376,15 @@ export class AtemSocketChild {
 		this._socket.send(packet, 0, packet.length, this._port, this._address)
 	}
 
+	private _clearOutOfOrderPackets(): void {
+		this._outOfOrderPackets.clear()
+		this._outOfOrderStalledSince = undefined
+	}
+
 	private _sendOrQueueAck(): void {
 		this._receivedWithoutAck++
 		if (this._receivedWithoutAck >= MAX_PACKET_PER_ACK) {
-			this._receivedWithoutAck = 0
-
-			if (this._ackTimer) {
-				clearTimeout(this._ackTimer)
-				delete this._ackTimer
-			}
-
-			this._sendAck(this._lastReceivedPacketId)
+			this._sendAckNow()
 		} else if (!this._ackTimer) {
 			this._ackTimer = setTimeout(() => {
 				delete this._ackTimer
@@ -339,6 +392,17 @@ export class AtemSocketChild {
 				this._sendAck(this._lastReceivedPacketId)
 			}, 5)
 		}
+	}
+
+	private _sendAckNow(): void {
+		this._receivedWithoutAck = 0
+
+		if (this._ackTimer) {
+			clearTimeout(this._ackTimer)
+			delete this._ackTimer
+		}
+
+		this._sendAck(this._lastReceivedPacketId)
 	}
 
 	private _sendAck(packetId: number): void {
