@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
+/* eslint-disable n/no-process-exit */
 import * as fs from 'fs'
 
 import { generateUploadBufferInfo } from '../../dist/dataTransfer/dataTransferUploadBuffer.js'
@@ -20,7 +21,7 @@ nb.on('connected', async () => {
 		const props = { ...cmd.properties }
 		Object.keys(props).forEach((k) => {
 			if (Buffer.isBuffer(props[k])) {
-				const buf = props[k] as Buffer
+				const buf = props[k]
 				props[k] = { bufferLength: buf.length }
 			}
 		})

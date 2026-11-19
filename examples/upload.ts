@@ -1,3 +1,4 @@
+/* eslint-disable n/no-process-exit */
 import * as fs from 'fs'
 
 import { Atem } from '../dist/index.js'

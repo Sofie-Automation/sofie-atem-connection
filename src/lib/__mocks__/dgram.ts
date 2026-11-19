@@ -1,4 +1,3 @@
-/* eslint-disable jest/no-standalone-expect */
 import { RemoteInfo, SocketOptions, SocketType } from 'dgram'
 import { EventEmitter } from 'events'
 

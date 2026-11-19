@@ -1,5 +1,5 @@
 /* eslint-disable jest/no-export */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
+
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
 

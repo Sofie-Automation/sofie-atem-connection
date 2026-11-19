@@ -764,7 +764,7 @@ describe('SocketChild', () => {
 
 	test('SendCommand - retransmit request future', async () => {
 		const acked: Array<{ packetId: number; trackingId: number }> = []
-		let connected = true
+		let connected: boolean
 		const child = createSocketChild(
 			undefined,
 			async (ids) => {
@@ -804,7 +804,7 @@ describe('SocketChild', () => {
 
 	test('SendCommand - retransmit request previous', async () => {
 		const acked: Array<{ packetId: number; trackingId: number }> = []
-		let connected = true
+		let connected: boolean
 		const child = createSocketChild(
 			undefined,
 			async (ids) => {
@@ -844,7 +844,7 @@ describe('SocketChild', () => {
 
 	test('Reconnect timer', async () => {
 		let acked: Array<{ packetId: number; trackingId: number }> = []
-		let connected = true
+		let connected: boolean
 		const child = createSocketChild(
 			undefined,
 			async (ids) => {

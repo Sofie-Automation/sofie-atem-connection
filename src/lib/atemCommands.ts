@@ -70,7 +70,7 @@ function rcaToXlrToInputLevel(rcaToXlrEnabled: boolean | undefined): Enums.Fairl
  * @param noopResult Produces the result to return when there is nothing to send
  */
 // The return type is an anonymous mixin class which cannot be practically named, so let it be inferred.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => AtemCommandSenderControl<T>>(
 	Base: TBase,
 	noopResult: () => T

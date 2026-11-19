@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-/* eslint-disable @typescript-eslint/ban-types */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { Buffer } from 'buffer'
 
 import * as fakeTimers from '@sinonjs/fake-timers'
@@ -64,10 +64,9 @@ const AtemSocketChildSingleton = new AtemSocketChildMock()
 )
 
 class ThreadedClassManagerMock {
-	public handlers: Function[] = []
+	public handlers: Array<() => void> = []
 
-	public onEvent(_socketProcess: any, _event: string, cb: Function): { stop: () => void } {
-		// eslint-disable-next-line @typescript-eslint/no-use-before-define
+	public onEvent(_socketProcess: any, _event: string, cb: () => void): { stop: () => void } {
 		ThreadedClassManagerSingleton.handlers.push(cb)
 		return {
 			stop: (): void => {
@@ -287,7 +286,7 @@ describe('AtemSocket', () => {
 		mockClear()
 		expect(getChild(socket)).toBeTruthy()
 
-		class MockCommand extends BasicWritableCommand<{}> {
+		class MockCommand extends BasicWritableCommand<Record<string, never>> {
 			public static readonly rawName = 'TEST'
 
 			public serialize(): Buffer {
@@ -581,7 +580,7 @@ describe('AtemSocket', () => {
 		socket.on('error', error)
 		socket.on('receivedCommands', change)
 
-		class BrokenCommand extends DeserializedCommand<{}> {
+		class BrokenCommand extends DeserializedCommand<Record<string, never>> {
 			public static readonly rawName = 'TEST'
 
 			public static deserialize(): BrokenCommand {

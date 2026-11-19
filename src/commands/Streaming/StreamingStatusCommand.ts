@@ -49,7 +49,7 @@ export class StreamingStatusUpdateCommand extends DeserializedCommand<StreamingS
 		for (const e of statusEnumValues) {
 			if ((rawStatus & e) === e) {
 				state = e
-				if (e !== StreamingStatus.Streaming) break
+				if (e !== (StreamingStatus.Streaming as number)) break
 			}
 		}
 
