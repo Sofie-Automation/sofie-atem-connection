@@ -74,7 +74,7 @@ export class AtemSocketChild {
 	private _nextAttemptAt = 0
 
 	private _connectionState = ConnectionState.Closed
-	private _reconnectTimer: NodeJS.Timer | undefined
+	private _reconnectTimer: NodeJS.Timeout | undefined
 	private _retransmitTimer: NodeJS.Timeout | undefined
 
 	private _nextSendPacketId = 1

@@ -2,7 +2,7 @@ import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandB
 import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer.js'
 import { LockStateCommand } from '../commands/DataTransfer/index.js'
 import PQueue from 'p-queue'
-import debug0 = require('debug')
+import debug0 from 'debug'
 
 const debug = debug0('atem-connection:data-transfer:upload-buffer')
 
@@ -35,7 +35,7 @@ export abstract class DataTransferQueueBase {
 
 	protected readonly nextTransferId: () => number
 	protected readonly onError: (message: string) => void
-	protected readonly handleCommandQueue = new PQueue({ concurrency: 1 })
+	readonly #handleCommandQueue = new PQueue({ concurrency: 1 })
 
 	readonly #inactivityTimeout: number
 	#inactivityTimer: NodeJS.Timeout | undefined
@@ -123,7 +123,7 @@ export abstract class DataTransferQueueBase {
 		}
 		this.taskQueue.splice(0, this.taskQueue.length)
 
-		this.handleCommandQueue.clear()
+		this.#handleCommandQueue.clear()
 
 		this.transferCompleted()
 
@@ -172,7 +172,7 @@ export abstract class DataTransferQueueBase {
 		if (!newTransfer) return
 
 		// Anything in the queue is rubbish now TODO - is this true? what about lock changes?
-		this.handleCommandQueue.clear()
+		this.#handleCommandQueue.clear()
 
 		const transferId = this.nextTransferId()
 		this.activeTransfer = {
@@ -191,7 +191,7 @@ export abstract class DataTransferQueueBase {
 	 */
 	protected tryStartTransfer(): void {
 		if (this.activeTransfer) {
-			this.handleCommandQueue
+			this.#handleCommandQueue
 				.add(
 					async () =>
 						this.#runTransferTask(async () => {
@@ -244,7 +244,7 @@ export abstract class DataTransferQueueBase {
 	public tryAbortTransfer(reason: Error): void {
 		if (this.activeTransfer) {
 			const transferId = this.activeTransfer.id
-			this.handleCommandQueue
+			this.#handleCommandQueue
 				.add(
 					async () => {
 						const transfer = this.activeTransfer
@@ -268,7 +268,7 @@ export abstract class DataTransferQueueBase {
 	protected abstract transferCompleted(): void
 
 	public handleCommand(command: IDeserializedCommand): void {
-		this.handleCommandQueue
+		this.#handleCommandQueue
 			.add(async () => {
 				const transfer = this.activeTransfer
 				if (!transfer || transfer.id !== command.properties.transferId) {

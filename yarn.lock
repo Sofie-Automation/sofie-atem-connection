@@ -1638,8 +1638,8 @@ __metadata:
     lint-staged: "npm:^17.6.1"
     object-path: "npm:^0.11.8"
     open-cli: "npm:^7.2.0"
-    p-lazy: "npm:^3.1.0"
-    p-queue: "npm:^6.6.2"
+    p-lazy: "npm:^5.0.0"
+    p-queue: "npm:^10.0.0"
     pinst: "npm:^3.0.0"
     prettier: "npm:^3.10.1"
     rimraf: "npm:^5.0.10"
@@ -4738,17 +4738,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-finally@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "p-finally@npm:1.0.0"
-  checksum: 10/93a654c53dc805dd5b5891bab16eb0ea46db8f66c4bfd99336ae929323b1af2b70a8b0654f8f1eae924b2b73d037031366d645f1fd18b3d30cbd15950cc4b1d4
-  languageName: node
-  linkType: hard
-
-"p-lazy@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "p-lazy@npm:3.1.0"
-  checksum: 10/289dbfd9de7d241498fd2d1ac9ec4e36de78672a92175f4b3c5fa9527b62f7549b06f549570b47f218d90b946f3a75611f9b8407934fe01512bc4fb56fdbf47d
+"p-lazy@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "p-lazy@npm:5.0.0"
+  checksum: 10/c36b6c792cec2cc5134a5ff195bb3d5beea6f9f4f195ce2eea340ee10095d9ad7cc3e12e84fee9dfff713699dc81c8bb3deab65c803136dcf73ca089539d3adc
   languageName: node
   linkType: hard
 
@@ -4813,22 +4806,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"p-queue@npm:^6.6.2":
-  version: 6.6.2
-  resolution: "p-queue@npm:6.6.2"
-  dependencies:
-    eventemitter3: "npm:^4.0.4"
-    p-timeout: "npm:^3.2.0"
-  checksum: 10/60fe227ffce59fbc5b1b081305b61a2f283ff145005853702b7d4d3f99a0176bd21bb126c99a962e51fe1e01cb8aa10f0488b7bbe73b5dc2e84b5cc650b8ffd2
-  languageName: node
-  linkType: hard
-
-"p-timeout@npm:^3.2.0":
-  version: 3.2.0
-  resolution: "p-timeout@npm:3.2.0"
-  dependencies:
-    p-finally: "npm:^1.0.0"
-  checksum: 10/3dd0eaa048780a6f23e5855df3dd45c7beacff1f820476c1d0d1bcd6648e3298752ba2c877aa1c92f6453c7dd23faaf13d9f5149fc14c0598a142e2c5e8d649c
+"p-queue@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "p-queue@npm:10.0.0"
+  checksum: 10/6189a18ba7e19d38c2a555b4f81e91156863adb2d4aeb5457424cca0db2579092370a821f32876d991375e5f787419e960fc809efb265b1402b743d12832c7c9
   languageName: node
   linkType: hard
 

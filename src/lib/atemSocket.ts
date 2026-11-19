@@ -1,11 +1,12 @@
-import { EventEmitter } from 'eventemitter3'
+import EventEmitter from 'eventemitter3'
 import { CommandParser } from './atemCommandParser.js'
-import exitHook = require('exit-hook')
+import exitHook from 'exit-hook'
 import { VersionCommand, ISerializableCommand, IDeserializedCommand } from '../commands/index.js'
 import { DEFAULT_PORT } from '../atem.js'
-import { threadedClass, ThreadedClass, ThreadedClassManager } from 'threadedclass'
+import threadedClassPkg, { type ThreadedClass, ThreadedClassManager } from 'threadedclass'
 import type { AtemSocketChild, OutboundPacketInfo } from './atemSocketChild.js'
 import { PacketBuilder } from './packetBuilder.js'
+import path from 'node:path'
 
 export interface AtemSocketOptions {
 	address: string
@@ -140,8 +141,9 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	}
 
 	private async _createSocketProcess(): Promise<void> {
-		this._socketProcess = await threadedClass<AtemSocketChild, typeof AtemSocketChild>(
-			'./atemSocketChild',
+		this._socketProcess = await threadedClassPkg.threadedClass<AtemSocketChild, typeof AtemSocketChild>(
+			// threadedclass can't resolve relative paths from an ESM caller, so give it an absolute path
+			path.join(import.meta.dirname, 'atemSocketChild.js'),
 			'AtemSocketChild',
 			[
 				{

@@ -1,9 +1,10 @@
-import { FontFace, NewMemoryFace } from '@julusian/freetype2'
+import type { FontFace } from '@julusian/freetype2'
+import freetype from '@julusian/freetype2'
 import { Model, VideoFormat, VideoMode } from '../enums/index.js'
 import { AtemState } from '../state/index.js'
 import { getVideoModeInfo } from './videoMode.js'
 import { readFile } from 'fs/promises'
-import path = require('path')
+import path from 'node:path'
 
 /**
  * Colour lookup table for converting 8bit grey to the atem encoding
@@ -356,10 +357,10 @@ export function calculateGenerateMultiviewerLabelProps(
  * @param fontPath Path to file
  */
 export async function loadFont(fontPath?: string): Promise<FontFace> {
-	if (!fontPath) fontPath = path.join(__dirname, '../../assets/roboto/Roboto-Regular.ttf')
+	if (!fontPath) fontPath = path.join(import.meta.dirname, '../../assets/roboto/Roboto-Regular.ttf')
 
 	const fontFile = await readFile(fontPath)
-	return NewMemoryFace(fontFile)
+	return freetype.NewMemoryFace(fontFile)
 }
 
 export function hasInternalMultiviewerLabelGeneration(modelId: Model): boolean {

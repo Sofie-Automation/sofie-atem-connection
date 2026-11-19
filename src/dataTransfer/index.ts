@@ -1,4 +1,4 @@
-import exitHook = require('exit-hook')
+import exitHook from 'exit-hook'
 
 import {
 	DataTransferLockingQueue,
@@ -50,7 +50,7 @@ export class DataTransferManager {
 	readonly #labelsLock: DataTransferSimpleQueue
 	readonly #macroLock: DataTransferSimpleQueue
 
-	private interval?: NodeJS.Timer
+	private interval?: NodeJS.Timeout
 	private exitUnsubscribe?: () => void
 
 	readonly #disableExitHandlers: boolean
