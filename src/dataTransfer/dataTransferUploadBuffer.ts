@@ -66,9 +66,11 @@ export function generateUploadBufferInfo(
 				`Pixel buffer has incorrect length. Received ${data.rawDataLength} expected ${expectedLength}`
 			)
 
-		if (shouldEncodeRLE && !data.isRleEncoded) {
-			data.isRleEncoded = true
-			data.encodedData = encodeRLE(data.encodedData)
+		if (shouldEncodeRLE && !result.isRleEncoded) {
+			// Hash the unencoded data, to match what is done for a raw pixel buffer
+			result.hash ??= generateHashForBuffer(result.encodedData)
+			result.isRleEncoded = true
+			result.encodedData = encodeRLE(result.encodedData)
 		}
 
 		return result
