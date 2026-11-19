@@ -1,6 +1,6 @@
 import type { ISerializableCommand } from '../../commands'
 import { ProtocolVersion } from '../../enums'
-import { PacketBuilder } from '../packetBuilder'
+import { MAX_PACKET_PAYLOAD_SIZE, PacketBuilder } from '../packetBuilder'
 
 class FakeCommand implements ISerializableCommand {
 	static readonly rawName: string = 'FAKE'
@@ -123,5 +123,32 @@ describe('PacketBuilder', () => {
 		expect(builder.getPackets()[2]).toHaveLength(
 			smallCmd.lengthWithHeader + smallCmd.lengthWithHeader + largeCmd.lengthWithHeader
 		)
+	})
+
+	it('Command at the maximum packet size', () => {
+		const builder = new PacketBuilder(500, ProtocolVersion.V8_1_1)
+
+		builder.addCommand(new FakeCommand(MAX_PACKET_PAYLOAD_SIZE - 8))
+
+		const packets = builder.getPackets()
+		expect(packets).toHaveLength(1)
+		expect(packets[0]).toHaveLength(MAX_PACKET_PAYLOAD_SIZE)
+	})
+
+	it('Command too large for a packet', () => {
+		const builder = new PacketBuilder(500, ProtocolVersion.V8_1_1)
+
+		expect(() => builder.addCommand(new FakeCommand(MAX_PACKET_PAYLOAD_SIZE - 7))).toThrow(/too large/)
+	})
+
+	it('maxPacketSize is limited to what the protocol supports', () => {
+		const builder = new PacketBuilder(5000, ProtocolVersion.V8_1_1)
+
+		builder.addCommand(new FakeCommand(1500))
+		builder.addCommand(new FakeCommand(1500))
+
+		const packets = builder.getPackets()
+		expect(packets).toHaveLength(2)
+		for (const packet of packets) expect(packet.length).toBeLessThanOrEqual(MAX_PACKET_PAYLOAD_SIZE)
 	})
 })

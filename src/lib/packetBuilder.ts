@@ -1,6 +1,12 @@
 import type { ProtocolVersion } from '../enums'
 import type { ISerializableCommand } from '../commands'
 
+/**
+ * The packet header stores the length in 11 bits, and the header itself is 12 bytes.
+ * This is the largest payload which can be sent in a single packet
+ */
+export const MAX_PACKET_PAYLOAD_SIZE = 0x7ff - 12
+
 export class PacketBuilder {
 	readonly #maxPacketSize: number
 	readonly #protocolVersion: ProtocolVersion
@@ -12,10 +18,10 @@ export class PacketBuilder {
 	#currentPacketFilled: number
 
 	constructor(maxPacketSize: number, protocolVersion: ProtocolVersion) {
-		this.#maxPacketSize = maxPacketSize
+		this.#maxPacketSize = Math.min(maxPacketSize, MAX_PACKET_PAYLOAD_SIZE)
 		this.#protocolVersion = protocolVersion
 
-		this.#currentPacketBuffer = Buffer.alloc(maxPacketSize)
+		this.#currentPacketBuffer = Buffer.alloc(this.#maxPacketSize)
 		this.#currentPacketFilled = 0
 	}
 
@@ -30,6 +36,11 @@ export class PacketBuilder {
 		const payload = cmd.serialize(this.#protocolVersion)
 
 		const totalLength = payload.length + 8
+		if (totalLength > MAX_PACKET_PAYLOAD_SIZE) {
+			throw new Error(
+				`Command ${rawName} is too large to send (${totalLength} bytes, maximum is ${MAX_PACKET_PAYLOAD_SIZE} bytes)`
+			)
+		}
 		if (totalLength > this.#maxPacketSize) {
 			// Command is too large for a normal packet, try sending it on its own anyway
 			this.#finishBuffer(totalLength)
