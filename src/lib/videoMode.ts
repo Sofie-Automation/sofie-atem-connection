@@ -33,7 +33,7 @@ const dims4k: Pick<VideoModeInfo, 'width' | 'height' | 'format'> = {
 const dims8k: Pick<VideoModeInfo, 'width' | 'height' | 'format'> = {
 	format: Enums.VideoFormat.UDH8K,
 	width: 7680,
-	height: 4260,
+	height: 4320,
 }
 const VideoModeInfoImpl: {
 	[key in Enums.VideoMode]: VideoModeInfo
