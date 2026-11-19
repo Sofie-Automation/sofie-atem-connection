@@ -13,6 +13,7 @@ export enum DataTransferState {
 
 export abstract class DataTransfer<T> {
 	readonly #completionPromise: Promise<T>
+	#abortReason: Error | undefined
 	protected resolvePromise: (value: T | PromiseLike<T>) => void
 	protected rejectPromise: (reason?: any) => void
 
@@ -50,8 +51,14 @@ export abstract class DataTransfer<T> {
 		oldState: DataTransferState
 	): Promise<ProgressTransferResult>
 
+	/** Why the transfer was aborted, if it has been */
+	get abortReason(): Error | undefined {
+		return this.#abortReason
+	}
+
 	/** The current transfer has been aborted and should report failure */
 	public abort(reason: Error): void {
+		this.#abortReason ??= reason
 		this.rejectPromise(reason)
 	}
 }

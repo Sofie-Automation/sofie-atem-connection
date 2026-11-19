@@ -90,6 +90,17 @@ export abstract class DataTransferQueueBase {
 		this.#inactivityTimer = timer
 	}
 
+	/** Abort a transfer, and move on to the next one. Does nothing if it is no longer the active transfer */
+	#failTransfer(transfer: ActiveTransfer, reason: unknown): void {
+		if (this.activeTransfer !== transfer) return
+
+		transfer.job.abort(reason instanceof Error ? reason : new Error(`${reason}`))
+		this.transferCompleted()
+		this.activeTransfer = undefined
+
+		this.dequeueAndRun()
+	}
+
 	/** Run a task for the active transfer, pausing the inactivity timer while it runs */
 	async #runTransferTask(fn: () => Promise<void>): Promise<void> {
 		this.#handlingTask = true
@@ -190,7 +201,14 @@ export abstract class DataTransferQueueBase {
 								return
 							}
 
-							const result = await this.startTransfer(transfer.job, transfer.id)
+							let result: ProgressTransferResult
+							try {
+								result = await this.startTransfer(transfer.job, transfer.id)
+							} catch (e) {
+								// Left alone it would sit there forever, as a pending transfer has no timeout
+								this.#failTransfer(transfer, e)
+								return
+							}
 
 							// TODO - this is rather duplicated..
 							if (this.activeTransfer?.id !== transfer.id) {
@@ -235,11 +253,7 @@ export abstract class DataTransferQueueBase {
 							return
 						}
 
-						transfer.job.abort(reason)
-						this.transferCompleted()
-						this.activeTransfer = undefined
-
-						this.dequeueAndRun()
+						this.#failTransfer(transfer, reason)
 					},
 					{ priority: queueHighPriority }
 				)
@@ -269,7 +283,14 @@ export abstract class DataTransferQueueBase {
 
 				await this.#runTransferTask(async () => {
 					const oldState = transfer.state
-					const result = await transfer.job.handleCommand(command, oldState)
+					let result: ProgressTransferResult
+					try {
+						result = await transfer.job.handleCommand(command, oldState)
+					} catch (e) {
+						// The transfer can't make progress after this, so fail it rather than waiting for the timeout
+						this.#failTransfer(transfer, e)
+						return
+					}
 
 					if (this.activeTransfer?.id !== transfer.id) {
 						throw new Error('Transfer changed mid-handle!')

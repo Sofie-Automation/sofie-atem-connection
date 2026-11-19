@@ -28,7 +28,7 @@ class FakeTransfer extends DataTransfer<void> {
 	}
 }
 
-describe('DataTransferQueue inactivity timeout', () => {
+describe('DataTransferQueue', () => {
 	let clock: fakeTimers.InstalledClock
 	beforeEach(() => {
 		clock = fakeTimers.install()
@@ -115,5 +115,26 @@ describe('DataTransferQueue inactivity timeout', () => {
 		queue.lockObtained()
 		await clock.tickAsync(TIMEOUT + 10)
 		await expect(promise).rejects.toThrow('Transfer timed out')
+	})
+
+	test('a transfer that fails to start is rejected, and the queue moves on', async () => {
+		const { queue } = createQueue()
+		class BrokenTransfer extends FakeTransfer {
+			public async startTransfer(): Promise<ProgressTransferResult> {
+				throw new Error('No frames available for transfer')
+			}
+		}
+
+		const broken = queue.enqueue(new BrokenTransfer())
+		broken.catch(() => null)
+		const next = queue.enqueue(new FakeTransfer())
+		await clock.tickAsync(0)
+
+		await expect(broken).rejects.toThrow('No frames available for transfer')
+		expect(queue.currentTransferId).toEqual(1)
+
+		queue.handleCommand(new DataTransferCompleteCommand({ transferId: 1 }))
+		await clock.tickAsync(0)
+		await expect(next).resolves.toBeUndefined()
 	})
 })

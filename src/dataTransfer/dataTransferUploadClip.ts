@@ -31,7 +31,23 @@ export class DataTransferUploadClip extends DataTransfer<void> {
 
 	private async nextFrame(): Promise<DataTransferUploadClipFrame | undefined> {
 		const next = await this.#frames.next()
-		return next.value
+		const frame = next.value
+		// A frame reports failure by rejecting its own promise. That is checked through abortReason instead,
+		// so don't let it become an unhandled rejection
+		frame?.promise.catch(() => null)
+		return frame
+	}
+
+	public abort(reason: Error): void {
+		const wasAborted = !!this.abortReason
+		super.abort(reason)
+
+		if (!wasAborted) {
+			// Let the generator clean up, it won't be asked for any more frames
+			Promise.resolve(this.#frames.return(undefined)).catch((e) => {
+				debug(`Failed to close frame generator: ${e}`)
+			})
+		}
 	}
 
 	public async startTransfer(transferId: number): Promise<ProgressTransferResult> {
@@ -73,6 +89,17 @@ export class DataTransferUploadClip extends DataTransfer<void> {
 		debug(
 			`handleCommand: ${DataTransferState[frameResult.newState]} - Giving ${frameResult.commands.length} commands`
 		)
+
+		const frameError = this.#currentFrame.abortReason
+		if (frameError) {
+			// The frame failed, so the clip has failed
+			this.abort(new Error(`Frame ${this.#numFrames - 1} failed: ${frameError.message}`))
+
+			return {
+				newState: DataTransferState.Finished,
+				commands: [],
+			}
+		}
 
 		if (frameResult.newState === DataTransferState.Finished) {
 			// Get the next frame
