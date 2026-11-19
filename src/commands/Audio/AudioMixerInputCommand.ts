@@ -5,7 +5,9 @@ import { WritableCommand, DeserializedCommand } from '../CommandBase'
 import { ProtocolVersion } from '../../enums'
 import { OmitReadonly } from '../../lib/types'
 
-export class AudioMixerInputCommand extends WritableCommand<OmitReadonly<AudioChannel>> {
+export type AudioMixerInputCommandProps = Omit<OmitReadonly<AudioChannel>, 'portType'>
+
+export class AudioMixerInputCommand extends WritableCommand<AudioMixerInputCommandProps> {
 	public static MaskFlags = {
 		mixOption: 1 << 0,
 		gain: 1 << 1,

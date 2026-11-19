@@ -3,7 +3,10 @@ import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
 import { SuperSourceBox } from '../../state/video/superSource'
 import { ProtocolVersion } from '../../enums'
 
-export class SuperSourceBoxParametersCommand extends WritableCommand<SuperSourceBox> {
+/** The writable box properties. The border is set with SuperSourceBoxBorderCommand */
+export type SuperSourceBoxParametersCommandProps = Omit<SuperSourceBox, 'border'>
+
+export class SuperSourceBoxParametersCommand extends WritableCommand<SuperSourceBoxParametersCommandProps> {
 	public static MaskFlags = {
 		enabled: 1 << 0,
 		source: 1 << 1,

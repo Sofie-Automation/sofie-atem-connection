@@ -1,5 +1,4 @@
 import type {
-	ClassicAudioChannel,
 	ClassicAudioMasterChannel,
 	ClassicAudioMonitorChannel,
 	ClassicAudioHeadphoneOutputChannel,
@@ -332,7 +331,11 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			return this.sendCommand(command)
 		}
 
-		public setSuperSourceBoxSettings(newProps: Partial<SuperSource.SuperSourceBox>, box = 0, ssrcId = 0): T {
+		public setSuperSourceBoxSettings(
+			newProps: Partial<Commands.SuperSourceBoxParametersCommandProps>,
+			box = 0,
+			ssrcId = 0
+		): T {
 			const command = new Commands.SuperSourceBoxParametersCommand(ssrcId, box)
 			command.updateProps(newProps)
 			return this.sendCommand(command)
@@ -509,7 +512,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			return this.sendCommand(command)
 		}
 
-		public setClassicAudioMixerInputProps(index: number, props: Partial<OmitReadonly<ClassicAudioChannel>>): T {
+		public setClassicAudioMixerInputProps(index: number, props: Partial<Commands.AudioMixerInputCommandProps>): T {
 			const command = new Commands.AudioMixerInputCommand(index)
 			command.updateProps(props)
 			return this.sendCommand(command)

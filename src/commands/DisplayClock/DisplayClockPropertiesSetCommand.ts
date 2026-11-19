@@ -1,7 +1,8 @@
 import { DisplayClockProperties } from '../../state/displayClock'
 import { WritableCommand } from '../CommandBase'
 
-export interface DisplayClockPropertiesExt extends DisplayClockProperties {
+/** The writable display clock properties. clockState is set with DisplayClockStateSetCommand */
+export interface DisplayClockPropertiesExt extends Omit<DisplayClockProperties, 'clockState'> {
 	startFromFrames: number
 }
 
