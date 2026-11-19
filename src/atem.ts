@@ -1,4 +1,4 @@
-import EventEmitter from 'eventemitter3'
+import EventEmitter from 'node:events'
 import { AtemState, AtemStateUtil, InvalidIdError } from './state/index.js'
 import { AtemSocket } from './lib/atemSocket.js'
 import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase.js'
@@ -154,9 +154,10 @@ class AtemWrapper {
 	 * Emit an event, without letting an exception thrown by a listener escape.
 	 * A throwing listener would otherwise abort the processing that triggered the event, such as updating the state
 	 */
-	private _safeEmit<T extends EventEmitter.EventNames<AtemEvents>>(
+	private _safeEmit<T extends keyof AtemEvents>(
 		event: T,
-		...args: EventEmitter.EventArgs<AtemEvents, T>
+		// Matches how EventEmitter types its arguments, so they can be passed straight through
+		...args: T extends keyof AtemEvents ? AtemEvents[T] : never
 	): void {
 		try {
 			this.emitter.emit(event, ...args)

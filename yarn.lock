@@ -1630,7 +1630,6 @@ __metadata:
     "@types/sinonjs__fake-timers": "npm:^8.1.5"
     debug: "npm:^4.4.3"
     eslint: "npm:^10.15.0"
-    eventemitter3: "npm:^4.0.7"
     exit-hook: "npm:^2.2.1"
     husky: "npm:^9.1.7"
     jest: "npm:^29.7.0"
@@ -2622,7 +2621,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventemitter3@npm:^4.0.4, eventemitter3@npm:^4.0.7":
+"eventemitter3@npm:^4.0.4":
   version: 4.0.7
   resolution: "eventemitter3@npm:4.0.7"
   checksum: 10/8030029382404942c01d0037079f1b1bc8fed524b5849c237b80549b01e2fc49709e1d0c557fa65ca4498fc9e24cff1475ef7b855121fcc15f9d61f93e282346

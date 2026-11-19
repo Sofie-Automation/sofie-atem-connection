@@ -1,4 +1,4 @@
-import EventEmitter from 'eventemitter3'
+import EventEmitter from 'node:events'
 import { CommandParser } from './atemCommandParser.js'
 import exitHook from 'exit-hook'
 import { VersionCommand, ISerializableCommand, IDeserializedCommand } from '../commands/index.js'
