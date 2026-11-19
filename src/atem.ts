@@ -13,8 +13,8 @@ import { AtemCommandSenderMixin } from './lib/atemCommands.js'
 import { AtemSocket } from './lib/atemSocket.js'
 import * as Util from './lib/atemUtil.js'
 import { AtemCommandBatch } from './lib/batchCommands.js'
+import { convertPCMToAtemAudio } from './lib/converters/audio.js'
 import { decodeRLE } from './lib/converters/rle.js'
-import { convertWAVToRaw } from './lib/converters/wavAudio.js'
 import { convertYUV422ToRGBA } from './lib/converters/yuv422ToRgba.js'
 import {
 	calculateGenerateMultiviewerLabelProps,
@@ -584,14 +584,21 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 
 	/**
 	 * Upload clip audio to the ATEM media pool
+	 *
+	 * This does not decode audio files. Load or decode the audio yourself (eg with the `wavefile` library or ffmpeg)
 	 * @param index Clip index to upload to
-	 * @param data stereo 48khz 24bit WAV audio data
+	 * @param samples Interleaved stereo 48khz signed 24bit little-endian PCM samples.
+	 * This is the contents of the data chunk of a 24bit stereo wav file, or the output of `ffmpeg -f s24le -ac 2 -ar 48000`
 	 * @param name Name to give the uploaded audio
 	 * @returns Promise which resolves once the clip audio is uploaded
 	 */
-	public async uploadAudio(index: number, data: Buffer, name: string): Promise<void> {
+	public async uploadAudio(index: number, samples: Uint8Array, name: string): Promise<void> {
 		this.#assertValidClipIndex(index)
-		return this.dataTransferManager.uploadAudio(index, convertWAVToRaw(data, this.state?.info?.model), name)
+		return this.dataTransferManager.uploadAudio(
+			index,
+			convertPCMToAtemAudio(samples, this.state?.info?.model),
+			name
+		)
 	}
 
 	/** Check a clip index against the number of clips the device reports, when that is known */
