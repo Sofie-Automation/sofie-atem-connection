@@ -9,7 +9,7 @@ export function convertRGBAToYUV422(width: number, height: number, data: Buffer)
 	const constants = height >= 720 ? ColorConvertConstantsBT709 : ColorConvertConstantsBT601
 
 	const genColor = (rawA: number, uv16: number, y16: number): number => {
-		const a = ((rawA << 2) * 219) / 255 + (16 << 2)
+		const a = Math.round(((rawA << 2) * 219) / 255) + (16 << 2)
 		const y = Math.round(y16) >> 6
 		const uv = Math.round(uv16) >> 6
 

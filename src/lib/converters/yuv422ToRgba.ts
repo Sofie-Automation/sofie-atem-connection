@@ -21,7 +21,8 @@ export function convertYUV422ToRGBA(width: number, height: number, data: Buffer)
 
 		const y_full = (y - constants.YOffset) / constants.YRange
 		const uv_full = (uv - constants.CbCrOffset) / constants.HalfCbCrRange
-		const a_full = (((a - (16 << 2)) / 219) * 255) >> 2 // TODO - confirm correct range
+		// Alpha uses the limited range 64-940. Captured stills can contain values outside of that (eg 1023), so it gets clamped
+		const a_full = ((a - (16 << 2)) * 255) / (219 << 2)
 
 		return [y_full, uv_full, a_full]
 	}
@@ -35,7 +36,7 @@ export function convertYUV422ToRGBA(width: number, height: number, data: Buffer)
 		const r = clamp(Math.round(y8 + constants.KRi * cr8))
 		const g = clamp(Math.round(y8 - constants.KRKRioKG * cr8 - constants.KBKBioKG * cb8))
 		const b = clamp(Math.round(y8 + constants.KBi * cb8))
-		const a = Math.round(a10)
+		const a = clamp(Math.round(a10))
 
 		return [r, g, b, a]
 	}
