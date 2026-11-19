@@ -122,10 +122,11 @@ export class CameraControlCommand extends BasicWritableCommand<CameraControlPack
 				break
 			}
 			case CameraControlDataType.STRING: {
-				buffer = Buffer.alloc(headerSize + padToMultiple(this.properties.stringData.length, 8))
-				buffer.writeUint16BE(this.properties.stringData.length, header8BitPos)
+				const stringData = Buffer.from(this.properties.stringData, 'utf8')
+				buffer = Buffer.alloc(headerSize + padToMultiple(stringData.length, 8))
+				buffer.writeUint16BE(stringData.length, header8BitPos)
 
-				buffer.write(this.properties.stringData, headerSize)
+				stringData.copy(buffer, headerSize)
 
 				break
 			}

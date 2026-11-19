@@ -60,16 +60,16 @@ export class MacroPropertiesCommand extends WritableCommand<OmitReadonly<MacroPr
 	}
 
 	public serialize(): Buffer {
-		const name = this.properties.name || ''
-		const description = this.properties.description || ''
+		const name = Buffer.from(this.properties.name || '', 'utf8')
+		const description = Buffer.from(this.properties.description || '', 'utf8')
 
 		const buffer = Buffer.alloc(Util.padToMultiple(8 + name.length + description.length, 4))
 		buffer.writeUInt8(this.flag, 0)
 		buffer.writeUInt16BE(this.macroIndex, 2)
 		buffer.writeUInt16BE(name.length, 4)
 		buffer.writeUInt16BE(description.length, 6)
-		buffer.write(name, 8, 'utf8')
-		buffer.write(description, 8 + name.length, 'utf8')
+		name.copy(buffer, 8)
+		description.copy(buffer, 8 + name.length)
 
 		return buffer
 	}

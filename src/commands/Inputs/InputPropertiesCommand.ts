@@ -25,8 +25,8 @@ export class InputPropertiesCommand extends WritableCommand<OmitReadonly<InputCh
 		const buffer = Buffer.alloc(32)
 		buffer.writeUInt8(this.flag, 0)
 		buffer.writeUInt16BE(this.inputId, 2)
-		buffer.write(this.properties.longName || '', 4)
-		buffer.write(this.properties.shortName || '', 24)
+		buffer.write(this.properties.longName || '', 4, 20, 'utf8')
+		buffer.write(this.properties.shortName || '', 24, 4, 'utf8')
 		buffer.writeUInt16BE(this.properties.externalPortType || 0, 28)
 		return buffer
 	}
