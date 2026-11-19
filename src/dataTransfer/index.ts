@@ -10,6 +10,7 @@ import { DataTransferDownloadMacro } from './dataTransferDownloadMacro'
 import { DataTransferUploadMacro } from './dataTransferUploadMacro'
 import { LockObtainedCommand, LockStateUpdateCommand } from '../commands/DataTransfer'
 import debug0 from 'debug'
+import { commandStringify } from '../lib/atemUtil'
 import type { UploadBufferInfo } from './dataTransferUploadBuffer'
 import { DataTransferDownloadStill } from './dataTransferDownloadStill'
 
@@ -120,7 +121,7 @@ export class DataTransferManager {
 	 * We do it via a queue as some of the handlers need to be async, and we don't want to block state updates from happening in parallel
 	 */
 	public queueHandleCommand(command: IDeserializedCommand): void {
-		debug(`Received command ${command.constructor.name}: ${JSON.stringify(command)}`)
+		if (debug.enabled) debug(`Received command ${command.constructor.name}: ${commandStringify(command)}`)
 		if (command instanceof LockObtainedCommand || command instanceof LockStateUpdateCommand) {
 			let lock: DataTransferLockingQueue | undefined
 			if (command.properties.index === 0) {

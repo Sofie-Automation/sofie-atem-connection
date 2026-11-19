@@ -57,7 +57,13 @@ export function combineComponents(vals: number[]): number {
 }
 
 export function commandStringify(command: IDeserializedCommand | ISerializableCommand): string {
-	return JSON.stringify(command, (_key, value) => (typeof value === 'bigint' ? value.toString() : value))
+	return JSON.stringify(command, function (this: any, key, value) {
+		if (typeof value === 'bigint') return value.toString()
+		// Buffer.toJSON has already run by now, so check the original value. Hex is far more compact and readable
+		const raw = this[key]
+		if (Buffer.isBuffer(raw)) return raw.toString('hex')
+		return value
+	})
 }
 
 export function omit<T, K extends keyof T>(o: T, ...keys: K[]): Omit<T, K> {
