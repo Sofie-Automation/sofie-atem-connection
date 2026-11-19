@@ -1,7 +1,7 @@
-import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
+import { MultiViewerLayout, ProtocolVersion } from '../../enums/index.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
 import { MultiViewerPropertiesState } from '../../state/settings.js'
-import { ProtocolVersion, MultiViewerLayout } from '../../enums/index.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 export class MultiViewerPropertiesCommand extends WritableCommand<Omit<MultiViewerPropertiesState, 'safeAreaEnabled'>> {
 	public static MaskFlags = {

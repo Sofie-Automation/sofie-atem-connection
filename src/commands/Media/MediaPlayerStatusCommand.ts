@@ -1,6 +1,6 @@
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
 import { MediaPlayer } from '../../state/media.js'
-import { WritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 export class MediaPlayerStatusCommand extends WritableCommand<MediaPlayer> {
 	public static MaskFlags = {

@@ -1,11 +1,12 @@
 /* eslint-disable @typescript-eslint/unbound-method */
+import { EventEmitter } from 'events'
+import { promisify } from 'util'
+
 import { Atem, DEFAULT_MAX_PACKET_SIZE, DEFAULT_PORT } from '../atem.js'
 import { CutCommand, ProductIdentifierCommand, VersionCommand } from '../commands/index.js'
 import { Model, ProtocolVersion } from '../enums/index.js'
-import { promisify } from 'util'
-import { EventEmitter } from 'events'
-
 import { AtemSocket } from '../lib/atemSocket.js'
+
 jest.mock('../lib/atemSocket.js')
 
 const setImmediatePromise = promisify(setImmediate)

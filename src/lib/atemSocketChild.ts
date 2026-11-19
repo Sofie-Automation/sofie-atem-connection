@@ -1,9 +1,9 @@
 /**
  * Note: this file wants as few imports as possible, as it gets loaded in a worker-thread and may require its own webpack bundle
  */
-import { createSocket, Socket, RemoteInfo } from 'dgram'
-import { isIP } from 'net'
+import { createSocket, RemoteInfo, Socket } from 'dgram'
 import { promises as dns } from 'dns'
+import { isIP } from 'net'
 import { performance } from 'perf_hooks'
 
 const IN_FLIGHT_TIMEOUT = 60 // ms

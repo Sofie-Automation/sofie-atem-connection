@@ -1,6 +1,6 @@
-import { SymmetricalCommand } from '../CommandBase.js'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
 import { ProtocolVersion } from '../../enums/index.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { SymmetricalCommand } from '../CommandBase.js'
 
 export class MultiViewerWindowSafeAreaCommand extends SymmetricalCommand<{ safeAreaEnabled: boolean }> {
 	public static readonly rawName = 'SaMw'

@@ -1,6 +1,7 @@
-import WaveFile = require('wavefile')
-import { convertWAVToRaw } from '../wavAudio.js'
 import { Model } from '../../../enums/index.js'
+import { convertWAVToRaw } from '../wavAudio.js'
+
+import WaveFile = require('wavefile')
 
 function createWav(frames: number): Buffer {
 	const wav = new (WaveFile as any)()

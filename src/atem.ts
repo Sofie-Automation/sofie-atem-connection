@@ -1,31 +1,33 @@
 import EventEmitter from 'node:events'
-import { AtemState, AtemStateUtil, InvalidIdError } from './state/index.js'
-import { AtemSocket } from './lib/atemSocket.js'
-import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase.js'
-import * as Commands from './commands/index.js'
+
+import { FontFace } from '@julusian/freetype2'
+import PLazy from 'p-lazy'
+
+import { IDeserializedCommand, ISerializableCommand } from './commands/CommandBase.js'
 import * as DataTransferCommands from './commands/DataTransfer/index.js'
+import * as Commands from './commands/index.js'
+import { TimeCommand } from './commands/index.js'
+import { generateUploadBufferInfo, UploadBufferInfo } from './dataTransfer/dataTransferUploadBuffer.js'
 import * as DT from './dataTransfer/index.js'
+import * as Enums from './enums/index.js'
+import { AtemCommandSenderMixin } from './lib/atemCommands.js'
+import { AtemSocket } from './lib/atemSocket.js'
 import * as Util from './lib/atemUtil.js'
-import { VideoModeInfo, getVideoModeInfo } from './lib/videoMode.js'
-import { listVisibleInputs } from './lib/tally.js'
+import { AtemCommandBatch } from './lib/batchCommands.js'
+import { decodeRLE } from './lib/converters/rle.js'
+import { convertWAVToRaw } from './lib/converters/wavAudio.js'
+import { convertYUV422ToRGBA } from './lib/converters/yuv422ToRgba.js'
 import {
 	calculateGenerateMultiviewerLabelProps,
 	generateMultiviewerLabel,
 	hasInternalMultiviewerLabelGeneration,
 	loadFont,
 } from './lib/multiviewLabel.js'
-import { FontFace } from '@julusian/freetype2'
-import PLazy from 'p-lazy'
-import { TimeCommand } from './commands/index.js'
+import { listVisibleInputs } from './lib/tally.js'
+import { getVideoModeInfo, VideoModeInfo } from './lib/videoMode.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from './state/index.js'
 import { TimeInfo } from './state/info.js'
 import { SomeAtemAudioLevels } from './state/levels.js'
-import { generateUploadBufferInfo, UploadBufferInfo } from './dataTransfer/dataTransferUploadBuffer.js'
-import { convertWAVToRaw } from './lib/converters/wavAudio.js'
-import { decodeRLE } from './lib/converters/rle.js'
-import { convertYUV422ToRGBA } from './lib/converters/yuv422ToRgba.js'
-import { AtemCommandSenderMixin } from './lib/atemCommands.js'
-import { AtemCommandBatch } from './lib/batchCommands.js'
-import * as Enums from './enums/index.js'
 
 // Pre-computed once at module load — avoids allocating Object.values() and iterating
 // DataTransferCommands on every received command packet.

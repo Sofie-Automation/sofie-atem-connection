@@ -1,9 +1,9 @@
 import { DataTransferDataCommand, DataTransferUploadContinueCommand } from '../../commands/DataTransfer/index.js'
-import { DataTransferState } from '../dataTransfer.js'
-import { DataTransferUploadMacro } from '../dataTransferUploadMacro.js'
-import { generateHashForBuffer, generateUploadBufferInfo, UploadBufferInfo } from '../dataTransferUploadBuffer.js'
-import { getVideoModeInfo } from '../../lib/videoMode.js'
 import { VideoMode } from '../../enums/index.js'
+import { getVideoModeInfo } from '../../lib/videoMode.js'
+import { DataTransferState } from '../dataTransfer.js'
+import { generateHashForBuffer, generateUploadBufferInfo, UploadBufferInfo } from '../dataTransferUploadBuffer.js'
+import { DataTransferUploadMacro } from '../dataTransferUploadMacro.js'
 
 describe('DataTransferUploadBuffer', () => {
 	test('aborts when the requested chunk size is too small to make progress', async () => {

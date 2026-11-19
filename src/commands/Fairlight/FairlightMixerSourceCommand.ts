@@ -1,8 +1,8 @@
+import * as Util from '../../lib/atemUtil.js'
+import { OmitReadonly } from '../../lib/types.js'
 import { FairlightAudioInput, FairlightAudioSourcePropertiesState } from '../../state/fairlight.js'
 import { AtemState, InvalidIdError } from '../../state/index.js'
-import * as Util from '../../lib/atemUtil.js'
 import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
-import { OmitReadonly } from '../../lib/types.js'
 
 export class FairlightMixerSourceDeleteCommand extends DeserializedCommand<Record<string, never>> {
 	public static readonly rawName = 'FASD'

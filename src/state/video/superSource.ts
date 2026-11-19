@@ -72,7 +72,7 @@ export interface SuperSource {
 		SuperSourceBox | undefined,
 		SuperSourceBox | undefined,
 		SuperSourceBox | undefined,
-		SuperSourceBox | undefined
+		SuperSourceBox | undefined,
 	]
 	properties?: SuperSourceProperties
 	/** Per-SuperSource border, on older ATEM models. See {@link SuperSourceBorder}. */

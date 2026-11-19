@@ -1,6 +1,6 @@
+import { OmitReadonly } from '../../lib/types.js'
 import { AtemState, InvalidIdError } from '../../state/index.js'
 import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
-import { OmitReadonly } from '../../lib/types.js'
 
 export class FairlightMixerMasterPropertiesCommand extends WritableCommand<
 	OmitReadonly<{ audioFollowVideo: boolean }>

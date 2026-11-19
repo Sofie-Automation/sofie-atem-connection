@@ -1,7 +1,7 @@
+import { OmitReadonly } from '../../lib/types.js'
 import { FairlightAudioMonitorChannel } from '../../state/fairlight.js'
 import { AtemState, InvalidIdError } from '../../state/index.js'
 import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
-import { OmitReadonly } from '../../lib/types.js'
 
 export class FairlightMixerMonitorCommand extends WritableCommand<OmitReadonly<FairlightAudioMonitorChannel>> {
 	public static MaskFlags = {

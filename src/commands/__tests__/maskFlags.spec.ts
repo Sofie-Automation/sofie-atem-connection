@@ -1,5 +1,5 @@
-import * as Commands from '../index.js'
 import { WritableCommand } from '../CommandBase.js'
+import * as Commands from '../index.js'
 
 class TestCommandWithoutMaskFlags extends WritableCommand<{ value: number }> {
 	public serialize(): Buffer {
@@ -37,9 +37,8 @@ type WritableCommandNames = {
 }[Exclude<keyof AllCommands, 'WritableCommand'>]
 type MaskFlagsMismatch<X> = [CommandMaskFlags<X>] extends [never]
 	? 'missing MaskFlags'
-	:
-			| Exclude<keyof CommandProps<X>, keyof CommandMaskFlags<X>>
-			| Exclude<keyof CommandMaskFlags<X>, keyof CommandProps<X>>
+	: | Exclude<keyof CommandProps<X>, keyof CommandMaskFlags<X>>
+		| Exclude<keyof CommandMaskFlags<X>, keyof CommandProps<X>>
 type MaskFlagsMismatches = {
 	[K in WritableCommandNames as [MaskFlagsMismatch<AllCommands[K]>] extends [never] ? never : K]: MaskFlagsMismatch<
 		AllCommands[K]

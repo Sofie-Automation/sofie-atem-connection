@@ -1,9 +1,9 @@
-import { DeserializedCommand, WritableCommand } from '../../CommandBase.js'
-import { FairlightAudioRoutingOutput } from '../../../state/fairlight.js'
-import { OmitReadonly } from '../../../lib/types.js'
-import { AtemState, InvalidIdError } from '../../../state/index.js'
-import * as Util from '../../../lib/atemUtil.js'
 import { AudioChannelPair } from '../../../enums/index.js'
+import * as Util from '../../../lib/atemUtil.js'
+import { OmitReadonly } from '../../../lib/types.js'
+import { FairlightAudioRoutingOutput } from '../../../state/fairlight.js'
+import { AtemState, InvalidIdError } from '../../../state/index.js'
+import { DeserializedCommand, WritableCommand } from '../../CommandBase.js'
 
 export class AudioRoutingOutputCommand extends WritableCommand<OmitReadonly<FairlightAudioRoutingOutput>> {
 	public static MaskFlags = {

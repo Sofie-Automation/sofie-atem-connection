@@ -1,4 +1,4 @@
-import { RecordingError, RecordingStatus, RecordingDiskStatus } from '../enums/index.js'
+import { RecordingDiskStatus, RecordingError, RecordingStatus } from '../enums/index.js'
 import { Timecode } from './common.js'
 
 export interface RecordingState {

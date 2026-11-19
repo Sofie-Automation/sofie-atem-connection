@@ -1,6 +1,11 @@
 import * as fakeTimers from '@sinonjs/fake-timers'
-import { DataTransferCompleteCommand, DataTransferDataCommand, LockStateCommand } from '../../commands/DataTransfer/index.js'
+
 import { IDeserializedCommand } from '../../commands/CommandBase.js'
+import {
+	DataTransferCompleteCommand,
+	DataTransferDataCommand,
+	LockStateCommand,
+} from '../../commands/DataTransfer/index.js'
 import { DataTransfer, DataTransferState, ProgressTransferResult } from '../dataTransfer.js'
 import { DataTransferLockingQueue, DataTransferSimpleQueue } from '../dataTransferQueue.js'
 

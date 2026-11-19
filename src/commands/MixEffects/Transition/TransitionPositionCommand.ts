@@ -1,6 +1,6 @@
-import { BasicWritableCommand, DeserializedCommand } from '../../CommandBase.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
 import { TransitionPosition } from '../../../state/video/index.js'
+import { BasicWritableCommand, DeserializedCommand } from '../../CommandBase.js'
 
 export class TransitionPositionCommand extends BasicWritableCommand<Pick<TransitionPosition, 'handlePosition'>> {
 	public static readonly rawName = 'CTPs'

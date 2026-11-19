@@ -1,7 +1,7 @@
 import { ISerializableCommand } from '../commands/CommandBase.js'
-import { DataTransferUploadBuffer } from './dataTransferUploadBuffer.js'
 import { DataTransferFileDescriptionCommand, DataTransferUploadRequestCommand } from '../commands/DataTransfer/index.js'
-import { ProgressTransferResult, DataTransferState } from './dataTransfer.js'
+import { DataTransferState, ProgressTransferResult } from './dataTransfer.js'
+import { DataTransferUploadBuffer } from './dataTransferUploadBuffer.js'
 
 export default class DataTransferUploadMultiViewerLabel extends DataTransferUploadBuffer {
 	readonly #sourceId: number

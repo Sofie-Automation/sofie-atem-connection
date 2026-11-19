@@ -1,6 +1,6 @@
-import { WritableCommand, DeserializedCommand } from '../../CommandBase.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
 import { UpstreamKeyerLumaSettings } from '../../../state/video/upstreamKeyers.js'
+import { DeserializedCommand, WritableCommand } from '../../CommandBase.js'
 
 export class MixEffectKeyLumaCommand extends WritableCommand<UpstreamKeyerLumaSettings> {
 	public static MaskFlags = {

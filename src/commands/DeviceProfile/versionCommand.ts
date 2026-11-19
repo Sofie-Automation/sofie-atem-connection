@@ -1,6 +1,6 @@
-import { DeserializedCommand } from '../CommandBase.js'
-import { AtemState } from '../../state/index.js'
 import { ProtocolVersion } from '../../enums/index.js'
+import { AtemState } from '../../state/index.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class VersionCommand extends DeserializedCommand<{ version: ProtocolVersion }> {
 	public static readonly rawName = '_ver'

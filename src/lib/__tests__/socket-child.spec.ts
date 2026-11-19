@@ -1,11 +1,14 @@
-jest.mock('dgram')
-import { Socket } from '../__mocks__/dgram.js'
-import { AtemSocketChild, COMMAND_CONNECT_HELLO, ConnectionState, PacketFlag } from '../atemSocketChild.js'
-import * as fakeTimers from '@sinonjs/fake-timers'
-import { DEFAULT_PORT } from '../../atem.js'
-import { performance } from 'perf_hooks'
-import * as sinon from 'sinon'
 import { promises as dns } from 'dns'
+import { performance } from 'perf_hooks'
+
+import * as fakeTimers from '@sinonjs/fake-timers'
+import * as sinon from 'sinon'
+
+import { Socket } from '../__mocks__/dgram.js'
+import { DEFAULT_PORT } from '../../atem.js'
+import { AtemSocketChild, COMMAND_CONNECT_HELLO, ConnectionState, PacketFlag } from '../atemSocketChild.js'
+
+jest.mock('dgram')
 
 const ADDRESS = '127.0.0.1'
 

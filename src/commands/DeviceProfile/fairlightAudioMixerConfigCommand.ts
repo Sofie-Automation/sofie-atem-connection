@@ -1,6 +1,6 @@
-import { DeserializedCommand } from '../CommandBase.js'
 import { AtemState } from '../../state/index.js'
 import { FairlightAudioMixerInfo } from '../../state/info.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class FairlightAudioMixerConfigCommand extends DeserializedCommand<FairlightAudioMixerInfo> {
 	public static readonly rawName = '_FAC'

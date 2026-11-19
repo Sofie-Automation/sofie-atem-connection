@@ -1,15 +1,15 @@
+import debug0 from 'debug'
+
 import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
 import { DataTransferFileDescriptionCommand, DataTransferUploadRequestCommand } from '../commands/DataTransfer/index.js'
-import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer.js'
 import { MediaPoolClearClipCommand, MediaPoolSetClipCommand } from '../commands/Media/index.js'
-import debug0 from 'debug'
+import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer.js'
 import { DataTransferUploadBuffer, UploadBufferInfo } from './dataTransferUploadBuffer.js'
 
 const debug = debug0('atem-connection:data-transfer:upload-clip')
 
 export type DataTransferFrameGenerator =
-	| Generator<DataTransferUploadClipFrame, undefined>
-	| AsyncGenerator<DataTransferUploadClipFrame, undefined>
+	Generator<DataTransferUploadClipFrame, undefined> | AsyncGenerator<DataTransferUploadClipFrame, undefined>
 
 export class DataTransferUploadClip extends DataTransfer<void> {
 	readonly #clipIndex: number

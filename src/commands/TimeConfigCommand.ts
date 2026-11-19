@@ -1,7 +1,7 @@
 import * as Enums from '../enums/index.js'
-import { BasicWritableCommand } from './index.js'
-import { DeserializedCommand } from './CommandBase.js'
 import { AtemState } from '../state/index.js'
+import { DeserializedCommand } from './CommandBase.js'
+import { BasicWritableCommand } from './index.js'
 
 export class TimeConfigCommand extends BasicWritableCommand<{ mode: Enums.TimeMode }> {
 	public static readonly rawName = 'CTCC'

@@ -1,7 +1,7 @@
-import { AtemState } from '../state/index.js'
 import { ProtocolVersion } from '../enums/index.js'
-import { BasicWritableCommand, DeserializedCommand } from './CommandBase.js'
 import { assertNever, padToMultiple } from '../lib/atemUtil.js'
+import { AtemState } from '../state/index.js'
+import { BasicWritableCommand, DeserializedCommand } from './CommandBase.js'
 
 export enum CameraControlDataType {
 	BOOL = 0x00,

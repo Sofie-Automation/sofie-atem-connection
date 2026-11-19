@@ -1,6 +1,7 @@
 import { types } from 'util'
-import { CommandParser } from '../../lib/atemCommandParser.js'
+
 import { ProtocolVersion } from '../../enums/index.js'
+import { CommandParser } from '../../lib/atemCommandParser.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
 
 /**

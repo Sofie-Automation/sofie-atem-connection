@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
+import * as fs from 'fs'
+
+import { NewMemoryFace } from '@julusian/freetype2'
+
 import { AtemState } from '../../state/index.js'
 import { calculateGenerateMultiviewerLabelProps, generateMultiviewerLabel } from '../multiviewLabel.js'
-import { NewMemoryFace } from '@julusian/freetype2'
-import * as fs from 'fs'
 
 describe('Multiview Label', () => {
 	const font = NewMemoryFace(fs.readFileSync(__dirname + '/../../../assets/roboto/Roboto-Regular.ttf'))

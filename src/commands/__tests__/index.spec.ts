@@ -1,13 +1,14 @@
 /* eslint-disable jest/no-export */
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { CommandParser } from '../../lib/atemCommandParser.js'
-import { ProtocolVersion } from '../../enums/index.js'
-import { IDeserializedCommand, SymmetricalCommand, ISerializableCommand } from '../CommandBase.js'
-import { createEmptyState } from '../../__tests__/util.js'
-import { DefaultCommandConverters } from './converters-default.js'
-import { V8_0CommandConverters } from './converters-8.0.js'
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
+
+import { createEmptyState } from '../../__tests__/util.js'
+import { ProtocolVersion } from '../../enums/index.js'
+import { CommandParser } from '../../lib/atemCommandParser.js'
+import { IDeserializedCommand, ISerializableCommand, SymmetricalCommand } from '../CommandBase.js'
+import { V8_0CommandConverters } from './converters-8.0.js'
+import { DefaultCommandConverters } from './converters-default.js'
 
 export type CommandTestConverterSet = { [key: string]: CommandTestConverter }
 export interface PropertyAliasResult {

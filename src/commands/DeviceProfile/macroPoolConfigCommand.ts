@@ -1,6 +1,6 @@
-import { DeserializedCommand } from '../CommandBase.js'
 import { AtemState } from '../../state/index.js'
 import { MacroPoolInfo } from '../../state/info.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class MacroPoolConfigCommand extends DeserializedCommand<MacroPoolInfo> {
 	public static readonly rawName = '_MAC'

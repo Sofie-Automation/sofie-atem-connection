@@ -1,5 +1,5 @@
 import { DataTransferDownloadRequestCommand } from '../commands/DataTransfer/index.js'
-import { ProgressTransferResult, DataTransferState } from './dataTransfer.js'
+import { DataTransferState, ProgressTransferResult } from './dataTransfer.js'
 import { DataTransferDownloadBuffer } from './dataTransferDownloadBuffer.js'
 
 // Macros are small xml documents. 1MB is far larger than any real macro, but bounds memory usage

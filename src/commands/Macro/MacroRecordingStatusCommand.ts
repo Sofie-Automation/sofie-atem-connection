@@ -1,6 +1,6 @@
-import { DeserializedCommand } from '../CommandBase.js'
 import { AtemState } from '../../state/index.js'
 import { MacroRecorderState } from '../../state/macro.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class MacroRecordingStatusCommand extends DeserializedCommand<MacroRecorderState> {
 	public static readonly rawName = 'MRcS'

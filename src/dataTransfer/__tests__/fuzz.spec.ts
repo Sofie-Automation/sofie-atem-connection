@@ -1,4 +1,6 @@
 import * as fakeTimers from '@sinonjs/fake-timers'
+
+import { IDeserializedCommand, ISerializableCommand } from '../../commands/CommandBase.js'
 import {
 	DataTransferCompleteCommand,
 	DataTransferDataCommand,
@@ -10,9 +12,8 @@ import {
 	LockObtainedCommand,
 	LockStateUpdateCommand,
 } from '../../commands/DataTransfer/index.js'
-import { IDeserializedCommand, ISerializableCommand } from '../../commands/CommandBase.js'
-import { DataTransferManager } from '../index.js'
 import { UploadBufferInfo } from '../dataTransferUploadBuffer.js'
+import { DataTransferManager } from '../index.js'
 
 /**
  * Drive the data transfer manager with random sequences of responses from a misbehaving device, and check that it

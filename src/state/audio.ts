@@ -1,4 +1,4 @@
-import { AudioSourceType, ExternalPortType, AudioMixOption } from '../enums/index.js'
+import { AudioMixOption, AudioSourceType, ExternalPortType } from '../enums/index.js'
 
 export type AudioChannel = ClassicAudioChannel
 export type AudioMasterChannel = ClassicAudioMasterChannel

@@ -1,5 +1,6 @@
-import * as Enums from '../../enums/index.js'
 import WaveFile from 'wavefile'
+
+import * as Enums from '../../enums/index.js'
 
 export function convertWAVToRaw(inputBuffer: Buffer, model: Enums.Model | undefined): Buffer {
 	const wav = new (WaveFile as any)(inputBuffer)

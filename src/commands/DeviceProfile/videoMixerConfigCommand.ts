@@ -1,7 +1,7 @@
-import { DeserializedCommand } from '../CommandBase.js'
+import { ProtocolVersion, VideoMode } from '../../enums/index.js'
 import { AtemState } from '../../state/index.js'
 import { SupportedVideoMode } from '../../state/info.js'
-import { ProtocolVersion, VideoMode } from '../../enums/index.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class VideoMixerConfigCommand extends DeserializedCommand<Array<SupportedVideoMode>> {
 	public static readonly rawName = '_VMC'

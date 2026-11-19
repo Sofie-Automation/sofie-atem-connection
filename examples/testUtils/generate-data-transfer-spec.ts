@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { Atem, Enums } from '../../dist/index.js'
-import { DataTransferManager } from '../../dist/dataTransfer/index.js'
-import { generateUploadBufferInfo } from '../../dist/dataTransfer/dataTransferUploadBuffer.js'
-import { getVideoModeInfo } from '../../dist/lib/videoMode.js'
 import * as fs from 'fs'
+
+import { generateUploadBufferInfo } from '../../dist/dataTransfer/dataTransferUploadBuffer.js'
+import { DataTransferManager } from '../../dist/dataTransfer/index.js'
+import { Atem, Enums } from '../../dist/index.js'
+import { getVideoModeInfo } from '../../dist/lib/videoMode.js'
 
 const frameBuffer = Buffer.alloc(1920 * 1080 * 4, 0)
 // const wavBuffer = fs.readFileSync('./src/dataTransfer/__tests__/sampleAudio.wav')

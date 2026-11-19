@@ -1,6 +1,6 @@
-import { WritableCommand, DeserializedCommand } from '../../CommandBase.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
 import { StingerTransitionSettings } from '../../../state/video/index.js'
+import { DeserializedCommand, WritableCommand } from '../../CommandBase.js'
 
 export class TransitionStingerCommand extends WritableCommand<StingerTransitionSettings> {
 	public static MaskFlags = {

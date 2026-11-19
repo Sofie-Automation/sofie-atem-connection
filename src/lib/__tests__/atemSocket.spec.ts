@@ -1,22 +1,25 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 /* eslint-disable @typescript-eslint/ban-types */
-import {
-	CutCommand,
-	ProductIdentifierCommand,
-	VersionCommand,
-	ProgramInputUpdateCommand,
-	PreviewInputUpdateCommand,
-	ISerializableCommand,
-	BasicWritableCommand,
-	DeserializedCommand,
-} from '../../commands/index.js'
-import { ProtocolVersion, Model } from '../../enums/index.js'
-import { AtemSocket } from '../atemSocket.js'
-import { ThreadedClass, ThreadedClassManager } from 'threadedclass'
 import { Buffer } from 'buffer'
-import { CommandParser } from '../atemCommandParser.js'
+
 import * as fakeTimers from '@sinonjs/fake-timers'
+import { ThreadedClass, ThreadedClassManager } from 'threadedclass'
+
+import {
+	BasicWritableCommand,
+	CutCommand,
+	DeserializedCommand,
+	ISerializableCommand,
+	PreviewInputUpdateCommand,
+	ProductIdentifierCommand,
+	ProgramInputUpdateCommand,
+	VersionCommand,
+} from '../../commands/index.js'
+import { Model, ProtocolVersion } from '../../enums/index.js'
+import { CommandParser } from '../atemCommandParser.js'
+import { AtemSocket } from '../atemSocket.js'
 import { AtemSocketChild } from '../atemSocketChild.js'
+
 // import { promisify } from 'util'
 jest.mock('../atemSocketChild.js')
 

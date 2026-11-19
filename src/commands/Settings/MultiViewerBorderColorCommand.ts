@@ -1,5 +1,5 @@
-import { SymmetricalCommand } from '../CommandBase.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { SymmetricalCommand } from '../CommandBase.js'
 import type { MultiViewerBorderColorState } from '../../state/settings.js'
 
 export class MultiViewerBorderColorCommand extends SymmetricalCommand<MultiViewerBorderColorState> {

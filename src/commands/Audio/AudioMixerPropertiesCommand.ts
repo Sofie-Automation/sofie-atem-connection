@@ -1,5 +1,5 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 import { AtemState, InvalidIdError } from '../../state/index.js'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 
 export class AudioMixerPropertiesCommand extends BasicWritableCommand<{ audioFollowVideo: boolean }> {
 	public static readonly rawName = 'CAMP'

@@ -1,9 +1,9 @@
-import { AtemState, InvalidIdError } from '../../state/index.js'
-import { FairlightAudioInputProperties } from '../../state/fairlight.js'
-import { ProtocolVersion, FairlightAnalogInputLevel } from '../../enums/index.js'
+import { FairlightAnalogInputLevel, ProtocolVersion } from '../../enums/index.js'
 import * as Util from '../../lib/atemUtil.js'
-import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 import { OmitReadonly } from '../../lib/types.js'
+import { FairlightAudioInputProperties } from '../../state/fairlight.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 export class FairlightMixerInputCommand extends WritableCommand<
 	Omit<OmitReadonly<FairlightAudioInputProperties>, 'activeInputLevel'> & { rcaToXlrEnabled: boolean }

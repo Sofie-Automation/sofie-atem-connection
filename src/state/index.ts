@@ -1,16 +1,16 @@
-import * as Info from './info.js'
-import * as Video from './video/index.js'
 import * as ClassicAudio from './audio.js'
-import * as Media from './media.js'
+import { ColorGeneratorState } from './color.js'
+import * as DisplayClock from './displayClock.js'
+import * as Fairlight from './fairlight.js'
+import * as Info from './info.js'
 import * as Input from './input.js'
 import * as Macro from './macro.js'
-import * as Settings from './settings.js'
+import * as Media from './media.js'
 import * as Recording from './recording.js'
+import * as Settings from './settings.js'
 import * as Streaming from './streaming.js'
-import * as Fairlight from './fairlight.js'
-import * as DisplayClock from './displayClock.js'
 import * as AtemStateUtil from './util.js'
-import { ColorGeneratorState } from './color.js'
+import * as Video from './video/index.js'
 
 export {
 	AtemStateUtil,

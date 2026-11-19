@@ -1,7 +1,7 @@
-import type { IBasicAtem } from '../atem.js'
-import type { ProtocolVersion } from '../enums/index.js'
-import type { ISerializableCommand } from '../commands/index.js'
 import { AtemCommandSenderMixin } from './atemCommands.js'
+import type { IBasicAtem } from '../atem.js'
+import type { ISerializableCommand } from '../commands/index.js'
+import type { ProtocolVersion } from '../enums/index.js'
 
 /**
  * Holds the state for a command batch: the queue of commands, and the way to flush them.

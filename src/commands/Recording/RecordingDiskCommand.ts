@@ -1,8 +1,8 @@
 import { ProtocolVersion } from '../../enums/index.js'
-import { InvalidIdError, AtemState } from '../../state/index.js'
-import { DeserializedCommand, BasicWritableCommand } from '../CommandBase.js'
-import { RecordingDiskProperties } from '../../state/recording.js'
 import { bufToNullTerminatedString } from '../../lib/atemUtil.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { RecordingDiskProperties } from '../../state/recording.js'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 
 export class RecordingRequestSwitchDiskCommand extends BasicWritableCommand<Record<string, never>> {
 	public static readonly rawName = 'RMSp'

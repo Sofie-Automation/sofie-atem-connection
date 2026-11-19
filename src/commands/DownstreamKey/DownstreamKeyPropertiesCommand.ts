@@ -1,6 +1,6 @@
-import { DeserializedCommand } from '../CommandBase.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
 import { DownstreamKeyerProperties } from '../../state/video/downstreamKeyers.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class DownstreamKeyPropertiesCommand extends DeserializedCommand<DownstreamKeyerProperties> {
 	public static readonly rawName = 'DskP'

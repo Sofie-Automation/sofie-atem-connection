@@ -1,7 +1,7 @@
+import { OmitReadonly } from '../../lib/types.js'
 import { FairlightAudioCompressorState } from '../../state/fairlight.js'
 import { AtemState, InvalidIdError } from '../../state/index.js'
 import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
-import { OmitReadonly } from '../../lib/types.js'
 
 export class FairlightMixerSourceCompressorCommand extends WritableCommand<
 	OmitReadonly<FairlightAudioCompressorState>

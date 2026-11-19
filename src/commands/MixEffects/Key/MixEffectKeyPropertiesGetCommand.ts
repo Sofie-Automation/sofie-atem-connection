@@ -1,6 +1,6 @@
-import { DeserializedCommand } from '../../CommandBase.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
 import { UpstreamKeyerBase } from '../../../state/video/upstreamKeyers.js'
+import { DeserializedCommand } from '../../CommandBase.js'
 
 export class MixEffectKeyPropertiesGetCommand extends DeserializedCommand<UpstreamKeyerBase> {
 	public static readonly rawName = 'KeBP'

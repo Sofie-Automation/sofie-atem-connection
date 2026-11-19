@@ -1,23 +1,23 @@
+import debug0 from 'debug'
 import exitHook from 'exit-hook'
 
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
+import { LockObtainedCommand, LockStateUpdateCommand } from '../commands/DataTransfer/index.js'
+import { commandStringify } from '../lib/atemUtil.js'
+import { DataTransferDownloadMacro } from './dataTransferDownloadMacro.js'
+import { DataTransferDownloadStill } from './dataTransferDownloadStill.js'
 import {
 	DataTransferLockingQueue,
-	DataTransferSimpleQueue,
 	DataTransferQueueBase,
 	DataTransferQueueOptions,
+	DataTransferSimpleQueue,
 } from './dataTransferQueue.js'
-import DataTransferUploadStill from './dataTransferUploadStill.js'
-import { DataTransferUploadClipFrame, DataTransferUploadClip } from './dataTransferUploadClip.js'
 import DataTransferUploadAudio from './dataTransferUploadAudio.js'
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
-import DataTransferUploadMultiViewerLabel from './dataTransferUploadMultiViewerLabel.js'
-import { DataTransferDownloadMacro } from './dataTransferDownloadMacro.js'
+import { DataTransferUploadClip, DataTransferUploadClipFrame } from './dataTransferUploadClip.js'
 import { DataTransferUploadMacro } from './dataTransferUploadMacro.js'
-import { LockObtainedCommand, LockStateUpdateCommand } from '../commands/DataTransfer/index.js'
-import debug0 from 'debug'
-import { commandStringify } from '../lib/atemUtil.js'
+import DataTransferUploadMultiViewerLabel from './dataTransferUploadMultiViewerLabel.js'
+import DataTransferUploadStill from './dataTransferUploadStill.js'
 import type { UploadBufferInfo } from './dataTransferUploadBuffer.js'
-import { DataTransferDownloadStill } from './dataTransferDownloadStill.js'
 
 const MAX_PACKETS_TO_SEND_PER_TICK = 50
 const MAX_TRANSFER_INDEX = (1 << 16) - 1 // Inclusive maximum

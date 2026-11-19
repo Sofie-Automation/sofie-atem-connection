@@ -1,7 +1,7 @@
-import { FairlightAudioInput } from '../state/fairlight.js'
 import { IDeserializedCommand } from '../commands/index.js'
-import { AtemStateUtil, AtemState, Settings } from '../state/index.js'
 import { DisplayClockClockMode, DisplayClockClockState } from '../enums/index.js'
+import { FairlightAudioInput } from '../state/fairlight.js'
+import { AtemState, AtemStateUtil, Settings } from '../state/index.js'
 
 export function createEmptyState(cmd?: IDeserializedCommand): AtemState {
 	const state = AtemStateUtil.Create()

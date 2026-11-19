@@ -1,7 +1,7 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { isRunningInTests } from '../../lib/atemUtil.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
 import { MultiViewerSourceState } from '../../state/settings.js'
-import { isRunningInTests } from '../../lib/atemUtil.js'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 
 export class MultiViewerSourceCommand extends BasicWritableCommand<
 	Pick<MultiViewerSourceState, 'windowIndex' | 'source'>

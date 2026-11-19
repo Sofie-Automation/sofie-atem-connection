@@ -1,12 +1,12 @@
 import {
-	FairlightAudioMixOption,
-	FairlightInputConfiguration,
-	FairlightAnalogInputLevel,
-	FairlightAudioSourceType,
-	ExternalPortType,
-	FairlightInputType,
 	AudioChannelPair,
 	AudioInternalPortType,
+	ExternalPortType,
+	FairlightAnalogInputLevel,
+	FairlightAudioMixOption,
+	FairlightAudioSourceType,
+	FairlightInputConfiguration,
+	FairlightInputType,
 } from '../enums/index.js'
 
 export interface FairlightAudioDynamicsState {

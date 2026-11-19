@@ -1,18 +1,23 @@
+import * as Commands from '../commands/index.js'
+import * as Enums from '../enums/index.js'
+import type { FairlightDynamicsResetProps } from '../commands/Fairlight/common.js'
+import type { ISerializableCommand } from '../commands/index.js'
 import type {
+	ClassicAudioHeadphoneOutputChannel,
 	ClassicAudioMasterChannel,
 	ClassicAudioMonitorChannel,
-	ClassicAudioHeadphoneOutputChannel,
 } from '../state/audio.js'
+import type { ColorGeneratorState } from '../state/color.js'
 import type {
 	FairlightAudioCompressorState,
-	FairlightAudioLimiterState,
 	FairlightAudioEqualizerBandState,
+	FairlightAudioExpanderState,
+	FairlightAudioInputProperties,
+	FairlightAudioLimiterState,
 	FairlightAudioMonitorChannel,
 	FairlightAudioMonitorSolo,
-	FairlightAudioExpanderState,
-	FairlightAudioRoutingSource,
 	FairlightAudioRoutingOutput,
-	FairlightAudioInputProperties,
+	FairlightAudioRoutingSource,
 } from '../state/fairlight.js'
 import type { InputChannel } from '../state/input.js'
 import type { MediaPlayer, MediaPlayerSource } from '../state/media.js'
@@ -23,23 +28,18 @@ import type {
 	MultiViewerWindowOverlayPropertiesState,
 } from '../state/settings.js'
 import type { StreamingServiceProperties } from '../state/streaming.js'
-import type { ColorGeneratorState } from '../state/color.js'
+import type { DownstreamKeyerGeneral, DownstreamKeyerMask } from '../state/video/downstreamKeyers.js'
 import type {
 	DipTransitionSettings,
 	DVETransitionSettings,
 	MixTransitionSettings,
-	TransitionProperties,
 	StingerTransitionSettings,
-	WipeTransitionSettings,
 	SuperSource,
+	TransitionProperties,
 	USK,
+	WipeTransitionSettings,
 } from '../state/video/index.js'
-import type { DownstreamKeyerGeneral, DownstreamKeyerMask } from '../state/video/downstreamKeyers.js'
-import type { ISerializableCommand } from '../commands/index.js'
-import * as Enums from '../enums/index.js'
-import * as Commands from '../commands/index.js'
 import type { OmitReadonly } from './types.js'
-import type { FairlightDynamicsResetProps } from '../commands/Fairlight/common.js'
 
 /**
  * The control surface that the command sender methods need from their host class.

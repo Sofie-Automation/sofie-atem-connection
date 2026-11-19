@@ -1,7 +1,7 @@
 import { ProtocolVersion } from '../../enums/index.js'
-import { InvalidIdError, AtemState } from '../../state/index.js'
-import { DeserializedCommand } from '../CommandBase.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
 import { StreamingStateStats } from '../../state/streaming.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class StreamingStatsUpdateCommand extends DeserializedCommand<StreamingStateStats> {
 	public static readonly rawName = 'SRSS'

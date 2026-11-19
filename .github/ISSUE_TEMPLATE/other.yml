@@ -1,6 +1,6 @@
 name: Other Issue 🔧
 description: Use this for other issues
-title: "Other: [Short description of the issue]"
+title: 'Other: [Short description of the issue]'
 labels:
   - Other
 

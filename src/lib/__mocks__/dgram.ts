@@ -1,9 +1,12 @@
 /* eslint-disable jest/no-standalone-expect */
+import { RemoteInfo, SocketOptions, SocketType } from 'dgram'
 import { EventEmitter } from 'events'
-import { SocketType, SocketOptions, RemoteInfo } from 'dgram'
+
 import 'jest-extended'
-import { DEFAULT_PORT } from '../../atem.js'
+
 import * as fakeTimers from '@sinonjs/fake-timers'
+
+import { DEFAULT_PORT } from '../../atem.js'
 
 export class Socket extends EventEmitter {
 	public isOpen = false

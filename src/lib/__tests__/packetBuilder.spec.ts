@@ -1,11 +1,14 @@
-import type { ISerializableCommand } from '../../commands/index.js'
 import { ProtocolVersion } from '../../enums/index.js'
 import { MAX_PACKET_PAYLOAD_SIZE, PacketBuilder } from '../packetBuilder.js'
+import type { ISerializableCommand } from '../../commands/index.js'
 
 class FakeCommand implements ISerializableCommand {
 	static readonly rawName: string = 'FAKE'
 
-	constructor(public readonly length: number, public readonly value: number = 1) {}
+	constructor(
+		public readonly length: number,
+		public readonly value: number = 1
+	) {}
 
 	public get lengthWithHeader(): number {
 		return this.length + 8

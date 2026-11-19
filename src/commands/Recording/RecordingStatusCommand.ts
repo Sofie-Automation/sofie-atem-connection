@@ -1,7 +1,7 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { ProtocolVersion, RecordingError, RecordingStatus } from '../../enums/index.js'
 import { AtemState, InvalidIdError } from '../../state/index.js'
 import { RecordingStateStatus } from '../../state/recording.js'
-import { RecordingError, RecordingStatus, ProtocolVersion } from '../../enums/index.js'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 
 export class RecordingStatusCommand extends BasicWritableCommand<{ recording: boolean }> {
 	public static readonly rawName = 'RcTM'

@@ -1,6 +1,6 @@
-import { WritableCommand, DeserializedCommand } from '../../CommandBase.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
 import { WipeTransitionSettings } from '../../../state/video/index.js'
+import { DeserializedCommand, WritableCommand } from '../../CommandBase.js'
 
 export class TransitionWipeCommand extends WritableCommand<WipeTransitionSettings> {
 	public static MaskFlags = {

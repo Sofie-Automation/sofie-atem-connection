@@ -1,6 +1,6 @@
-import { DeserializedCommand } from '../CommandBase.js'
 import { AtemState } from '../../state/index.js'
 import { MixEffectInfo } from '../../state/info.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class MixEffectBlockConfigCommand extends DeserializedCommand<MixEffectInfo> {
 	public static readonly rawName = '_MeC'

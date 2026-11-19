@@ -1,8 +1,9 @@
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
-import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer.js'
-import { LockStateCommand } from '../commands/DataTransfer/index.js'
-import PQueue from 'p-queue'
 import debug0 from 'debug'
+import PQueue from 'p-queue'
+
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
+import { LockStateCommand } from '../commands/DataTransfer/index.js'
+import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer.js'
 
 const debug = debug0('atem-connection:data-transfer:upload-buffer')
 

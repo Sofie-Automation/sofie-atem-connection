@@ -1,9 +1,9 @@
-import { AtemState, InvalidIdError } from '../../state/index.js'
-import * as Util from '../../lib/atemUtil.js'
-import { AudioChannel } from '../../state/audio.js'
-import { WritableCommand, DeserializedCommand } from '../CommandBase.js'
 import { ProtocolVersion } from '../../enums/index.js'
+import * as Util from '../../lib/atemUtil.js'
 import { OmitReadonly } from '../../lib/types.js'
+import { AudioChannel } from '../../state/audio.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 export type AudioMixerInputCommandProps = Omit<OmitReadonly<AudioChannel>, 'portType'>
 

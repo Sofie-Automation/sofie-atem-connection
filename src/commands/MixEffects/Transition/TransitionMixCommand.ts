@@ -1,6 +1,6 @@
-import { DeserializedCommand, BasicWritableCommand } from '../../CommandBase.js'
 import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
 import { MixTransitionSettings } from '../../../state/video/index.js'
+import { BasicWritableCommand, DeserializedCommand } from '../../CommandBase.js'
 
 export class TransitionMixCommand extends BasicWritableCommand<MixTransitionSettings> {
 	public static readonly rawName = 'CTMx'

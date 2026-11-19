@@ -1,5 +1,5 @@
-import { WritableCommand } from '../CommandBase.js'
 import { DownstreamKeyerGeneral } from '../../state/video/downstreamKeyers.js'
+import { WritableCommand } from '../CommandBase.js'
 
 export class DownstreamKeyGeneralCommand extends WritableCommand<DownstreamKeyerGeneral> {
 	public static MaskFlags = {

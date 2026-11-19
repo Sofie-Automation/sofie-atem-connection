@@ -1,8 +1,8 @@
-import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
-import { AtemState } from '../../state/index.js'
-import { MacroPropertiesState } from '../../state/macro.js'
 import * as Util from '../../lib/atemUtil.js'
 import { OmitReadonly } from '../../lib/types.js'
+import { AtemState } from '../../state/index.js'
+import { MacroPropertiesState } from '../../state/macro.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 export class MacroPropertiesUpdateCommand extends DeserializedCommand<MacroPropertiesState> {
 	public static readonly rawName = 'MPrp'
