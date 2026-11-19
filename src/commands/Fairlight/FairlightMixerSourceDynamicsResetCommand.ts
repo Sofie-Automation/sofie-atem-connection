@@ -2,6 +2,13 @@ import { WritableCommand } from '../CommandBase'
 import { FairlightDynamicsResetProps } from './common'
 
 export class FairlightMixerSourceDynamicsResetCommand extends WritableCommand<FairlightDynamicsResetProps> {
+	public static MaskFlags = {
+		dynamics: 1 << 0,
+		expander: 1 << 1,
+		compressor: 1 << 2,
+		limiter: 1 << 3,
+	}
+
 	public static readonly rawName = 'RICD'
 
 	public readonly index: number
