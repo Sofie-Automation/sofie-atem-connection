@@ -9,7 +9,7 @@ export function convertWAVToRaw(inputBuffer: Buffer, model: Enums.Model | undefi
 	}
 
 	if (wav.fmt.numChannels !== 2) {
-		throw new Error(`Invalid number of wav channels: ${wav.fmt.numChannel}`)
+		throw new Error(`Invalid number of wav channels: ${wav.fmt.numChannels}`)
 	}
 
 	const buffer = Buffer.from(wav.data.samples)
@@ -22,9 +22,12 @@ export function convertWAVToRaw(inputBuffer: Buffer, model: Enums.Model | undefi
 	if (model === undefined || model >= Enums.Model.PS4K) {
 		// If we don't know the model, assume we want the newer mode as that is more likely
 		// Newer models want a weird byte order
-		const buffer3 = Buffer.alloc(buffer2.length)
-		for (let i = 0; i < buffer.length; i += 4) {
-			buffer3.writeUIntBE(buffer2.readUIntLE(i, 4), i, 4)
+		// This works in 4 byte words, but a stereo 24bit frame is 6 bytes. With an odd number of frames, pad with a
+		// frame of silence so that the data is a whole number of both
+		const padded = buffer2.length % 4 === 0 ? buffer2 : Buffer.concat([buffer2, Buffer.alloc(6)])
+		const buffer3 = Buffer.alloc(padded.length)
+		for (let i = 0; i < padded.length; i += 4) {
+			buffer3.writeUIntBE(padded.readUIntLE(i, 4), i, 4)
 		}
 
 		return buffer3
