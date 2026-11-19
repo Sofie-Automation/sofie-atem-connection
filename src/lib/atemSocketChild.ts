@@ -3,6 +3,7 @@
  */
 import { createSocket, Socket, RemoteInfo } from 'dgram'
 import { isIP } from 'net'
+import { promises as dns } from 'dns'
 import { performance } from 'perf_hooks'
 
 const IN_FLIGHT_TIMEOUT = 60 // ms
@@ -64,7 +65,12 @@ export class AtemSocketChild {
 	private _nextSendPacketId = 1
 	private _sessionId = 0
 
+	/** The address as provided by the user, which may be a hostname */
+	private _host: string
+	/** The ip address the host resolved to, or the host itself until it has been resolved */
 	private _address: string
+	/** Incremented on every restart and disconnect, so a restart waiting on a dns lookup can tell it has been superseded */
+	private _restartGeneration = 0
 	private _port: number
 	private _socket: Socket
 
@@ -91,6 +97,7 @@ export class AtemSocketChild {
 		onCommandAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
 	) {
 		this._debugBuffers = options.debugBuffers
+		this._host = options.address
 		this._address = options.address
 		this._port = options.port
 
@@ -127,6 +134,7 @@ export class AtemSocketChild {
 	}
 
 	public async connect(address: string, port: number): Promise<void> {
+		this._host = address
 		this._address = address
 		this._port = port
 
@@ -134,6 +142,8 @@ export class AtemSocketChild {
 	}
 
 	public async disconnect(): Promise<void> {
+		// Abort any restart which is waiting on a dns lookup
+		this._restartGeneration++
 		this._clearTimers()
 
 		return this._closeSocket().then(async () => {
@@ -155,6 +165,7 @@ export class AtemSocketChild {
 	}
 
 	private async restartConnection(): Promise<void> {
+		const generation = ++this._restartGeneration
 		this._clearTimers()
 
 		// This includes a 'disconnect'
@@ -173,11 +184,34 @@ export class AtemSocketChild {
 		this._clearOutOfOrderPackets()
 		this.log('reconnect')
 
+		if (isIP(this._host)) {
+			this._address = this._host
+		} else {
+			// Resolve the hostname for every attempt, to pick up the device changing ip. Otherwise dgram does a dns lookup for
+			// every packet sent, and inbound packets can't be checked against the address.
+			// The timers are stopped, so nothing will restart the connection while this is waiting
+			const address = await this._lookupHost(this._host)
+			// Disconnected, or another restart was started while waiting
+			if (generation !== this._restartGeneration) return
+			// On failure keep the last known address, which is the hostname itself if it has never resolved
+			if (address) this._address = address
+		}
+
 		this.startTimers()
 
 		// Try doing reconnect
 		this._sendPacket(COMMAND_CONNECT_HELLO)
 		this._connectionState = ConnectionState.SynSent
+	}
+
+	private async _lookupHost(host: string): Promise<string | undefined> {
+		try {
+			const result = await dns.lookup(host, { family: 4 })
+			return result.address
+		} catch (e) {
+			this.log(`Failed to resolve ${host}: ${e}`)
+			return undefined
+		}
 	}
 
 	private log(message: string): void {

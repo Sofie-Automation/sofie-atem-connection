@@ -5,6 +5,7 @@ import * as fakeTimers from '@sinonjs/fake-timers'
 import { DEFAULT_PORT } from '../../atem'
 import { performance } from 'perf_hooks'
 import * as sinon from 'sinon'
+import { promises as dns } from 'dns'
 
 const ADDRESS = '127.0.0.1'
 
@@ -1121,6 +1122,104 @@ describe('SocketChild', () => {
 			expect(delivered).toEqual([1])
 		} finally {
 			await child.disconnect()
+		}
+	})
+
+	test('Hostnames are resolved once, and used to filter inbound packets', async () => {
+		const lookup = jest.spyOn(dns, 'lookup').mockResolvedValue({ address: '10.0.0.5', family: 4 } as any)
+		const child = createSocketChild()
+		try {
+			const socket = getSocket(child)
+			socket.expectedAddress = '10.0.0.5'
+			const sent: Buffer[] = []
+			socket.sendImpl = (msg) => sent.push(msg)
+
+			await child.connect('atem.local', DEFAULT_PORT)
+			expect(lookup).toHaveBeenCalledTimes(1)
+			expect(lookup).toHaveBeenCalledWith('atem.local', { family: 4 })
+			expect(sent).toEqual([COMMAND_CONNECT_HELLO])
+
+			// Only the resolved address is listened to
+			const hello = genNewSessionMessage(0)
+			socket.emit('message', hello, {
+				address: '10.0.0.99',
+				port: DEFAULT_PORT,
+				family: 'IPv4',
+				size: hello.length,
+			})
+			expect(getState(child)).toEqual(ConnectionState.SynSent)
+			await socket.emitMessage(clock, hello)
+			expect(getState(child)).toEqual(ConnectionState.Established)
+		} finally {
+			await child.disconnect()
+			lookup.mockRestore()
+		}
+	})
+
+	test('Hostnames are re-resolved before each reconnect attempt', async () => {
+		const lookup = jest.spyOn(dns, 'lookup').mockResolvedValue({ address: '10.0.0.5', family: 4 } as any)
+		const child = createSocketChild()
+		try {
+			const socket = getSocket(child)
+			socket.expectedAddress = undefined
+			const sentTo: string[] = []
+			socket.send = (_msg: any, _offset: any, _length: any, _port: any, address: any) => {
+				sentTo.push(address)
+			}
+
+			await child.connect('atem.local', DEFAULT_PORT)
+			expect(sentTo).toEqual(['10.0.0.5'])
+
+			// The device changes ip, and the next attempt goes straight to the new one
+			lookup.mockResolvedValue({ address: '10.0.0.6', family: 4 } as any)
+			await clock.tickAsync(5500) // Nothing heard, so the reconnect timer retries
+			expect(lookup).toHaveBeenCalledTimes(2)
+			expect(sentTo).toEqual(['10.0.0.5', '10.0.0.6'])
+		} finally {
+			await child.disconnect()
+			lookup.mockRestore()
+		}
+	})
+
+	test('A disconnect during a hostname lookup stops the connection attempt', async () => {
+		let resolveLookup: (v: any) => void = () => null
+		const lookup = jest
+			.spyOn(dns, 'lookup')
+			.mockImplementation(async () => new Promise((resolve) => (resolveLookup = resolve)) as any)
+		const child = createSocketChild()
+		try {
+			const socket = getSocket(child)
+			const sent: Buffer[] = []
+			socket.sendImpl = (msg) => sent.push(msg)
+
+			const connecting = child.connect('atem.local', DEFAULT_PORT)
+			await child.disconnect()
+			resolveLookup({ address: '10.0.0.5', family: 4 })
+			await connecting
+			await clock.tickAsync(5000)
+
+			expect(sent).toEqual([])
+			expect(getState(child)).toEqual(ConnectionState.Disconnected)
+		} finally {
+			lookup.mockRestore()
+		}
+	})
+
+	test('A failed hostname lookup falls back to the hostname', async () => {
+		const lookup = jest.spyOn(dns, 'lookup').mockRejectedValue(new Error('ENOTFOUND'))
+		const child = createSocketChild()
+		try {
+			const socket = getSocket(child)
+			socket.expectedAddress = 'atem.local'
+			const sent: Buffer[] = []
+			socket.sendImpl = (msg) => sent.push(msg)
+
+			await child.connect('atem.local', DEFAULT_PORT)
+			expect(sent).toEqual([COMMAND_CONNECT_HELLO])
+			expect(getState(child)).toEqual(ConnectionState.SynSent)
+		} finally {
+			await child.disconnect()
+			lookup.mockRestore()
 		}
 	})
 
