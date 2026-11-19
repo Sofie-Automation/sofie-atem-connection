@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Atem, DEFAULT_MAX_PACKET_SIZE, DEFAULT_PORT } from '../atem'
-import { CutCommand } from '../commands'
+import { CutCommand, ProductIdentifierCommand } from '../commands'
+import { Model } from '../enums'
 import { promisify } from 'util'
 import { EventEmitter } from 'events'
 
@@ -230,6 +231,30 @@ describe('Atem', () => {
 			// with same-group commands preserving their original input order
 			const callArgs = (socket.sendCommands as jest.Mock).mock.calls.map((call) => call[0])
 			expect(callArgs).toEqual([[gNeg], [g0a, g0b], [g2], [g10]])
+		} finally {
+			await conn.destroy()
+		}
+	})
+
+	test('a throwing event listener does not stop the state from updating', async () => {
+		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		const conn = new Atem({ address: 'test1', port: 23 })
+
+		try {
+			const socket = (conn as any).client.socket as AtemSocket
+
+			const errors: string[] = []
+			conn.on('error', (e) => errors.push(e))
+			conn.on('receivedCommands', () => {
+				throw new Error('listener failed')
+			})
+
+			socket.emit('receivedCommands', [
+				new ProductIdentifierCommand({ productIdentifier: 'test', model: Model.Mini }),
+			])
+
+			expect(conn.state?.info.productIdentifier).toEqual('test')
+			expect(errors).toEqual([`Error in 'receivedCommands' event handler: Error: listener failed`])
 		} finally {
 			await conn.destroy()
 		}

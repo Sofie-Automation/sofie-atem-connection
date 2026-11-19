@@ -123,25 +123,44 @@ class AtemWrapper {
 		)
 
 		this.socket.on('receivedCommands', (commands) => {
-			this.emitter.emit('receivedCommands', commands)
+			this._safeEmit('receivedCommands', commands)
 			this._mutateState(commands)
 		})
 		this.socket.on('ackPackets', (trackingIds) => this._resolveCommands(trackingIds))
-		this.socket.on('info', (msg) => this.emitter.emit('info', msg))
-		this.socket.on('debug', (msg) => this.emitter.emit('debug', msg))
-		this.socket.on('error', (e) => this.emitter.emit('error', e))
+		this.socket.on('info', (msg) => this._safeEmit('info', msg))
+		this.socket.on('debug', (msg) => this._safeEmit('debug', msg))
+		this.socket.on('error', (e) => this._safeEmit('error', e))
 		this.socket.on('disconnect', () => {
 			this._status = AtemConnectionStatus.CLOSED
 			this.dataTransferManager.stopCommandSending()
 			this._rejectAllCommands()
-			this.emitter.emit('disconnected')
+			this._safeEmit('disconnected')
 			this._state = undefined
 		})
 	}
 
+	/**
+	 * Emit an event, without letting an exception thrown by a listener escape.
+	 * A throwing listener would otherwise abort the processing that triggered the event, such as updating the state
+	 */
+	private _safeEmit<T extends EventEmitter.EventNames<AtemEvents>>(
+		event: T,
+		...args: EventEmitter.EventArgs<AtemEvents, T>
+	): void {
+		try {
+			this.emitter.emit(event, ...args)
+		} catch (e) {
+			try {
+				this.emitter.emit('error', `Error in '${event}' event handler: ${e}`)
+			} catch (_e) {
+				// The error handler threw too, there is nothing more that can be done
+			}
+		}
+	}
+
 	private _onInitComplete(): void {
 		this.dataTransferManager.startCommandSending()
-		this.emitter.emit('connected')
+		this._safeEmit('connected')
 	}
 
 	get status(): AtemConnectionStatus {
@@ -228,15 +247,15 @@ class AtemWrapper {
 			if (command instanceof Commands.InitCompleteCommand) {
 				hasInitComplete = true
 			} else if (command instanceof TimeCommand) {
-				this.emitter.emit('updatedTime', command.properties)
+				this._safeEmit('updatedTime', command.properties)
 			} else if (command instanceof Commands.FairlightMixerMasterLevelsUpdateCommand) {
-				this.emitter.emit('levelChanged', {
+				this._safeEmit('levelChanged', {
 					system: 'fairlight',
 					type: 'master',
 					levels: command.properties,
 				})
 			} else if (command instanceof Commands.FairlightMixerSourceLevelsUpdateCommand) {
-				this.emitter.emit('levelChanged', {
+				this._safeEmit('levelChanged', {
 					system: 'fairlight',
 					type: 'source',
 					source: command.source,
@@ -253,14 +272,14 @@ class AtemWrapper {
 					}
 				} catch (e) {
 					if (e instanceof InvalidIdError) {
-						this.emitter.emit(
+						this._safeEmit(
 							'debug',
 							`Invalid command id: ${e}. Command: ${command.constructor.name} ${Util.commandStringify(
 								command
 							)}`
 						)
 					} else {
-						this.emitter.emit(
+						this._safeEmit(
 							'error',
 							`MutateState failed: ${e}. Command: ${command.constructor.name} ${Util.commandStringify(
 								command
@@ -280,7 +299,7 @@ class AtemWrapper {
 			this._status = AtemConnectionStatus.CONNECTED
 			this._onInitComplete()
 		} else if (state && this._status === AtemConnectionStatus.CONNECTED && allChangedPaths.length > 0) {
-			this.emitter.emit('stateChanged', state, allChangedPaths)
+			this._safeEmit('stateChanged', state, allChangedPaths)
 		}
 	}
 
