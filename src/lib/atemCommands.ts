@@ -621,7 +621,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			index: number,
 			props: Commands.FairlightMixerInputCommand['properties']
 		): T {
-			if (this.apiVersion && this.apiVersion >= Enums.ProtocolVersion.V8_0) {
+			if (this.apiVersion && this.apiVersion >= Commands.FairlightMixerInputV8Command.minimumVersion) {
 				const command = new Commands.FairlightMixerInputV8Command(index)
 				command.updateProps(props)
 				return this.sendCommand(command)
