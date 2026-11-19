@@ -1,6 +1,6 @@
-import { DisplayClockProperties } from '../../state/displayClock'
-import { AtemState } from '../../state'
-import { DeserializedCommand } from '../CommandBase'
+import { DisplayClockProperties } from '../../state/displayClock.js'
+import { AtemState } from '../../state/index.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class DisplayClockPropertiesGetCommand extends DeserializedCommand<DisplayClockProperties> {
 	public static readonly rawName = 'DCPV'

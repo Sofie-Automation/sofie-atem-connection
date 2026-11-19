@@ -1,6 +1,6 @@
-import { WritableCommand, DeserializedCommand } from '../../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state'
-import { DipTransitionSettings } from '../../../state/video'
+import { WritableCommand, DeserializedCommand } from '../../CommandBase.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
+import { DipTransitionSettings } from '../../../state/video/index.js'
 
 export class TransitionDipCommand extends WritableCommand<DipTransitionSettings> {
 	public static MaskFlags = {

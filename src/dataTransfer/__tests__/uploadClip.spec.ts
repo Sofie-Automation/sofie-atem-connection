@@ -1,6 +1,6 @@
-import { DataTransferErrorCommand } from '../../commands/DataTransfer'
-import { DataTransferState } from '../dataTransfer'
-import { DataTransferUploadClip, DataTransferUploadClipFrame } from '../dataTransferUploadClip'
+import { DataTransferErrorCommand } from '../../commands/DataTransfer/index.js'
+import { DataTransferState } from '../dataTransfer.js'
+import { DataTransferUploadClip, DataTransferUploadClipFrame } from '../dataTransferUploadClip.js'
 
 function createClip() {
 	const generator = { closed: false, framesTaken: 0 }

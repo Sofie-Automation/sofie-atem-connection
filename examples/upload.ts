@@ -1,4 +1,4 @@
-import { Atem } from '../dist'
+import { Atem } from '../dist/index.js'
 import * as fs from 'fs'
 
 const file = fs.readFileSync('./testframe.rgba')

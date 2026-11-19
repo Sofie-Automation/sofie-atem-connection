@@ -4,9 +4,9 @@ import {
 	DataTransferDataCommand,
 	DataTransferErrorCommand,
 	ErrorCode,
-} from '../commands/DataTransfer'
-import { IDeserializedCommand } from '../commands/CommandBase'
-import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataTransfer'
+} from '../commands/DataTransfer/index.js'
+import { IDeserializedCommand } from '../commands/CommandBase.js'
+import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataTransfer.js'
 
 /**
  * Generic base for transfers which download a buffer from the ATEM.

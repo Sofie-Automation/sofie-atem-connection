@@ -1,7 +1,7 @@
-import { DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import { MultiviewerInfo } from '../../state/info'
-import { ProtocolVersion } from '../../enums'
+import { DeserializedCommand } from '../CommandBase.js'
+import { AtemState } from '../../state/index.js'
+import { MultiviewerInfo } from '../../state/info.js'
+import { ProtocolVersion } from '../../enums/index.js'
 
 export class MultiviewerConfigCommand extends DeserializedCommand<MultiviewerInfo> {
 	public static readonly rawName = '_MvC'

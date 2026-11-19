@@ -1,4 +1,4 @@
-import { decodeRLE, encodeRLE } from '../rle'
+import { decodeRLE, encodeRLE } from '../rle.js'
 
 describe('encodeRLE', () => {
 	test('no repetitions', () => {

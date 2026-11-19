@@ -1,6 +1,6 @@
-import type { ISerializableCommand } from '../../commands'
-import { ProtocolVersion } from '../../enums'
-import { MAX_PACKET_PAYLOAD_SIZE, PacketBuilder } from '../packetBuilder'
+import type { ISerializableCommand } from '../../commands/index.js'
+import { ProtocolVersion } from '../../enums/index.js'
+import { MAX_PACKET_PAYLOAD_SIZE, PacketBuilder } from '../packetBuilder.js'
 
 class FakeCommand implements ISerializableCommand {
 	static readonly rawName: string = 'FAKE'

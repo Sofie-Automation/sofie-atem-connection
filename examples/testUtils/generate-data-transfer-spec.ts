@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { Atem } from '../../dist'
-import { DataTransferManager } from '../../dist/dataTransfer'
+import { Atem } from '../../dist/index.js'
+import { DataTransferManager } from '../../dist/dataTransfer/index.js'
 import * as fs from 'fs'
 
 const frameBuffer = Buffer.alloc(1920 * 1080 * 4, 0)

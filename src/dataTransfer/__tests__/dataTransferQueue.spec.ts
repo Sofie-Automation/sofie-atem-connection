@@ -1,8 +1,8 @@
 import * as fakeTimers from '@sinonjs/fake-timers'
-import { DataTransferCompleteCommand, DataTransferDataCommand, LockStateCommand } from '../../commands/DataTransfer'
-import { IDeserializedCommand } from '../../commands/CommandBase'
-import { DataTransfer, DataTransferState, ProgressTransferResult } from '../dataTransfer'
-import { DataTransferLockingQueue, DataTransferSimpleQueue } from '../dataTransferQueue'
+import { DataTransferCompleteCommand, DataTransferDataCommand, LockStateCommand } from '../../commands/DataTransfer/index.js'
+import { IDeserializedCommand } from '../../commands/CommandBase.js'
+import { DataTransfer, DataTransferState, ProgressTransferResult } from '../dataTransfer.js'
+import { DataTransferLockingQueue, DataTransferSimpleQueue } from '../dataTransferQueue.js'
 
 const TIMEOUT = 1000
 

@@ -1,5 +1,5 @@
-import * as Commands from '..'
-import { WritableCommand } from '../CommandBase'
+import * as Commands from '../index.js'
+import { WritableCommand } from '../CommandBase.js'
 
 class TestCommandWithoutMaskFlags extends WritableCommand<{ value: number }> {
 	public serialize(): Buffer {

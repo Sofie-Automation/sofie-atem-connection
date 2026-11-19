@@ -1,31 +1,31 @@
 import EventEmitter = require('eventemitter3')
-import { AtemState, AtemStateUtil, InvalidIdError } from './state'
-import { AtemSocket } from './lib/atemSocket'
-import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase'
-import * as Commands from './commands'
-import * as DataTransferCommands from './commands/DataTransfer'
-import * as DT from './dataTransfer'
-import * as Util from './lib/atemUtil'
-import { VideoModeInfo, getVideoModeInfo } from './lib/videoMode'
-import { listVisibleInputs } from './lib/tally'
+import { AtemState, AtemStateUtil, InvalidIdError } from './state/index.js'
+import { AtemSocket } from './lib/atemSocket.js'
+import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase.js'
+import * as Commands from './commands/index.js'
+import * as DataTransferCommands from './commands/DataTransfer/index.js'
+import * as DT from './dataTransfer/index.js'
+import * as Util from './lib/atemUtil.js'
+import { VideoModeInfo, getVideoModeInfo } from './lib/videoMode.js'
+import { listVisibleInputs } from './lib/tally.js'
 import {
 	calculateGenerateMultiviewerLabelProps,
 	generateMultiviewerLabel,
 	hasInternalMultiviewerLabelGeneration,
 	loadFont,
-} from './lib/multiviewLabel'
+} from './lib/multiviewLabel.js'
 import { FontFace } from '@julusian/freetype2'
 import PLazy = require('p-lazy')
-import { TimeCommand } from './commands'
-import { TimeInfo } from './state/info'
-import { SomeAtemAudioLevels } from './state/levels'
-import { generateUploadBufferInfo, UploadBufferInfo } from './dataTransfer/dataTransferUploadBuffer'
-import { convertWAVToRaw } from './lib/converters/wavAudio'
-import { decodeRLE } from './lib/converters/rle'
-import { convertYUV422ToRGBA } from './lib/converters/yuv422ToRgba'
-import { AtemCommandSenderMixin } from './lib/atemCommands'
-import { AtemCommandBatch } from './lib/batchCommands'
-import * as Enums from './enums'
+import { TimeCommand } from './commands/index.js'
+import { TimeInfo } from './state/info.js'
+import { SomeAtemAudioLevels } from './state/levels.js'
+import { generateUploadBufferInfo, UploadBufferInfo } from './dataTransfer/dataTransferUploadBuffer.js'
+import { convertWAVToRaw } from './lib/converters/wavAudio.js'
+import { decodeRLE } from './lib/converters/rle.js'
+import { convertYUV422ToRGBA } from './lib/converters/yuv422ToRgba.js'
+import { AtemCommandSenderMixin } from './lib/atemCommands.js'
+import { AtemCommandBatch } from './lib/batchCommands.js'
+import * as Enums from './enums/index.js'
 
 // Pre-computed once at module load — avoids allocating Object.values() and iterating
 // DataTransferCommands on every received command packet.

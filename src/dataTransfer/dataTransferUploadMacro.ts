@@ -1,7 +1,7 @@
-import { DataTransferFileDescriptionCommand, DataTransferUploadRequestCommand } from '../commands/DataTransfer'
-import { ISerializableCommand } from '../commands/CommandBase'
-import { ProgressTransferResult, DataTransferState } from './dataTransfer'
-import { DataTransferUploadBuffer } from './dataTransferUploadBuffer'
+import { DataTransferFileDescriptionCommand, DataTransferUploadRequestCommand } from '../commands/DataTransfer/index.js'
+import { ISerializableCommand } from '../commands/CommandBase.js'
+import { ProgressTransferResult, DataTransferState } from './dataTransfer.js'
+import { DataTransferUploadBuffer } from './dataTransferUploadBuffer.js'
 
 export class DataTransferUploadMacro extends DataTransferUploadBuffer {
 	constructor(public readonly macroIndex: number, public readonly data: Buffer, private name: string) {

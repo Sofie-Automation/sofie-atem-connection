@@ -1,7 +1,7 @@
-import { WritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState, InvalidIdError } from '../../state'
-import * as Util from '../../lib/atemUtil'
-import { ClassicAudioMonitorChannel } from '../../state/audio'
+import { WritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import * as Util from '../../lib/atemUtil.js'
+import { ClassicAudioMonitorChannel } from '../../state/audio.js'
 
 export class AudioMixerMonitorCommand extends WritableCommand<ClassicAudioMonitorChannel> {
 	public static MaskFlags = {

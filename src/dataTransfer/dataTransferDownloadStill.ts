@@ -1,6 +1,6 @@
-import { DataTransferDownloadRequestCommand } from '../commands/DataTransfer'
-import { ProgressTransferResult, DataTransferState } from './dataTransfer'
-import { DataTransferDownloadBuffer } from './dataTransferDownloadBuffer'
+import { DataTransferDownloadRequestCommand } from '../commands/DataTransfer/index.js'
+import { ProgressTransferResult, DataTransferState } from './dataTransfer.js'
+import { DataTransferDownloadBuffer } from './dataTransferDownloadBuffer.js'
 
 // The largest frame the ATEM can produce is 8K (7680x4320), stored as 10bit YUV422 (4 bytes per
 // pixel). The downloaded buffer is RLE encoded, so allow 10% headroom for encoding overhead. This

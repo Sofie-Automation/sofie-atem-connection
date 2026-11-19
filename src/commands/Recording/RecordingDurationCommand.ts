@@ -1,7 +1,7 @@
-import { Timecode } from '../../state/common'
-import { ProtocolVersion } from '../../enums'
-import { InvalidIdError, AtemState } from '../../state'
-import { DeserializedCommand, BasicWritableCommand } from '../CommandBase'
+import { Timecode } from '../../state/common.js'
+import { ProtocolVersion } from '../../enums/index.js'
+import { InvalidIdError, AtemState } from '../../state/index.js'
+import { DeserializedCommand, BasicWritableCommand } from '../CommandBase.js'
 
 export class RecordingRequestDurationCommand extends BasicWritableCommand<Record<string, never>> {
 	public static readonly rawName = 'RMDR'

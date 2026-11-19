@@ -1,8 +1,8 @@
-import { WritableCommand, DeserializedCommand } from '../../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state'
-import { TransitionProperties } from '../../../state/video'
-import { OmitReadonly } from '../../../lib/types'
-import { combineComponents, getComponents } from '../../../lib/atemUtil'
+import { WritableCommand, DeserializedCommand } from '../../CommandBase.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
+import { TransitionProperties } from '../../../state/video/index.js'
+import { OmitReadonly } from '../../../lib/types.js'
+import { combineComponents, getComponents } from '../../../lib/atemUtil.js'
 
 export class TransitionPropertiesCommand extends WritableCommand<OmitReadonly<TransitionProperties>> {
 	public static MaskFlags = {

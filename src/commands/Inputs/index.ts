@@ -1,1 +1,1 @@
-export * from './InputPropertiesCommand'
+export * from './InputPropertiesCommand.js'

@@ -1,7 +1,7 @@
-import { SymmetricalCommand } from '../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
-import { SafeTitlePattern } from '../../enums'
-import { combineComponents, getComponents } from '../../lib/atemUtil'
+import { SymmetricalCommand } from '../CommandBase.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { SafeTitlePattern } from '../../enums/index.js'
+import { combineComponents, getComponents } from '../../lib/atemUtil.js'
 
 export class MultiViewerWindowOverlaySafeAreaPatternCommand extends SymmetricalCommand<{
 	safeTitlePattern: SafeTitlePattern[]

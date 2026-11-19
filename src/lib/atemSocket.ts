@@ -1,11 +1,11 @@
 import { EventEmitter } from 'eventemitter3'
-import { CommandParser } from './atemCommandParser'
+import { CommandParser } from './atemCommandParser.js'
 import exitHook = require('exit-hook')
-import { VersionCommand, ISerializableCommand, IDeserializedCommand } from '../commands'
-import { DEFAULT_PORT } from '../atem'
+import { VersionCommand, ISerializableCommand, IDeserializedCommand } from '../commands/index.js'
+import { DEFAULT_PORT } from '../atem.js'
 import { threadedClass, ThreadedClass, ThreadedClassManager } from 'threadedclass'
-import type { AtemSocketChild, OutboundPacketInfo } from './atemSocketChild'
-import { PacketBuilder } from './packetBuilder'
+import type { AtemSocketChild, OutboundPacketInfo } from './atemSocketChild.js'
+import { PacketBuilder } from './packetBuilder.js'
 
 export interface AtemSocketOptions {
 	address: string

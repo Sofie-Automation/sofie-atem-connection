@@ -1,6 +1,6 @@
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase'
-import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer'
-import { LockStateCommand } from '../commands/DataTransfer'
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
+import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer.js'
+import { LockStateCommand } from '../commands/DataTransfer/index.js'
 import PQueue from 'p-queue'
 import debug0 = require('debug')
 

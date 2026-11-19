@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class FairlightMixerSourceResetPeakLevelsCommand extends BasicWritableCommand<{
 	output: boolean

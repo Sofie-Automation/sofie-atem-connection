@@ -1,5 +1,5 @@
-import { DisplayClockProperties } from '../../state/displayClock'
-import { WritableCommand } from '../CommandBase'
+import { DisplayClockProperties } from '../../state/displayClock.js'
+import { WritableCommand } from '../CommandBase.js'
 
 /** The writable display clock properties. clockState is set with DisplayClockStateSetCommand */
 export interface DisplayClockPropertiesExt extends Omit<DisplayClockProperties, 'clockState'> {

@@ -1,4 +1,4 @@
-import { DeserializedCommand } from '../CommandBase'
+import { DeserializedCommand } from '../CommandBase.js'
 
 /** The known error codes */
 export enum ErrorCode {

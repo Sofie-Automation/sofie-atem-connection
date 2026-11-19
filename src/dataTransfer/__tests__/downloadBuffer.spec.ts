@@ -1,7 +1,7 @@
-import { DataTransferCompleteCommand, DataTransferDataCommand } from '../../commands/DataTransfer'
-import { DataTransferState } from '../dataTransfer'
-import { DataTransferDownloadMacro } from '../dataTransferDownloadMacro'
-import { DataTransferDownloadStill } from '../dataTransferDownloadStill'
+import { DataTransferCompleteCommand, DataTransferDataCommand } from '../../commands/DataTransfer/index.js'
+import { DataTransferState } from '../dataTransfer.js'
+import { DataTransferDownloadMacro } from '../dataTransferDownloadMacro.js'
+import { DataTransferDownloadStill } from '../dataTransferDownloadStill.js'
 
 describe('DataTransferDownloadBuffer', () => {
 	test('accumulates data across multiple packets', async () => {

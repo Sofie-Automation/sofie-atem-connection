@@ -1,6 +1,6 @@
-import { WritableCommand, DeserializedCommand } from '../../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state'
-import { DVETransitionSettings } from '../../../state/video'
+import { WritableCommand, DeserializedCommand } from '../../CommandBase.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
+import { DVETransitionSettings } from '../../../state/video/index.js'
 
 export class TransitionDVECommand extends WritableCommand<DVETransitionSettings> {
 	public static MaskFlags = {

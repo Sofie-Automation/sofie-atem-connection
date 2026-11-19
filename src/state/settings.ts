@@ -1,4 +1,4 @@
-import { VideoMode, MultiViewerLayout, TimeMode, SafeTitlePattern } from '../enums'
+import { VideoMode, MultiViewerLayout, TimeMode, SafeTitlePattern } from '../enums/index.js'
 
 export interface MultiViewerSourceState {
 	source: number

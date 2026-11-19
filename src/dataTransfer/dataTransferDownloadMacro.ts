@@ -1,6 +1,6 @@
-import { DataTransferDownloadRequestCommand } from '../commands/DataTransfer'
-import { ProgressTransferResult, DataTransferState } from './dataTransfer'
-import { DataTransferDownloadBuffer } from './dataTransferDownloadBuffer'
+import { DataTransferDownloadRequestCommand } from '../commands/DataTransfer/index.js'
+import { ProgressTransferResult, DataTransferState } from './dataTransfer.js'
+import { DataTransferDownloadBuffer } from './dataTransferDownloadBuffer.js'
 
 // Macros are small xml documents. 1MB is far larger than any real macro, but bounds memory usage
 // if a device streams data without ever completing the transfer.

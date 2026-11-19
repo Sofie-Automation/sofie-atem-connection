@@ -1,5 +1,5 @@
-import { SymmetricalCommand } from '../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
+import { SymmetricalCommand } from '../CommandBase.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
 
 export interface MultiViewerVuOpacityState {
 	opacity: number

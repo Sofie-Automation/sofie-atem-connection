@@ -9,10 +9,10 @@ import {
 	ErrorCode,
 	LockObtainedCommand,
 	LockStateUpdateCommand,
-} from '../../commands/DataTransfer'
-import { IDeserializedCommand, ISerializableCommand } from '../../commands/CommandBase'
-import { DataTransferManager } from '..'
-import { UploadBufferInfo } from '../dataTransferUploadBuffer'
+} from '../../commands/DataTransfer/index.js'
+import { IDeserializedCommand, ISerializableCommand } from '../../commands/CommandBase.js'
+import { DataTransferManager } from '../index.js'
+import { UploadBufferInfo } from '../dataTransferUploadBuffer.js'
 
 /**
  * Drive the data transfer manager with random sequences of responses from a misbehaving device, and check that it

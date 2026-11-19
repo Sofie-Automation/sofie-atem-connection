@@ -1,3 +1,3 @@
-export * from './SuperSourceBoxBorderCommand'
-export * from './SuperSourceBoxParametersCommand'
-export * from './SuperSourcePropertiesCommand'
+export * from './SuperSourceBoxBorderCommand.js'
+export * from './SuperSourceBoxParametersCommand.js'
+export * from './SuperSourcePropertiesCommand.js'

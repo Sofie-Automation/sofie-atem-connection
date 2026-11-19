@@ -1,7 +1,7 @@
-import { DeserializedCommand, WritableCommand } from '../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
-import { SuperSourceBoxBorder } from '../../state/video/superSource'
-import { ProtocolVersion } from '../../enums'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { SuperSourceBoxBorder } from '../../state/video/superSource.js'
+import { ProtocolVersion } from '../../enums/index.js'
 
 // SSSB/CSSB transmit border widths across the full u16 range (0xffff = 16.00),
 // whereas this library expresses widths in hundredths (0-1600), matching the

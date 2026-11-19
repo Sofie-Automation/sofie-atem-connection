@@ -1,8 +1,8 @@
-import { AtemState } from '.'
-import * as Enums from '../enums'
-import { MultiViewer } from './settings'
-import { MediaPlayerState, ClipBank } from './media'
-import { MixEffect, SuperSource, DSK, USK } from './video'
+import { AtemState } from './index.js'
+import * as Enums from '../enums/index.js'
+import { MultiViewer } from './settings.js'
+import { MediaPlayerState, ClipBank } from './media.js'
+import { MixEffect, SuperSource, DSK, USK } from './video/index.js'
 
 export function Create(): AtemState {
 	return {

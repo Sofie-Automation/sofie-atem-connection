@@ -1,6 +1,6 @@
-import { SymmetricalCommand } from '../CommandBase'
-import { AtemState, InvalidIdError } from '../../state'
-import { ProtocolVersion } from '../../enums'
+import { SymmetricalCommand } from '../CommandBase.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { ProtocolVersion } from '../../enums/index.js'
 
 export class RecordingISOCommand extends SymmetricalCommand<{ recordAllInputs: boolean }> {
 	public static readonly rawName = 'ISOi'

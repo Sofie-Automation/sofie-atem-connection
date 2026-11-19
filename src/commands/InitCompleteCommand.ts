@@ -1,4 +1,4 @@
-import { DeserializedCommand } from './CommandBase'
+import { DeserializedCommand } from './CommandBase.js'
 
 export class InitCompleteCommand extends DeserializedCommand<null> {
 	public static readonly rawName = 'InCm'

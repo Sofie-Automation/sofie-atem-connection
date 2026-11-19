@@ -1,5 +1,5 @@
-import { WritableCommand } from '../../CommandBase'
-import { UpstreamKeyerTypeSettings } from '../../../state/video/upstreamKeyers'
+import { WritableCommand } from '../../CommandBase.js'
+import { UpstreamKeyerTypeSettings } from '../../../state/video/upstreamKeyers.js'
 
 export class MixEffectKeyTypeSetCommand extends WritableCommand<UpstreamKeyerTypeSettings> {
 	public static MaskFlags = {

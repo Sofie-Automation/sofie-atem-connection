@@ -1,8 +1,8 @@
-import { WritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import { RecordingStateProperties } from '../../state/recording'
-import { ProtocolVersion } from '../../enums'
-import { bufToNullTerminatedString } from '../../lib/atemUtil'
+import { WritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { AtemState } from '../../state/index.js'
+import { RecordingStateProperties } from '../../state/recording.js'
+import { ProtocolVersion } from '../../enums/index.js'
+import { bufToNullTerminatedString } from '../../lib/atemUtil.js'
 
 export class RecordingSettingsCommand extends WritableCommand<RecordingStateProperties> {
 	public static readonly rawName = 'CRMS'

@@ -1,5 +1,5 @@
-import type { ProtocolVersion } from '../enums'
-import type { ISerializableCommand } from '../commands'
+import type { ProtocolVersion } from '../enums/index.js'
+import type { ISerializableCommand } from '../commands/index.js'
 
 /**
  * The packet header stores the length in 11 bits, and the header itself is 12 bytes.

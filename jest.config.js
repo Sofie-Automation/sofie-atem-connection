@@ -1,5 +1,8 @@
 module.exports = {
 	moduleFileExtensions: ['ts', 'js'],
+	moduleNameMapper: {
+		'^(\\.{1,2}/.*)\\.js$': '$1',
+	},
 	transform: {
 		'^.+\\.(ts|tsx)$': [
 			'ts-jest',

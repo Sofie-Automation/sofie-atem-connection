@@ -1,4 +1,4 @@
-import { DeserializedCommand } from '../CommandBase'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class DataTransferCompleteCommand extends DeserializedCommand<{ transferId: number }> {
 	public static readonly rawName = 'FTDC'
