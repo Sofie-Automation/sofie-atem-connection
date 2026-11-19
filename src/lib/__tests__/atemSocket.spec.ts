@@ -513,6 +513,34 @@ describe('AtemSocket', () => {
 		expect(error).toHaveBeenCalledTimes(0)
 		expect(change).toHaveBeenCalledTimes(0)
 	})
+	test('receive - command longer than the packet', async () => {
+		const socket = createSocket()
+		await socket.connect()
+		mockClear(true)
+
+		const error = jest.fn()
+		const change = jest.fn()
+		socket.on('error', error)
+		socket.on('receivedCommands', change)
+
+		// Claims to be 20 bytes, but only 12 are present
+		const testCmd = Buffer.from([
+			0,
+			20,
+			0,
+			0,
+			...Buffer.from(ProgramInputUpdateCommand.rawName, 'ascii'),
+			0,
+			0,
+			1,
+			0x23,
+		])
+		await AtemSocketChildSingleton.onCommandsReceived(testCmd, 822)
+		await clock.tickAsync(0)
+
+		expect(change).toHaveBeenCalledTimes(0)
+		expect(error).toHaveBeenCalledWith('Received command PrgI with length 20, but only 12 bytes remain')
+	})
 	test('receive - deserialize error', async () => {
 		const socket = createSocket()
 		expect(getChild(socket)).toBeFalsy()
@@ -530,7 +558,7 @@ describe('AtemSocket', () => {
 		class BrokenCommand extends DeserializedCommand<{}> {
 			public static readonly rawName = 'TEST'
 
-			public deserialize(): void {
+			public static deserialize(): BrokenCommand {
 				throw new Error('Broken command')
 			}
 			public applyToState(): string[] {
@@ -541,7 +569,7 @@ describe('AtemSocket', () => {
 		const parser = (socket as any)._commandParser as CommandParser
 		expect(parser).toBeTruthy()
 		const parserSpy = jest.spyOn(parser, 'commandFromRawName')
-		parserSpy.mockImplementationOnce(() => new BrokenCommand({}))
+		parserSpy.mockImplementationOnce(() => BrokenCommand)
 
 		// const expectedCmd1 = new ProgramInputUpdateCommand(0, { source: 0x0123 })
 		const expectedCmd2 = new PreviewInputUpdateCommand(1, { source: 0x0444 })

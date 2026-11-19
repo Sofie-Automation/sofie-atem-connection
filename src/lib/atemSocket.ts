@@ -191,6 +191,15 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 
 			if (length < 8) {
 				// Commands are never less than 8, as that is the header
+				this.emit('debug', `Received command ${name} with invalid length ${length}`)
+				break
+			}
+			if (length > buffer.length) {
+				// The command claims to be longer than the data that is left, so the packet is malformed
+				this.emit(
+					'error',
+					`Received command ${name} with length ${length}, but only ${buffer.length} bytes remain`
+				)
 				break
 			}
 
@@ -209,7 +218,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 
 					parsedCommands.push(cmd)
 				} catch (e) {
-					this.emit('error', `Failed to deserialize command: ${cmdConstructor.constructor.name}: ${e}`)
+					this.emit('error', `Failed to deserialize command: ${cmdConstructor.name}: ${e}`)
 				}
 			} else {
 				this.emit('debug', `Unknown command ${name} (${length}b)`)
