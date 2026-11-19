@@ -36,6 +36,7 @@ describe('Atem', () => {
 				log: (conn as any)._log,
 				port: DEFAULT_PORT,
 				maxPacketSize: DEFAULT_MAX_PACKET_SIZE,
+				disableExitHandlers: false,
 			})
 		} finally {
 			await conn.destroy()
@@ -57,6 +58,7 @@ describe('Atem', () => {
 				log: (conn as any)._log,
 				port: 23,
 				maxPacketSize: 500,
+				disableExitHandlers: false,
 			})
 		} finally {
 			await conn.destroy()

@@ -46,8 +46,11 @@ export class DataTransferManager {
 	private interval?: NodeJS.Timer
 	private exitUnsubscribe?: () => void
 
-	constructor(rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>) {
+	readonly #disableExitHandlers: boolean
+
+	constructor(rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>, disableExitHandlers = false) {
 		this.#rawSendCommands = rawSendCommands
+		this.#disableExitHandlers = disableExitHandlers
 	}
 
 	private get allLocks() {
@@ -83,7 +86,7 @@ export class DataTransferManager {
 				}
 			}, 2) // TODO - refine this. perhaps we can stop and restart the interval?
 		}
-		if (!this.exitUnsubscribe) {
+		if (!this.#disableExitHandlers && !this.exitUnsubscribe) {
 			this.exitUnsubscribe = exitHook(() => {
 				debug(`Exit auto-cleanup`)
 				// TODO - replace this with a WeakRef to the parent class?

@@ -14,6 +14,7 @@ export interface AtemSocketOptions {
 	disableMultithreaded: boolean
 	childProcessTimeout: number
 	maxPacketSize: number
+	disableExitHandlers?: boolean
 }
 
 export type AtemSocketEvents = {
@@ -30,6 +31,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	private readonly _disableMultithreaded: boolean
 	private readonly _childProcessTimeout: number
 	private readonly _maxPacketSize: number
+	private readonly _disableExitHandlers: boolean
 	private readonly _commandParser: CommandParser = new CommandParser()
 
 	private _nextPacketTrackingId = 0
@@ -48,6 +50,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		this._disableMultithreaded = options.disableMultithreaded
 		this._childProcessTimeout = options.childProcessTimeout
 		this._maxPacketSize = options.maxPacketSize
+		this._disableExitHandlers = options.disableExitHandlers ?? false
 	}
 
 	public async connect(address?: string, port?: number): Promise<void> {
@@ -172,9 +175,11 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 			this.emit('disconnect')
 		})
 
-		this._exitUnsubscribe = exitHook(() => {
-			this.destroy().catch(() => null)
-		})
+		if (!this._disableExitHandlers) {
+			this._exitUnsubscribe = exitHook(() => {
+				this.destroy().catch(() => null)
+			})
+		}
 	}
 
 	private _parseCommands(buffer: Buffer): IDeserializedCommand[] {
