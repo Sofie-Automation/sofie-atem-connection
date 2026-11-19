@@ -75,6 +75,8 @@ export function generateUploadBufferInfo(
 	}
 }
 
+const MIN_CHUNK_SIZE = 24
+
 export abstract class DataTransferUploadBuffer extends DataTransfer<void> {
 	protected readonly hash: string
 	protected readonly data: Buffer
@@ -119,6 +121,17 @@ export abstract class DataTransferUploadBuffer extends DataTransfer<void> {
 			const result: ProgressTransferResult = {
 				newState: oldState,
 				commands: [],
+			}
+
+			// Chunks get shortened by up to 16 bytes to avoid splitting an RLE block, so anything this small could produce
+			// empty (or negative length) chunks, and the upload would never progress
+			if (command.properties.chunkSize < MIN_CHUNK_SIZE) {
+				this.abort(new Error(`Invalid chunk size ${command.properties.chunkSize}`))
+
+				return {
+					newState: DataTransferState.Finished,
+					commands: [],
+				}
 			}
 
 			// Atem requested more packets of data
