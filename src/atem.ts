@@ -119,6 +119,7 @@ class AtemWrapper {
 		})
 		this.dataTransferManager = new DT.DataTransferManager(
 			this.sendCommands.bind(this),
+			(message) => this._safeEmit('error', message),
 			options?.disableExitHandlers ?? false
 		)
 

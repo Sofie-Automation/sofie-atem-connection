@@ -44,21 +44,26 @@ function mangleCommand(cmd: any, dir: string): any {
 }
 
 function runDataTransferTest(spec: any): DataTransferManager {
-	const manager = new DataTransferManager(async (cmds) => {
-		for (const rawCmd of cmds) {
-			const expectedCmd = spec.shift()
-			const gotCmd = mangleCommand(rawCmd, 'send')
-			expect(gotCmd).toEqual(expectedCmd)
+	const manager = new DataTransferManager(
+		async (cmds) => {
+			for (const rawCmd of cmds) {
+				const expectedCmd = spec.shift()
+				const gotCmd = mangleCommand(rawCmd, 'send')
+				expect(gotCmd).toEqual(expectedCmd)
 
-			while (spec.length > 0) {
-				if (spec[0].direction !== 'recv') break
-				const nextCmd = spec.shift()
-				const nextCmd2 = specToCommandClass(nextCmd)
-				if (!nextCmd2) throw new Error(`Failed specToCommandClass ${nextCmd.name}`)
-				manager.queueHandleCommand(nextCmd2)
+				while (spec.length > 0) {
+					if (spec[0].direction !== 'recv') break
+					const nextCmd = spec.shift()
+					const nextCmd2 = specToCommandClass(nextCmd)
+					if (!nextCmd2) throw new Error(`Failed specToCommandClass ${nextCmd.name}`)
+					manager.queueHandleCommand(nextCmd2)
+				}
 			}
+		},
+		(message) => {
+			throw new Error(`Unexpected data transfer error: ${message}`)
 		}
-	})
+	)
 	manager.startCommandSending(true)
 	return manager
 }

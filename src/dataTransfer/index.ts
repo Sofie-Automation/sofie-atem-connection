@@ -1,6 +1,11 @@
 import exitHook = require('exit-hook')
 
-import { DataTransferLockingQueue, DataTransferSimpleQueue, DataTransferQueueBase } from './dataTransferQueue'
+import {
+	DataTransferLockingQueue,
+	DataTransferSimpleQueue,
+	DataTransferQueueBase,
+	DataTransferQueueOptions,
+} from './dataTransferQueue'
 import DataTransferUploadStill from './dataTransferUploadStill'
 import { DataTransferUploadClipFrame, DataTransferUploadClip } from './dataTransferUploadClip'
 import DataTransferUploadAudio from './dataTransferUploadAudio'
@@ -37,21 +42,39 @@ export class DataTransferManager {
 		})
 	}
 
-	readonly #stillsLock = new DataTransferLockingQueue(0, this.#sendLockCommand, this.#nextTransferId)
-	readonly #clipLocks = new Map<number, DataTransferLockingQueue>() // clipLocks get dynamically allocated
-	readonly #labelsLock = new DataTransferSimpleQueue(this.#nextTransferId)
-	readonly #macroLock = new DataTransferSimpleQueue(this.#nextTransferId)
-
 	readonly #rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>
+	readonly #queueOptions: DataTransferQueueOptions
+
+	readonly #stillsLock: DataTransferLockingQueue
+	readonly #clipLocks = new Map<number, DataTransferLockingQueue>() // clipLocks get dynamically allocated
+	readonly #labelsLock: DataTransferSimpleQueue
+	readonly #macroLock: DataTransferSimpleQueue
 
 	private interval?: NodeJS.Timer
 	private exitUnsubscribe?: () => void
 
 	readonly #disableExitHandlers: boolean
 
-	constructor(rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>, disableExitHandlers = false) {
+	/**
+	 * @param rawSendCommands Send commands to the atem
+	 * @param onError Report an unexpected error
+	 * @param disableExitHandlers Skip registering exit handlers
+	 */
+	constructor(
+		rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>,
+		onError: (message: string) => void,
+		disableExitHandlers = false
+	) {
 		this.#rawSendCommands = rawSendCommands
 		this.#disableExitHandlers = disableExitHandlers
+		this.#queueOptions = {
+			nextTransferId: this.#nextTransferId,
+			onError,
+		}
+
+		this.#stillsLock = new DataTransferLockingQueue(0, this.#sendLockCommand, this.#queueOptions)
+		this.#labelsLock = new DataTransferSimpleQueue(this.#queueOptions)
+		this.#macroLock = new DataTransferSimpleQueue(this.#queueOptions)
 	}
 
 	private get allLocks() {
@@ -136,11 +159,7 @@ export class DataTransferManager {
 
 			// Must be a clip that we aren't expecting
 			if (!lock)
-				lock = new DataTransferLockingQueue(
-					command.properties.index,
-					this.#sendLockCommand,
-					this.#nextTransferId
-				)
+				lock = new DataTransferLockingQueue(command.properties.index, this.#sendLockCommand, this.#queueOptions)
 
 			// handle actual command
 			if (command instanceof LockObtainedCommand) {
@@ -241,7 +260,7 @@ export class DataTransferManager {
 		if (lock) {
 			return lock
 		} else if (index >= 0 && index < 20) {
-			const lock = new DataTransferLockingQueue(index + 1, this.#sendLockCommand, this.#nextTransferId)
+			const lock = new DataTransferLockingQueue(index + 1, this.#sendLockCommand, this.#queueOptions)
 			this.#clipLocks.set(index, lock)
 			return lock
 		} else {

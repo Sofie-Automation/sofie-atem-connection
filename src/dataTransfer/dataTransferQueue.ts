@@ -15,18 +15,90 @@ export interface ActiveTransfer {
 
 const queueHighPriority = 99
 
+/**
+ * How long a started transfer may go without hearing anything from the atem before it is aborted.
+ * Generous, as the atem can take a while to commit a large upload before reporting it as complete.
+ * This does not apply while waiting to obtain the lock, as another client can legitimately hold that for a long time.
+ */
+export const DEFAULT_TRANSFER_INACTIVITY_TIMEOUT = 30_000
+
+export interface DataTransferQueueOptions {
+	nextTransferId: () => number
+	/** Report an unexpected error */
+	onError: (message: string) => void
+	/** Inactivity timeout in milliseconds */
+	inactivityTimeout?: number
+}
+
 export abstract class DataTransferQueueBase {
 	protected readonly taskQueue: Array<DataTransfer<any>> = []
 
-	// protected readonly queueCommands: (...cmds: ISerializableCommand[]) => void
 	protected readonly nextTransferId: () => number
+	protected readonly onError: (message: string) => void
 	protected readonly handleCommandQueue = new PQueue({ concurrency: 1 })
 
-	protected activeTransfer: ActiveTransfer | undefined
+	readonly #inactivityTimeout: number
+	#inactivityTimer: NodeJS.Timeout | undefined
+	/** Whether a task for the active transfer is currently running. Time spent in there (eg generating clip frames) is not inactivity */
+	#handlingTask = false
 
-	constructor(nextTransferId: () => number) {
-		// this.queueCommands = queueCommands
-		this.nextTransferId = nextTransferId
+	#activeTransfer: ActiveTransfer | undefined
+	protected get activeTransfer(): ActiveTransfer | undefined {
+		return this.#activeTransfer
+	}
+	protected set activeTransfer(transfer: ActiveTransfer | undefined) {
+		this.#activeTransfer = transfer
+		// A new transfer starts as pending, so the timer is only armed once it has been started
+		this.#clearInactivityTimer()
+	}
+
+	constructor(options: DataTransferQueueOptions) {
+		this.nextTransferId = options.nextTransferId
+		this.onError = options.onError
+		this.#inactivityTimeout = options.inactivityTimeout ?? DEFAULT_TRANSFER_INACTIVITY_TIMEOUT
+	}
+
+	#clearInactivityTimer(): void {
+		if (this.#inactivityTimer) {
+			clearTimeout(this.#inactivityTimer)
+			this.#inactivityTimer = undefined
+		}
+	}
+
+	/** Restart the inactivity timer, if there is a transfer which has been started */
+	#resetInactivityTimer(): void {
+		this.#clearInactivityTimer()
+
+		const transfer = this.activeTransfer
+		if (!transfer || transfer.state === DataTransferState.Pending || transfer.state === DataTransferState.Finished)
+			return
+
+		const timer = setTimeout(() => {
+			if (this.#inactivityTimer !== timer) return
+			this.#inactivityTimer = undefined
+
+			if (this.#handlingTask) {
+				// Still busy with something for this transfer, so check again later
+				this.#resetInactivityTimer()
+				return
+			}
+
+			this.tryAbortTransfer(new Error(`Transfer timed out after ${this.#inactivityTimeout}ms of inactivity`))
+		}, this.#inactivityTimeout)
+		// Don't let a stalled transfer keep the process alive
+		timer.unref?.()
+		this.#inactivityTimer = timer
+	}
+
+	/** Run a task for the active transfer, pausing the inactivity timer while it runs */
+	async #runTransferTask(fn: () => Promise<void>): Promise<void> {
+		this.#handlingTask = true
+		try {
+			await fn()
+		} finally {
+			this.#handlingTask = false
+			this.#resetInactivityTimer()
+		}
 	}
 
 	public get currentTransferId(): number | null {
@@ -110,40 +182,40 @@ export abstract class DataTransferQueueBase {
 		if (this.activeTransfer) {
 			this.handleCommandQueue
 				.add(
-					async () => {
-						const transfer = this.activeTransfer
-						if (!transfer || transfer.state !== DataTransferState.Pending) {
-							// No transfer to start
-							return
-						}
+					async () =>
+						this.#runTransferTask(async () => {
+							const transfer = this.activeTransfer
+							if (!transfer || transfer.state !== DataTransferState.Pending) {
+								// No transfer to start
+								return
+							}
 
-						const result = await this.startTransfer(transfer.job, transfer.id)
+							const result = await this.startTransfer(transfer.job, transfer.id)
 
-						// TODO - this is rather duplicated..
-						if (this.activeTransfer?.id !== transfer.id) {
-							throw new Error('Transfer changed mid-handle!')
-						}
+							// TODO - this is rather duplicated..
+							if (this.activeTransfer?.id !== transfer.id) {
+								throw new Error('Transfer changed mid-handle!')
+							}
 
-						// Store the result
-						transfer.state = result.newState
-						transfer.queuedCommands.push(...result.commands)
+							// Store the result
+							transfer.state = result.newState
+							transfer.queuedCommands.push(...result.commands)
 
-						// if (transfer.state === DataTransferState.)
-						if (transfer.state === DataTransferState.Finished && transfer.queuedCommands.length === 0) {
-							// Transfer reports as having finished, so clear tracker and start the next
-							this.transferCompleted()
-							this.activeTransfer = undefined
+							// if (transfer.state === DataTransferState.)
+							if (transfer.state === DataTransferState.Finished && transfer.queuedCommands.length === 0) {
+								// Transfer reports as having finished, so clear tracker and start the next
+								this.transferCompleted()
+								this.activeTransfer = undefined
 
-							this.dequeueAndRun()
-						} else {
-							// Looks to be progressing along
-						}
-					},
+								this.dequeueAndRun()
+							} else {
+								// Looks to be progressing along
+							}
+						}),
 					{ priority: queueHighPriority }
 				)
 				.catch((e) => {
-					// TODO - better
-					console.error(`startTransfer failed: ${e}`)
+					this.onError(`startTransfer failed: ${e}`)
 				})
 		}
 	}
@@ -172,8 +244,7 @@ export abstract class DataTransferQueueBase {
 					{ priority: queueHighPriority }
 				)
 				.catch((e) => {
-					// TODO - better
-					console.error(`abortTransfer failed: ${e}`)
+					this.onError(`abortTransfer failed: ${e}`)
 				})
 		}
 	}
@@ -196,34 +267,35 @@ export abstract class DataTransferQueueBase {
 					return
 				}
 
-				const oldState = transfer.state
-				const result = await transfer.job.handleCommand(command, oldState)
+				await this.#runTransferTask(async () => {
+					const oldState = transfer.state
+					const result = await transfer.job.handleCommand(command, oldState)
 
-				if (this.activeTransfer?.id !== transfer.id) {
-					throw new Error('Transfer changed mid-handle!')
-				}
-
-				// Store the result
-				transfer.state = result.newState
-				transfer.queuedCommands.push(...result.commands)
-
-				if (transfer.state !== DataTransferState.Finished && transfer.queuedCommands.length === 0) {
-					// // Transfer reports as having finished, so clear tracker and start the next
-					// this.transferCompleted()
-					// this.activeTransfer = undefined
-					// this.dequeueAndRun()
-				} else {
-					// Looks to be progressing along
-
-					// If the transfer provided a new id, track it
-					if (result.newId !== undefined) {
-						transfer.id = result.newId
+					if (this.activeTransfer?.id !== transfer.id) {
+						throw new Error('Transfer changed mid-handle!')
 					}
-				}
+
+					// Store the result
+					transfer.state = result.newState
+					transfer.queuedCommands.push(...result.commands)
+
+					if (transfer.state !== DataTransferState.Finished && transfer.queuedCommands.length === 0) {
+						// // Transfer reports as having finished, so clear tracker and start the next
+						// this.transferCompleted()
+						// this.activeTransfer = undefined
+						// this.dequeueAndRun()
+					} else {
+						// Looks to be progressing along
+
+						// If the transfer provided a new id, track it
+						if (result.newId !== undefined) {
+							transfer.id = result.newId
+						}
+					}
+				})
 			})
 			.catch((e) => {
-				// TODO - better
-				console.error(`Queue error: ${e}`)
+				this.onError(`Queue error: ${e}`)
 			})
 	}
 }
@@ -234,8 +306,8 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 
 	private isLocked: boolean
 
-	constructor(storeId: number, sendLockCommand: (cmd: LockStateCommand) => void, nextTransferId: () => number) {
-		super(nextTransferId)
+	constructor(storeId: number, sendLockCommand: (cmd: LockStateCommand) => void, options: DataTransferQueueOptions) {
+		super(options)
 
 		this.#storeId = storeId
 		this.#sendLockCommand = sendLockCommand
