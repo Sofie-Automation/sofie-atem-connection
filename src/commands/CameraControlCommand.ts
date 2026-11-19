@@ -201,7 +201,7 @@ export class CameraControlUpdateCommand extends DeserializedCommand<CameraContro
 		switch (type) {
 			case CameraControlDataType.BOOL: {
 				for (let i = 0; i < count8Bit; i++) {
-					props.boolData.push(rawCommand.readInt8(offset) > 0)
+					props.boolData.push(rawCommand.readUInt8(offset) !== 0)
 					offset += 1
 				}
 				break
