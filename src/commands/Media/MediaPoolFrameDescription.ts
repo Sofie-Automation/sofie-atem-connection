@@ -1,4 +1,4 @@
-import { AtemState, AtemStateUtil } from '../../state'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
 import { StillFrame } from '../../state/media'
 import { DeserializedCommand } from '../CommandBase'
 import * as Util from '../../lib/atemUtil'
@@ -29,18 +29,20 @@ export class MediaPoolFrameDescriptionCommand extends DeserializedCommand<StillF
 	}
 
 	public applyToState(state: AtemState): string | string[] {
-		// TODO - validate ids
-
 		if (this.mediaPool === 0) {
 			// This is a still
 			state.media.stillPool[this.frameIndex] = this.properties
 			return `media.stillPool.${this.frameIndex}`
-		} else if (this.mediaPool < 3) {
-			const clipId = this.mediaPool - 1
+		} else {
 			// This is a clip
+			const clipId = this.mediaPool - 1
+			const clipCount = state.info.mediaPool?.clipCount
+			if (clipCount !== undefined && clipId >= clipCount) {
+				throw new InvalidIdError('MediaPool Clip', clipId)
+			}
+
 			AtemStateUtil.getClip(state, clipId).frames[this.frameIndex] = this.properties
 			return `media.clipPool.${clipId}.frames.${this.frameIndex}`
 		}
-		return []
 	}
 }
