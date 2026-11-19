@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/unbound-method */
 import { Atem, DEFAULT_MAX_PACKET_SIZE, DEFAULT_PORT } from '../atem'
-import { CutCommand, ProductIdentifierCommand } from '../commands'
-import { Model } from '../enums'
+import { CutCommand, ProductIdentifierCommand, VersionCommand } from '../commands'
+import { Model, ProtocolVersion } from '../enums'
 import { promisify } from 'util'
 import { EventEmitter } from 'events'
 
@@ -255,6 +255,30 @@ describe('Atem', () => {
 
 			expect(conn.state?.info.productIdentifier).toEqual('test')
 			expect(errors).toEqual([`Error in 'receivedCommands' event handler: Error: listener failed`])
+		} finally {
+			await conn.destroy()
+		}
+	})
+
+	test('disconnected is only emitted once per lost connection', async () => {
+		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		const conn = new Atem({ address: 'test1', port: 23 })
+
+		try {
+			const socket = (conn as any).client.socket as AtemSocket
+			const disconnected = jest.fn()
+			conn.on('disconnected', disconnected)
+
+			// Never connected, eg the atem is unreachable, or disconnect() followed by destroy()
+			socket.emit('disconnect')
+			socket.emit('disconnect')
+			expect(disconnected).toHaveBeenCalledTimes(0)
+
+			// Connection starts, then is lost and the reconnect attempts fail
+			socket.emit('receivedCommands', [new VersionCommand(ProtocolVersion.V8_0)])
+			socket.emit('disconnect')
+			socket.emit('disconnect')
+			expect(disconnected).toHaveBeenCalledTimes(1)
 		} finally {
 			await conn.destroy()
 		}

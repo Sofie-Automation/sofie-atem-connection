@@ -132,10 +132,14 @@ class AtemWrapper {
 		this.socket.on('debug', (msg) => this._safeEmit('debug', msg))
 		this.socket.on('error', (e) => this._safeEmit('error', e))
 		this.socket.on('disconnect', () => {
+			// The socket reports a disconnect for every reset, including ones where nothing was connected (eg calling
+			// disconnect() then destroy(), or while retrying), so only emit when a connection is actually lost
+			const wasConnected = this._status !== AtemConnectionStatus.CLOSED
+
 			this._status = AtemConnectionStatus.CLOSED
 			this.dataTransferManager.stopCommandSending()
 			this._rejectAllCommands()
-			this._safeEmit('disconnected')
+			if (wasConnected) this._safeEmit('disconnected')
 			this._state = undefined
 		})
 	}
