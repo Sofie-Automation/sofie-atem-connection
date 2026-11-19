@@ -1058,6 +1058,56 @@ describe('SocketChild', () => {
 		}
 	})
 
+	test('Inbound - malformed packets are ignored', async () => {
+		const { child, socket, delivered, acked } = createOutOfOrderHarness()
+		try {
+			// Too short to hold a header, but with a matching length. These used to throw from the socket handler
+			for (const msg of [
+				Buffer.alloc(0),
+				Buffer.from([0x00, 0x02]),
+				Buffer.from([0x08, 0x0b, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+			]) {
+				expect(() =>
+					socket.emit('message', msg, {
+						address: ADDRESS,
+						port: DEFAULT_PORT,
+						family: 'IPv4',
+						size: msg.length,
+					})
+				).not.toThrow()
+			}
+			await clock.tickAsync(20)
+			expect(delivered).toEqual([])
+			expect(acked).toEqual([])
+			expect(getState(child)).toEqual(ConnectionState.Established)
+		} finally {
+			await child.disconnect()
+		}
+	})
+
+	test('Inbound - packets from other addresses are ignored', async () => {
+		const { child, socket, delivered } = createOutOfOrderHarness()
+		try {
+			const msg = genPayloadMessage(1)
+			socket.emit('message', msg, { address: '10.0.0.99', port: DEFAULT_PORT, family: 'IPv4', size: msg.length })
+			socket.emit('message', genNewSessionMessage(500), {
+				address: '10.0.0.99',
+				port: DEFAULT_PORT,
+				family: 'IPv4',
+				size: 12,
+			})
+			await clock.tickAsync(20)
+			expect(delivered).toEqual([])
+			expect((child as any)._lastReceivedPacketId).toEqual(0)
+
+			// The real atem is still heard
+			await socket.emitMessage(clock, msg)
+			expect(delivered).toEqual([1])
+		} finally {
+			await child.disconnect()
+		}
+	})
+
 	test('Inbound commands - out of order buffer is cleared by a new session', async () => {
 		const { child, socket, delivered, acked } = createOutOfOrderHarness()
 		try {

@@ -2,6 +2,7 @@
  * Note: this file wants as few imports as possible, as it gets loaded in a worker-thread and may require its own webpack bundle
  */
 import { createSocket, Socket, RemoteInfo } from 'dgram'
+import { isIP } from 'net'
 import { performance } from 'perf_hooks'
 
 const IN_FLIGHT_TIMEOUT = 60 // ms
@@ -265,9 +266,13 @@ export class AtemSocketChild {
 
 	private _receivePacket(packet: Buffer, rinfo: RemoteInfo): void {
 		if (this._debugBuffers) this.log(`RECV ${packet.toString('hex')}`)
-		this._lastReceivedAt = performance.now()
+		// Ignore anything not from the atem. The address can only be checked when it is an ip, as rinfo holds the resolved ip
+		if (isIP(this._address) && rinfo.address !== this._address) return
+		// Too short to contain a header
+		if (packet.length < 12) return
 		const length = packet.readUInt16BE(0) & 0x07ff
 		if (length !== rinfo.size) return
+		this._lastReceivedAt = performance.now()
 
 		const flags = packet.readUInt8(0) >> 3
 		this._sessionId = packet.readUInt16BE(2)
