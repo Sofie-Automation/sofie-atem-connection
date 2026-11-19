@@ -73,17 +73,18 @@ export abstract class WritableCommand<T> extends BasicWritableCommand<Partial<T>
 	}
 
 	protected _updateProps(newProps: { [key: string]: any }): boolean {
-		const maskFlags = (this.constructor as any).MaskFlags as { [key: string]: number }
+		const maskFlags = (this.constructor as any).MaskFlags as { [key: string]: number } | undefined
+		if (!maskFlags)
+			throw new Error(`${this.constructor.name} is missing MaskFlags, so is unable to update properties`)
+
 		let hasChanges = false
-		if (maskFlags) {
-			for (const key in newProps) {
-				const key2 = key as keyof T
-				const val = newProps[key]
-				if (key in maskFlags && val !== undefined) {
-					this.flag = this.flag | maskFlags[key]
-					this._properties[key2] = val
-					hasChanges = true
-				}
+		for (const key in newProps) {
+			const key2 = key as keyof T
+			const val = newProps[key]
+			if (key in maskFlags && val !== undefined) {
+				this.flag = this.flag | maskFlags[key]
+				this._properties[key2] = val
+				hasChanges = true
 			}
 		}
 		return hasChanges
