@@ -186,6 +186,10 @@ export class AtemSocketChild {
 	}
 
 	public sendPackets(packets: OutboundPacketInfo[]): void {
+		// Packets sent before the connection is established would be silently dropped by the next reconnect attempt,
+		// leaving the caller waiting forever for an ack
+		if (this._connectionState !== ConnectionState.Established) throw new Error('Not connected')
+
 		for (const packet of packets) {
 			this.sendPacket(packet.payloadLength, packet.payloadHex, packet.trackingId)
 		}

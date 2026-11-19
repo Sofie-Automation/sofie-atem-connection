@@ -463,6 +463,22 @@ describe('SocketChild', () => {
 		return buffer
 	}
 
+	test('SendCommands - rejected when not connected', async () => {
+		const child = createSocketChild()
+		try {
+			await child.connect(ADDRESS, DEFAULT_PORT)
+			expect(getState(child)).toEqual(ConnectionState.SynSent)
+
+			// Anything sent now would be dropped by the next reconnect attempt, never to be acked
+			expect(() => child.sendPackets([{ payloadLength: 1, payloadHex: '00', trackingId: 1 }])).toThrow(
+				'Not connected'
+			)
+			expect(getInflightIds(child)).toEqual([])
+		} finally {
+			await child.disconnect()
+		}
+	})
+
 	test('SendCommand - acks', async () => {
 		let acked: Array<{ packetId: number; trackingId: number }> = []
 		const child = createSocketChild(undefined, async (ids) => {
