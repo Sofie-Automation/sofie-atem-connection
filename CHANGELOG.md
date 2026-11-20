@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.11.1](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.11.0...v3.11.1) (Fri Nov 20 2026)
+
+
+### Fixes
+
+* transfers on a media pool hanging forever after a stale unlock was mistaken for losing the lock [41ca6fc7](https://github.com/Sofie-Automation/sofie-atem-connection/commit/41ca6fc762c13ad58fd6c2a91936d8f3c4c96226)
+* media pool lock requests left queued on the atem after a transfer is aborted [b2aaa3eb](https://github.com/Sofie-Automation/sofie-atem-connection/commit/b2aaa3ebd57fb1bcf1b47a0d4a165314b4287e84)
+
 ## [3.11.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.10.3...v3.11.0) (Fri Nov 20 2026)
 
 
