@@ -19,6 +19,26 @@ describe('AtemCommandCollector', () => {
 		return collector.takeCommands()
 	}
 
+	test('methods given no properties to change add no commands', () => {
+		const commands = collect(ProtocolVersion.V8_1_1, (c) => {
+			c.setInputSettings({})
+			c.setTransitionStyle({})
+			c.setUpstreamKeyerChromaSettings({})
+			c.setSuperSourceProperties({})
+			c.setFairlightAudioMixerInputProps(1, {})
+			c.setMultiViewerProperties({})
+			c.setSuperSourceBoxBorder({})
+			// Undefined values don't count as changes either
+			c.setDownstreamKeyGeneralProperties({ preMultiply: undefined })
+		})
+		expect(commands).toEqual([])
+	})
+
+	test('only boxes with changes get a command', () => {
+		const commands = collect(ProtocolVersion.V8_1_1, (c) => c.setSuperSourceBoxBorder({ borderEnabled: true }))
+		expect(commands).toHaveLength(4)
+	})
+
 	describe('version specific commands', () => {
 		test.each([
 			[ProtocolVersion.V7_5_2, Commands.SuperSourcePropertiesCommand],

@@ -48,7 +48,10 @@ export class AtemCommandBatchBase {
  * This class allows you to queue commands and send them all at once, in a single batch.
  *
  */
-export class AtemCommandBatch extends AtemCommandSenderMixin<void, typeof AtemCommandBatchBase>(AtemCommandBatchBase) {}
+export class AtemCommandBatch extends AtemCommandSenderMixin<void, typeof AtemCommandBatchBase>(
+	AtemCommandBatchBase,
+	() => undefined
+) {}
 
 /**
  * Holds the collected commands for an {@link AtemCommandCollector}.
@@ -86,5 +89,6 @@ export class AtemCommandCollectorBase {
  * This is useful for computing the commands to send elsewhere, such as when diffing states.
  */
 export class AtemCommandCollector extends AtemCommandSenderMixin<void, typeof AtemCommandCollectorBase>(
-	AtemCommandCollectorBase
+	AtemCommandCollectorBase,
+	() => undefined
 ) {}

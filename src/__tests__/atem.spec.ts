@@ -166,6 +166,21 @@ describe('Atem', () => {
 		}
 	})
 
+	test('a helper with nothing to change sends nothing, and resolves', async () => {
+		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		const conn = new Atem({ address: 'test1', port: 23 })
+
+		try {
+			const socket = (conn as any).client.socket as AtemSocket
+			socket.sendCommands = jest.fn(() => Promise.resolve([]) as any)
+
+			await expect(conn.setInputSettings({})).resolves.toBeUndefined()
+			expect(socket.sendCommands).not.toHaveBeenCalled()
+		} finally {
+			await conn.destroy()
+		}
+	})
+
 	test('sendCommand - send error', async () => {
 		;(AtemSocket as any).mockImplementation(() => new MockSocket())
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })

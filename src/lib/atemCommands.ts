@@ -56,12 +56,30 @@ export interface AtemCommandSenderControl<T> {
  *
  * The return type of each method matches the base class's `sendCommand`, so a direct client returns `T`
  * while a batching client returns `void`.
+ *
+ * Methods which take a set of properties to change send nothing when none of them are set, returning `noopResult()`.
+ *
+ * @param Base The class providing the ways to send commands
+ * @param noopResult Produces the result to return when there is nothing to send
  */
 // The return type is an anonymous mixin class which cannot be practically named, so let it be inferred.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
 export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => AtemCommandSenderControl<T>>(
-	Base: TBase
+	Base: TBase,
+	noopResult: () => T
 ) {
+	/**
+	 * Apply the properties to the command, and send it. If none of the properties are set, nothing is sent.
+	 * This is a function rather than a method of the class, as a private member can't be part of the inferred type.
+	 */
+	function updateAndSend<P>(
+		host: AtemCommandSenderControl<T>,
+		command: ISerializableCommand & { updateProps(props: P): boolean },
+		props: P
+	): T {
+		return command.updateProps(props) ? host.sendCommand(command) : noopResult()
+	}
+
 	return class AtemCommandSender extends Base {
 		public changeProgramInput(input: number, me = 0): T {
 			const command = new Commands.ProgramInputCommand(me, input)
@@ -95,20 +113,17 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public autoDownstreamKey(key = 0, isTowardsOnAir?: boolean): T {
 			const command = new Commands.DownstreamKeyAutoCommand(key)
-			command.updateProps({ isTowardsOnAir })
-			return this.sendCommand(command)
+			return updateAndSend(this, command, { isTowardsOnAir })
 		}
 
 		public setDipTransitionSettings(newProps: Partial<DipTransitionSettings>, me = 0): T {
 			const command = new Commands.TransitionDipCommand(me)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setDVETransitionSettings(newProps: Partial<DVETransitionSettings>, me = 0): T {
 			const command = new Commands.TransitionDVECommand(me)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setMixTransitionSettings(newProps: Pick<MixTransitionSettings, 'rate'>, me = 0): T {
@@ -128,20 +143,17 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public setTransitionStyle(newProps: Partial<OmitReadonly<TransitionProperties>>, me = 0): T {
 			const command = new Commands.TransitionPropertiesCommand(me)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setStingerTransitionSettings(newProps: Partial<StingerTransitionSettings>, me = 0): T {
 			const command = new Commands.TransitionStingerCommand(me)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setWipeTransitionSettings(newProps: Partial<WipeTransitionSettings>, me = 0): T {
 			const command = new Commands.TransitionWipeCommand(me)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setAuxSource(source: number, bus = 0): T {
@@ -171,14 +183,12 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public setDownstreamKeyGeneralProperties(props: Partial<DownstreamKeyerGeneral>, key = 0): T {
 			const command = new Commands.DownstreamKeyGeneralCommand(key)
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setDownstreamKeyMaskSettings(props: Partial<DownstreamKeyerMask>, key = 0): T {
 			const command = new Commands.DownstreamKeyMaskCommand(key)
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setDownstreamKeyRate(rate: number, key = 0): T {
@@ -243,14 +253,12 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public macroUpdateProperties(props: Commands.MacroPropertiesCommand['properties'], index = 0): T {
 			const command = new Commands.MacroPropertiesCommand(index)
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public macroSetLoop(loop: boolean): T {
 			const command = new Commands.MacroRunStatusCommand()
-			command.updateProps({ loop })
-			return this.sendCommand(command)
+			return updateAndSend(this, command, { loop })
 		}
 
 		public setMultiViewerWindowSource(source: number, mv = 0, window = 0): T {
@@ -285,12 +293,10 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 				}
 
 				const command = new Commands.MultiViewerPropertiesCommand(mv)
-				command.updateProps(props)
-				return this.sendCommand(command)
+				return updateAndSend(this, command, props)
 			} else {
 				const command = new Commands.MultiViewerPropertiesV7Command(mv)
-				command.updateProps(props)
-				return this.sendCommand(command)
+				return updateAndSend(this, command, props)
 			}
 		}
 		public setMultiViewerBorderColor(color: MultiViewerBorderColorState, mv = 0): T {
@@ -303,8 +309,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			window = 0
 		): T {
 			const command = new Commands.MultiViewerWindowOverlayPropertiesCommand(mv, window)
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 		public setMultiViewerWindowSafeAreaPattern(safeTitlePattern: Enums.SafeTitlePattern[], mv = 0, window = 0): T {
 			const command = new Commands.MultiViewerWindowOverlaySafeAreaPatternCommand(mv, window, safeTitlePattern)
@@ -313,20 +318,17 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public setColorGeneratorColour(newProps: Partial<ColorGeneratorState>, index = 0): T {
 			const command = new Commands.ColorGeneratorCommand(index)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setMediaPlayerSettings(newProps: Partial<MediaPlayer>, player = 0): T {
 			const command = new Commands.MediaPlayerStatusCommand(player)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setMediaPlayerSource(newProps: Partial<MediaPlayerSource>, player = 0): T {
 			const command = new Commands.MediaPlayerSourceCommand(player)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setMediaClip(index: number, name: string, frames = 1): T {
@@ -355,31 +357,26 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			ssrcId = 0
 		): T {
 			const command = new Commands.SuperSourceBoxParametersCommand(ssrcId, box)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setSuperSourceProperties(newProps: Partial<SuperSource.SuperSourceProperties>, ssrcId = 0): T {
 			if (this.apiVersion && this.apiVersion >= Enums.ProtocolVersion.V8_0) {
 				const command = new Commands.SuperSourcePropertiesV8Command(ssrcId)
-				command.updateProps(newProps)
-				return this.sendCommand(command)
+				return updateAndSend(this, command, newProps)
 			} else {
 				const command = new Commands.SuperSourcePropertiesCommand()
-				command.updateProps(newProps)
-				return this.sendCommand(command)
+				return updateAndSend(this, command, newProps)
 			}
 		}
 
 		public setSuperSourceBorder(newProps: Partial<SuperSource.SuperSourceBorder>, ssrcId = 0): T {
 			if (this.apiVersion && this.apiVersion >= Enums.ProtocolVersion.V8_0) {
 				const command = new Commands.SuperSourceBorderCommand(ssrcId)
-				command.updateProps(newProps)
-				return this.sendCommand(command)
+				return updateAndSend(this, command, newProps)
 			} else {
 				const command = new Commands.SuperSourcePropertiesCommand()
-				command.updateProps(newProps)
-				return this.sendCommand(command)
+				return updateAndSend(this, command, newProps)
 			}
 		}
 
@@ -394,18 +391,18 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			ssrcId = 0
 		): T {
 			const boxIds = box === undefined || box === null ? [0, 1, 2, 3] : [box]
-			const commands = boxIds.map((boxId) => {
+			const commands: Commands.SuperSourceBoxBorderCommand[] = []
+			for (const boxId of boxIds) {
 				const command = new Commands.SuperSourceBoxBorderCommand(ssrcId, boxId)
-				command.updateProps(newProps)
-				return command
-			})
+				// Skip the command if it changes nothing
+				if (command.updateProps(newProps)) commands.push(command)
+			}
 			return this.sendCommands(commands)
 		}
 
 		public setInputSettings(newProps: Partial<OmitReadonly<InputChannel>>, input = 0): T {
 			const command = new Commands.InputPropertiesCommand(input)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setUpstreamKeyerChromaSettings(
@@ -414,8 +411,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			keyer = 0
 		): T {
 			const command = new Commands.MixEffectKeyChromaCommand(me, keyer)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setUpstreamKeyerAdvancedChromaProperties(
@@ -424,8 +420,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			keyer = 0
 		): T {
 			const command = new Commands.MixEffectKeyAdvancedChromaPropertiesCommand(me, keyer)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 		public setUpstreamKeyerAdvancedChromaSample(
 			newProps: Partial<USK.UpstreamKeyerAdvancedChromaSample>,
@@ -433,8 +428,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			keyer = 0
 		): T {
 			const command = new Commands.MixEffectKeyAdvancedChromaSampleCommand(me, keyer)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 		public setUpstreamKeyerAdvancedChromaSampleReset(
 			flags: Commands.AdvancedChromaSampleResetProps,
@@ -457,20 +451,17 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public setUpstreamKeyerDVESettings(newProps: Partial<USK.UpstreamKeyerDVESettings>, me = 0, keyer = 0): T {
 			const command = new Commands.MixEffectKeyDVECommand(me, keyer)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setUpstreamKeyerLumaSettings(newProps: Partial<USK.UpstreamKeyerLumaSettings>, me = 0, keyer = 0): T {
 			const command = new Commands.MixEffectKeyLumaCommand(me, keyer)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setUpstreamKeyerMaskSettings(newProps: Partial<USK.UpstreamKeyerMaskSettings>, me = 0, keyer = 0): T {
 			const command = new Commands.MixEffectKeyMaskSetCommand(me, keyer)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setUpstreamKeyerPatternSettings(
@@ -479,8 +470,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			keyer = 0
 		): T {
 			const command = new Commands.MixEffectKeyPatternCommand(me, keyer)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setUpstreamKeyerOnAir(onAir: boolean, me = 0, keyer = 0): T {
@@ -520,44 +510,37 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			properties: Partial<Omit<USK.UpstreamKeyerFlyKeyframe, 'keyFrameId'>>
 		): T {
 			const command = new Commands.MixEffectKeyFlyKeyframeCommand(mixEffect, upstreamKeyerId, keyframe)
-			command.updateProps(properties)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, properties)
 		}
 
 		public setUpstreamKeyerType(newProps: Partial<USK.UpstreamKeyerTypeSettings>, me = 0, keyer = 0): T {
 			const command = new Commands.MixEffectKeyTypeSetCommand(me, keyer)
-			command.updateProps(newProps)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, newProps)
 		}
 
 		public setClassicAudioMixerInputProps(index: number, props: Partial<Commands.AudioMixerInputCommandProps>): T {
 			const command = new Commands.AudioMixerInputCommand(index)
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setClassicAudioMixerMasterProps(props: Partial<ClassicAudioMasterChannel>): T {
 			const command = new Commands.AudioMixerMasterCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setClassicAudioMixerMonitorProps(props: Partial<ClassicAudioMonitorChannel>): T {
 			const command = new Commands.AudioMixerMonitorCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setClassicAudioMixerHeadphonesProps(props: Partial<ClassicAudioHeadphoneOutputChannel>): T {
 			const command = new Commands.AudioMixerHeadphonesCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setClassicAudioResetPeaks(props: Partial<Commands.ClassicAudioResetPeaks>): T {
 			const command = new Commands.AudioMixerResetPeaksCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setClassicAudioMixerProps(props: Commands.AudioMixerPropertiesCommand['properties']): T {
@@ -567,22 +550,19 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public setFairlightAudioMixerMasterProps(props: Partial<Commands.FairlightMixerMasterCommandProperties>): T {
 			const command = new Commands.FairlightMixerMasterCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerMasterCompressorProps(
 			props: Partial<OmitReadonly<FairlightAudioCompressorState>>
 		): T {
 			const command = new Commands.FairlightMixerMasterCompressorCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerMasterLimiterProps(props: Partial<OmitReadonly<FairlightAudioLimiterState>>): T {
 			const command = new Commands.FairlightMixerMasterLimiterCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerMasterEqualizerBandProps(
@@ -590,22 +570,19 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			props: Partial<OmitReadonly<FairlightAudioEqualizerBandState>>
 		): T {
 			const command = new Commands.FairlightMixerMasterEqualizerBandCommand(band)
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerMasterEqualizerReset(
 			props: Partial<Commands.FairlightMixerMasterEqualizerResetCommand['properties']>
 		): T {
 			const command = new Commands.FairlightMixerMasterEqualizerResetCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerMasterDynamicsReset(props: Partial<FairlightDynamicsResetProps>): T {
 			const command = new Commands.FairlightMixerMasterDynamicsResetCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerResetPeaks(props: Commands.FairlightMixerResetPeakLevelsCommand['properties']): T {
@@ -625,14 +602,12 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public setFairlightAudioMixerMonitorProps(props: Partial<OmitReadonly<FairlightAudioMonitorChannel>>): T {
 			const command = new Commands.FairlightMixerMonitorCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerMonitorSolo(props: Partial<OmitReadonly<FairlightAudioMonitorSolo>>): T {
 			const command = new Commands.FairlightMixerMonitorSoloCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerInputProps(
@@ -641,12 +616,10 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 		): T {
 			if (this.apiVersion && this.apiVersion >= Commands.FairlightMixerInputV8Command.minimumVersion) {
 				const command = new Commands.FairlightMixerInputV8Command(index)
-				command.updateProps(props)
-				return this.sendCommand(command)
+				return updateAndSend(this, command, props)
 			} else {
 				const command = new Commands.FairlightMixerInputCommand(index)
-				command.updateProps(props)
-				return this.sendCommand(command)
+				return updateAndSend(this, command, props)
 			}
 		}
 
@@ -656,8 +629,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			props: Commands.FairlightMixerSourceCommand['properties']
 		): T {
 			const command = new Commands.FairlightMixerSourceCommand(index, BigInt(source))
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerSourceCompressorProps(
@@ -666,8 +638,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			props: Partial<OmitReadonly<FairlightAudioCompressorState>>
 		): T {
 			const command = new Commands.FairlightMixerSourceCompressorCommand(index, BigInt(source))
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerSourceLimiterProps(
@@ -676,8 +647,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			props: Partial<OmitReadonly<FairlightAudioLimiterState>>
 		): T {
 			const command = new Commands.FairlightMixerSourceLimiterCommand(index, BigInt(source))
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerSourceExpanderProps(
@@ -686,8 +656,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			props: Partial<OmitReadonly<FairlightAudioExpanderState>>
 		): T {
 			const command = new Commands.FairlightMixerSourceExpanderCommand(index, BigInt(source))
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerSourceEqualizerBandProps(
@@ -697,8 +666,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			props: Partial<OmitReadonly<FairlightAudioEqualizerBandState>>
 		): T {
 			const command = new Commands.FairlightMixerSourceEqualizerBandCommand(index, BigInt(source), band)
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerSourceDynamicsReset(
@@ -707,8 +675,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			props: Partial<FairlightDynamicsResetProps>
 		): T {
 			const command = new Commands.FairlightMixerSourceDynamicsResetCommand(index, BigInt(source))
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerSourceEqualizerReset(
@@ -717,8 +684,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			props: Partial<Commands.FairlightMixerSourceEqualizerResetCommand['properties']>
 		): T {
 			const command = new Commands.FairlightMixerSourceEqualizerResetCommand(index, BigInt(source))
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioMixerSourceResetPeaks(
@@ -747,8 +713,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public setStreamingService(props: Partial<StreamingServiceProperties>): T {
 			const command = new Commands.StreamingServiceCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setStreamingAudioBitrates(lowBitrate: number, highBitrate: number): T {
@@ -778,8 +743,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public setRecordingSettings(props: Partial<RecordingStateProperties>): T {
 			const command = new Commands.RecordingSettingsCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setEnableISORecording(enabled: boolean): T {
@@ -813,8 +777,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public setDisplayClockProperties(props: Partial<Commands.DisplayClockPropertiesExt>): T {
 			const command = new Commands.DisplayClockPropertiesSetCommand()
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioRoutingSourceProperties(
@@ -822,8 +785,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			props: Partial<OmitReadonly<FairlightAudioRoutingSource>>
 		): T {
 			const command = new Commands.AudioRoutingSourceCommand(sourceId)
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 
 		public setFairlightAudioRoutingOutputProperties(
@@ -831,8 +793,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			props: Partial<OmitReadonly<FairlightAudioRoutingOutput>>
 		): T {
 			const command = new Commands.AudioRoutingOutputCommand(sourceId)
-			command.updateProps(props)
-			return this.sendCommand(command)
+			return updateAndSend(this, command, props)
 		}
 	}
 }

@@ -400,7 +400,7 @@ export class BasicAtem extends EventEmitter<AtemEvents> implements IBasicAtem {
 	}
 }
 
-export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem>(BasicAtem) {
+export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem>(BasicAtem, async () => undefined) {
 	#multiviewerFontFace: Promise<FontFace>
 	#multiviewerFontScale: number
 
