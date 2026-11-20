@@ -37,6 +37,11 @@ export interface AtemOptions {
 	address?: string
 	port?: number
 	debugBuffers?: boolean
+	/**
+	 * While unable to connect, the time between connection attempts doubles from 1 second, up to this many milliseconds.
+	 * Default: 30000
+	 */
+	maxReconnectDelay?: number
 	disableMultithreaded?: boolean
 	childProcessTimeout?: number
 	/**
@@ -110,6 +115,7 @@ class AtemWrapper {
 		this._status = AtemConnectionStatus.CLOSED
 		this.socket = new AtemSocket({
 			debugBuffers: options?.debugBuffers ?? false,
+			maxReconnectDelay: options?.maxReconnectDelay,
 			address: options?.address || '',
 			port: options?.port || DEFAULT_PORT,
 			disableMultithreaded: options?.disableMultithreaded ?? false,

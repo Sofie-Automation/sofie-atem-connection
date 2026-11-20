@@ -11,6 +11,7 @@ export interface AtemSocketOptions {
 	address: string
 	port: number
 	debugBuffers: boolean
+	maxReconnectDelay?: number
 	disableMultithreaded: boolean
 	childProcessTimeout: number
 	maxPacketSize: number
@@ -28,6 +29,7 @@ export type AtemSocketEvents = {
 
 export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	private readonly _debugBuffers: boolean
+	private readonly _maxReconnectDelay: number | undefined
 	private readonly _disableMultithreaded: boolean
 	private readonly _childProcessTimeout: number
 	private readonly _maxPacketSize: number
@@ -47,6 +49,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		this._address = options.address
 		this._port = options.port
 		this._debugBuffers = options.debugBuffers
+		this._maxReconnectDelay = options.maxReconnectDelay
 		this._disableMultithreaded = options.disableMultithreaded
 		this._childProcessTimeout = options.childProcessTimeout
 		this._maxPacketSize = options.maxPacketSize
@@ -140,6 +143,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 					address: this._address,
 					port: this._port,
 					debugBuffers: this._debugBuffers,
+					maxReconnectDelay: this._maxReconnectDelay,
 				},
 				async (): Promise<void> => {
 					this.emit('disconnect')

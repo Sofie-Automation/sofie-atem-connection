@@ -9,6 +9,8 @@ import { performance } from 'perf_hooks'
 const IN_FLIGHT_TIMEOUT = 60 // ms
 const CONNECTION_TIMEOUT = 5000 // ms
 const CONNECTION_RETRY_INTERVAL = 1000 // ms
+/** The default upper limit for the backoff between connection attempts */
+export const DEFAULT_MAX_RECONNECT_DELAY = 30000 // ms
 const RETRANSMIT_INTERVAL = 10 // ms
 const MAX_PACKET_RETRIES = 10
 const MAX_PACKET_ID = 1 << 15 // Atem expects 15 not 16 bits before wrapping
@@ -57,6 +59,12 @@ export interface OutboundPacketInfo {
 
 export class AtemSocketChild {
 	private readonly _debugBuffers: boolean
+	private readonly _maxReconnectDelay: number
+
+	/** Connection attempts since the last successful one, for the backoff */
+	private _reconnectAttempts = 0
+	/** When the next connection attempt is due, while not connected */
+	private _nextAttemptAt = 0
 
 	private _connectionState = ConnectionState.Closed
 	private _reconnectTimer: NodeJS.Timer | undefined
@@ -90,13 +98,14 @@ export class AtemSocketChild {
 	private readonly onPacketsAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
 
 	constructor(
-		options: { address: string; port: number; debugBuffers: boolean },
+		options: { address: string; port: number; debugBuffers: boolean; maxReconnectDelay?: number },
 		onDisconnect: () => Promise<void>,
 		onLog: (message: string) => Promise<void>,
 		onCommandReceived: (payload: Buffer, packetId: number) => Promise<void>,
 		onCommandAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
 	) {
 		this._debugBuffers = options.debugBuffers
+		this._maxReconnectDelay = options.maxReconnectDelay ?? DEFAULT_MAX_RECONNECT_DELAY
 		this._host = options.address
 		this._address = options.address
 		this._port = options.port
@@ -113,6 +122,17 @@ export class AtemSocketChild {
 		if (!this._reconnectTimer) {
 			this._reconnectTimer = setInterval(() => {
 				const now = performance.now()
+
+				if (this._connectionState !== ConnectionState.Established) {
+					// Still trying to connect, so retry with a backoff
+					if (now < this._nextAttemptAt) return
+
+					this.restartConnection().catch((e) => {
+						this.log(`Reconnect failed: ${e}`)
+					})
+					return
+				}
+
 				const heardRecently = this._lastReceivedAt + CONNECTION_TIMEOUT > now
 				const inboundStalled =
 					this._outOfOrderStalledSince !== undefined &&
@@ -134,6 +154,8 @@ export class AtemSocketChild {
 	}
 
 	public async connect(address: string, port: number): Promise<void> {
+		// A new connection starts without any backoff
+		this._reconnectAttempts = 0
 		this._host = address
 		this._address = address
 		this._port = port
@@ -204,6 +226,12 @@ export class AtemSocketChild {
 			// On failure keep the last known address, which is the hostname itself if it has never resolved
 			if (address) this._address = address
 		}
+
+		// Back off exponentially while the atem isn't answering, from CONNECTION_RETRY_INTERVAL up to the maximum.
+		// The attempts are capped, just to keep the maths finite
+		const delay = Math.min(CONNECTION_RETRY_INTERVAL * 2 ** this._reconnectAttempts, this._maxReconnectDelay)
+		this._reconnectAttempts = Math.min(this._reconnectAttempts + 1, 30)
+		this._nextAttemptAt = performance.now() + delay
 
 		this.startTimers()
 
@@ -334,6 +362,7 @@ export class AtemSocketChild {
 				return
 
 			this._connectionState = ConnectionState.Established
+			this._reconnectAttempts = 0
 			this._lastReceivedPacketId = remotePacketId
 			this._clearOutOfOrderPackets()
 			this._sendAck(remotePacketId)

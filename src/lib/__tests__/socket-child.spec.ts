@@ -1172,7 +1172,7 @@ describe('SocketChild', () => {
 
 			// The device changes ip, and the next attempt goes straight to the new one
 			lookup.mockResolvedValue({ address: '10.0.0.6', family: 4 } as any)
-			await clock.tickAsync(5500) // Nothing heard, so the reconnect timer retries
+			await clock.tickAsync(1000) // Nothing heard, so the reconnect timer retries
 			expect(lookup).toHaveBeenCalledTimes(2)
 			expect(sentTo).toEqual(['10.0.0.5', '10.0.0.6'])
 		} finally {
@@ -1220,6 +1220,40 @@ describe('SocketChild', () => {
 		} finally {
 			await child.disconnect()
 			lookup.mockRestore()
+		}
+	})
+
+	test('connection attempts back off exponentially, up to the maximum', async () => {
+		const child = new AtemSocketChild(
+			{ address: ADDRESS, port: DEFAULT_PORT, debugBuffers: false, maxReconnectDelay: 4000 },
+			async () => Promise.resolve(),
+			async () => Promise.resolve(),
+			async () => Promise.resolve(),
+			async () => Promise.resolve()
+		)
+		try {
+			const socket = getSocket(child)
+			const start = clock.now
+			const attempts: number[] = []
+			// Spy on the child rather than the socket, as a reconnect replaces the socket
+			jest.spyOn(child as any, '_sendPacket').mockImplementation((msg: any) => {
+				if (msg.equals(COMMAND_CONNECT_HELLO)) attempts.push(clock.now - start)
+			})
+
+			await child.connect(ADDRESS, DEFAULT_PORT)
+			await clock.tickAsync(16000)
+			// Waits of 1s, 2s, then the 4s maximum
+			expect(attempts).toEqual([0, 1000, 3000, 7000, 11000, 15000])
+
+			// Once connected, losing the connection starts again from the shortest wait
+			await socket.emitMessage(clock, genNewSessionMessage(0))
+			expect(getState(child)).toEqual(ConnectionState.Established)
+			attempts.length = 0
+			const lost = clock.now - start
+			await clock.tickAsync(9000)
+			expect(attempts.map((t) => t - lost)).toEqual([5000, 6000, 8000])
+		} finally {
+			await child.disconnect()
 		}
 	})
 
