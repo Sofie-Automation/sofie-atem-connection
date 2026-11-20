@@ -21,6 +21,13 @@ const MAX_PACKET_PER_ACK = 16
  * ~20-30 packets deep when one packet was lost at 50 packets/s). Packets are at most 2047 bytes, so this is <512KB.
  */
 const MAX_OUT_OF_ORDER_PACKETS = 256
+/**
+ * During a download the atem sends bursts of up to ~76 packets (~106KB) far faster than they get read. The default
+ * receive buffer (208KB on Linux, which includes per packet overhead) overflows, and every dropped packet stalls the
+ * transfer until the atem retransmits it ~60ms later. Measured on a Constellation, this makes a 1080p still download
+ * about 40% faster, with no packets dropped.
+ */
+const RECEIVE_BUFFER_SIZE = 1024 * 1024
 
 export const COMMAND_CONNECT_HELLO = Buffer.from([
 	0x10, 0x14, 0x53, 0xab, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3a, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -314,7 +321,9 @@ export class AtemSocketChild {
 	}
 
 	private _createSocket(): Socket {
-		this._socket = createSocket('udp4')
+		const socket = createSocket({ type: 'udp4', recvBufferSize: RECEIVE_BUFFER_SIZE })
+		this._socket = socket
+		this._socket.on('listening', () => this._checkReceiveBufferSize(socket))
 		this._socket.bind()
 		this._socket.on('message', (packet, rinfo) => this._receivePacket(packet, rinfo))
 		this._socket.on('error', (err) => {
@@ -329,6 +338,23 @@ export class AtemSocketChild {
 		})
 
 		return this._socket
+	}
+
+	private _warnedReceiveBufferSize = false
+	/** The OS can silently cap the receive buffer size, which slows down downloads */
+	private _checkReceiveBufferSize(socket: Socket): void {
+		if (this._warnedReceiveBufferSize) return
+		try {
+			const size = socket.getRecvBufferSize()
+			if (size < RECEIVE_BUFFER_SIZE) {
+				this._warnedReceiveBufferSize = true
+				this.log(
+					`UDP receive buffer is limited to ${size} bytes by the OS, so downloads may be slower. On Linux, raise net.core.rmem_max to at least ${RECEIVE_BUFFER_SIZE}`
+				)
+			}
+		} catch (_e) {
+			// Not supported, so nothing to check
+		}
 	}
 
 	private _isPacketCoveredByAck(ackId: number, packetId: number): boolean {

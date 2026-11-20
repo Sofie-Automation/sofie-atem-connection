@@ -1,6 +1,6 @@
 /* eslint-disable jest/no-standalone-expect */
 import { EventEmitter } from 'events'
-import { SocketType, RemoteInfo } from 'dgram'
+import { SocketType, SocketOptions, RemoteInfo } from 'dgram'
 import 'jest-extended'
 import { DEFAULT_PORT } from '../../atem'
 import * as fakeTimers from '@sinonjs/fake-timers'
@@ -72,8 +72,11 @@ export class Socket extends EventEmitter {
 	}
 }
 
-export function createSocket(type: SocketType, callback?: (msg: Buffer, rinfo: RemoteInfo) => void): Socket {
-	expect(type).toEqual('udp4')
+export function createSocket(
+	options: SocketType | SocketOptions,
+	callback?: (msg: Buffer, rinfo: RemoteInfo) => void
+): Socket {
+	expect(typeof options === 'string' ? options : options.type).toEqual('udp4')
 	expect(callback).toBeUndefined()
 
 	return new Socket()
