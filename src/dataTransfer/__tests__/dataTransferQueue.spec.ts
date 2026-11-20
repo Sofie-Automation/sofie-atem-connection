@@ -7,9 +7,10 @@ import {
 	LockStateCommand,
 } from '../../commands/DataTransfer/index.js'
 import { DataTransfer, DataTransferState, ProgressTransferResult } from '../dataTransfer.js'
-import { DataTransferLockingQueue, DataTransferSimpleQueue } from '../dataTransferQueue.js'
+import { DataTransferLockingQueue, DataTransferSimpleQueue, STALE_UNLOCK_WINDOW } from '../dataTransferQueue.js'
 
 const TIMEOUT = 1000
+const MAX_LOCK_HOLD = 500
 
 class FakeTransfer extends DataTransfer<void> {
 	constructor(private readonly onHandle?: () => Promise<void>) {
@@ -232,10 +233,75 @@ describe('DataTransferQueue', () => {
 					nextTransferId: () => nextId++,
 					onError: () => null,
 					inactivityTimeout: TIMEOUT,
+					maxLockHoldTime: MAX_LOCK_HOLD,
 				}
 			)
 			return { queue, lockCommands }
 		}
+
+		/** Run the active transfer to completion, and let the queue retire it */
+		async function completeTransfer(queue: DataTransferLockingQueue, transferId: number) {
+			queue.handleCommand(new DataTransferCompleteCommand({ transferId }))
+			await vi.advanceTimersByTimeAsync(0)
+			queue.popQueuedCommands(10)
+			await vi.advanceTimersByTimeAsync(0)
+		}
+
+		test('back-to-back transfers reuse the lock while it has not been held for long', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			const first = queue.enqueue(new FakeTransfer())
+			await vi.advanceTimersByTimeAsync(0)
+			queue.lockObtained()
+			await vi.advanceTimersByTimeAsync(0)
+
+			// Queued before the first completes, as happens when the next is requested from the first resolving
+			const second = queue.enqueue(new FakeTransfer())
+
+			await completeTransfer(queue, 0)
+			await expect(first).resolves.toBeUndefined()
+
+			// The lock was kept, and the second started straight away
+			expect(lockCommands).toEqual([true])
+
+			await completeTransfer(queue, 1)
+			await expect(second).resolves.toBeUndefined()
+			expect(lockCommands).toEqual([true, false])
+		})
+
+		test('the lock is given back between transfers once held for too long, so other clients get a turn', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			const first = queue.enqueue(new FakeTransfer())
+			await vi.advanceTimersByTimeAsync(0)
+			queue.lockObtained()
+			await vi.advanceTimersByTimeAsync(0)
+
+			const second = queue.enqueue(new FakeTransfer())
+			const secondStart = vi.spyOn(FakeTransfer.prototype, 'startTransfer')
+
+			// Keep the first going for longer than the lock may be held
+			for (let i = 0; i < 5; i++) {
+				await vi.advanceTimersByTimeAsync(MAX_LOCK_HOLD / 4)
+				queue.handleCommand(data(0))
+			}
+			await completeTransfer(queue, 0)
+			await expect(first).resolves.toBeUndefined()
+
+			// Released, and requested again for the second, behind anyone else who is waiting
+			expect(lockCommands).toEqual([true, false, true])
+			expect(secondStart).not.toHaveBeenCalled()
+
+			// It only starts once the atem grants the lock again
+			queue.lockObtained()
+			await vi.advanceTimersByTimeAsync(0)
+			expect(secondStart).toHaveBeenCalledTimes(1)
+
+			await completeTransfer(queue, 1)
+			await expect(second).resolves.toBeUndefined()
+			expect(lockCommands).toEqual([true, false, true, false])
+			secondStart.mockRestore()
+		})
 
 		test("another client's lock is not mistaken for ours", async () => {
 			const { queue, lockCommands } = createLockingQueue()
@@ -281,6 +347,7 @@ describe('DataTransferQueue', () => {
 			promise.catch(() => null)
 			await vi.advanceTimersByTimeAsync(0)
 			queue.lockObtained()
+			queue.updateLock(true) // The atem confirms the lock
 			await vi.advanceTimersByTimeAsync(0)
 
 			queue.updateLock(false)
@@ -288,6 +355,51 @@ describe('DataTransferQueue', () => {
 			await expect(promise).rejects.toThrow('Lost lock mid-transfer')
 			// It is already unlocked, so there is nothing to release
 			expect(lockCommands).toEqual([true])
+		})
+
+		test('a stale unlock arriving soon after the lock is granted is not mistaken for losing it', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			const promise = queue.enqueue(new FakeTransfer())
+			await vi.advanceTimersByTimeAsync(0)
+
+			// After releasing and quickly re-obtaining the lock, the update for the release can arrive after the new grant
+			queue.lockObtained()
+			await vi.advanceTimersByTimeAsync(STALE_UNLOCK_WINDOW - 1)
+			queue.updateLock(false)
+			await vi.advanceTimersByTimeAsync(0)
+
+			await completeTransfer(queue, 0)
+			await expect(promise).resolves.toBeUndefined()
+			expect(lockCommands).toEqual([true, false])
+		})
+
+		test('losing a lock that was handed over without being confirmed aborts the transfer', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			const first = queue.enqueue(new FakeTransfer())
+			await vi.advanceTimersByTimeAsync(0)
+			queue.lockObtained()
+			queue.updateLock(true)
+			await vi.advanceTimersByTimeAsync(0)
+
+			const second = queue.enqueue(new FakeTransfer())
+			second.catch(() => null)
+
+			// Hold it for long enough that it is given back, and requested again for the second
+			await vi.advanceTimersByTimeAsync(MAX_LOCK_HOLD)
+			await completeTransfer(queue, 0)
+			await expect(first).resolves.toBeUndefined()
+			expect(lockCommands).toEqual([true, false, true])
+
+			// When the lock is handed straight over, the atem doesn't report it as locked
+			queue.lockObtained()
+			await vi.advanceTimersByTimeAsync(STALE_UNLOCK_WINDOW)
+
+			queue.updateLock(false)
+			await vi.advanceTimersByTimeAsync(0)
+			await expect(second).rejects.toThrow('Lost lock mid-transfer')
+			expect(lockCommands).toEqual([true, false, true])
 		})
 
 		test('aborting with a signal while waiting for the lock cancels the request', async () => {

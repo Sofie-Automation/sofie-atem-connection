@@ -23,6 +23,23 @@ const queueHighPriority = 99
  */
 export const DEFAULT_TRANSFER_INACTIVITY_TIMEOUT = 30_000
 
+/**
+ * How long a lock may be kept across back-to-back transfers before it is given back.
+ * Transfers queued while the lock is held reuse it, as that saves a round trip each, but a steady stream of them would
+ * otherwise keep it forever and starve any other client waiting for it. Once this has passed the lock is released after
+ * the current transfer, and requested again, so the atem can grant it to anyone who asked in the meantime.
+ * This is the longest another client can be kept waiting. Releasing after uploads costs around 2s, as the atem holds
+ * on to the lock while it stores them, so this is a balance between that and how long another client can wait.
+ */
+export const DEFAULT_MAX_LOCK_HOLD_TIME = 10_000
+
+/**
+ * How long after being granted a lock that an unlock is assumed to be a stale update from before the grant.
+ * The atem sends state updates shortly after the grant, so after releasing and quickly re-obtaining the lock, the update
+ * for the release can arrive after the new grant.
+ */
+export const STALE_UNLOCK_WINDOW = 500
+
 function abortReasonToError(reason: unknown): Error {
 	// The default reason is a DOMException, which is an Error
 	return reason instanceof Error ? reason : new Error(`Transfer aborted: ${reason}`)
@@ -34,6 +51,8 @@ export interface DataTransferQueueOptions {
 	onError: (message: string) => void
 	/** Inactivity timeout in milliseconds */
 	inactivityTimeout?: number
+	/** How long a lock may be kept across back-to-back transfers before it is given back, in milliseconds */
+	maxLockHoldTime?: number
 }
 
 export abstract class DataTransferQueueBase {
@@ -379,12 +398,22 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 	 * nothing will release
 	 */
 	#lockRequested = false
+	/**
+	 * Whether the atem has reported the pool as locked since we were granted it. Any stale unlock update will have
+	 * arrived before that. The atem does not always send this, such as when the lock is handed straight over from
+	 * another client, so the lock is also treated as confirmed once STALE_UNLOCK_WINDOW has passed
+	 */
+	#lockConfirmed = false
+	/** When we were last granted the lock */
+	#lockObtainedAt = 0
+	readonly #maxLockHoldTime: number
 
 	constructor(storeId: number, sendLockCommand: (cmd: LockStateCommand) => void, options: DataTransferQueueOptions) {
 		super(options)
 
 		this.#storeId = storeId
 		this.#sendLockCommand = sendLockCommand
+		this.#maxLockHoldTime = options.maxLockHoldTime ?? DEFAULT_MAX_LOCK_HOLD_TIME
 	}
 
 	protected async startTransfer(transfer: DataTransfer<any>, transferId: number): Promise<ProgressTransferResult> {
@@ -415,7 +444,9 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 		}
 
 		this.#ownsLock = true
+		this.#lockConfirmed = false
 		this.#lockRequested = false
+		this.#lockObtainedAt = Date.now()
 
 		if (!this.activeTransfer) {
 			// The transfer which wanted the lock was aborted while waiting for it, so give it back
@@ -429,19 +460,33 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 
 	/** The status of the lock has changed. This could be for a lock held by another client */
 	public updateLock(locked: boolean): void {
-		// Ownership is given up as soon as the unlock is sent, so an unlock reported while we still own it was unexpected.
-		// Any other change is for another client, or confirming our own unlock, so can be ignored
-		if (!locked && this.#ownsLock) {
+		if (!this.#ownsLock) {
+			// For another client, or confirming our own unlock, so can be ignored
+			return
+		}
+
+		if (locked) {
+			this.#lockConfirmed = true
+			return
+		}
+
+		// Ownership is given up as soon as the unlock is sent, so an unlock reported while we own it, after it has been
+		// confirmed, was unexpected. Before it has been confirmed, it is a stale update from before we were granted it
+		if (this.#lockConfirmed || Date.now() - this.#lockObtainedAt >= STALE_UNLOCK_WINDOW) {
 			this.#ownsLock = false
 			this.tryAbortTransfer(new Error('Lost lock mid-transfer'))
 		}
 	}
 
 	protected transferCompleted(): void {
-		if ((this.#ownsLock || this.#lockRequested) && !this.taskQueue.length) {
-			// unlock only when queue is empty. This also cancels a request that is still waiting for the lock
+		// Keep the lock for the next queued transfer, unless it has been held for long enough that someone else should get a turn
+		const heldTooLong = this.#ownsLock && Date.now() - this.#lockObtainedAt >= this.#maxLockHoldTime
 
-			debug(`Completing transfer (Owned lock = ${this.#ownsLock})`)
+		if ((this.#ownsLock || this.#lockRequested) && (!this.taskQueue.length || heldTooLong)) {
+			// unlock when the queue is empty. This also cancels a request that is still waiting for the lock.
+			// When the queue is not empty, the next transfer will request the lock again, behind anyone already waiting for it
+
+			debug(`Completing transfer (Owned lock = ${this.#ownsLock}, held too long = ${heldTooLong})`)
 
 			this.#ownsLock = false
 			this.#lockRequested = false
