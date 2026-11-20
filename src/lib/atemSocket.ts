@@ -114,7 +114,24 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 			}
 		}
 
+		this._updateWorkerRef()
 		await this._bridge.connect(this._address, this._port)
+	}
+
+	/**
+	 * While a connection is wanted the worker keeps the process alive, as the timers and socket inside it would for
+	 * any other connection. Once disconnected the idle worker is kept for a quick reconnect, but must not stop the
+	 * process from exiting
+	 */
+	private _updateWorkerRef(): void {
+		const worker = this._monitor?.worker
+		if (!worker) return
+
+		if (this._isDisconnecting) {
+			worker.unref()
+		} else {
+			worker.ref()
+		}
 	}
 
 	public async destroy(): Promise<void> {
@@ -136,8 +153,12 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		this._isDisconnecting = true
 
 		if (this._bridge) {
+			// Only release the worker once it has replied, as nothing else keeps the process alive while waiting
 			await this._bridge.disconnect()
 		}
+
+		// A connect may have been made while waiting
+		this._updateWorkerRef()
 	}
 
 	get nextPacketTrackingId(): number {
@@ -232,7 +253,11 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		})
 
 		monitor.on('spawn', () => {
-			if (!firstSpawn) {
+			// A new worker starts out holding the process open
+			this._updateWorkerRef()
+
+			// Only reconnect if a connection is still wanted
+			if (!firstSpawn && !this._isDisconnecting) {
 				this.connect().catch((error) => {
 					const errorMsg = `Failed to reconnect after respawning socket process: ${error}`
 					this.emit('error', errorMsg)
@@ -265,6 +290,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 
 		// For in-process bridges, treat every 'spawn' as a reconnect (no real first-spawn to skip)
 		dummyMonitor.on('spawn', () => {
+			if (this._isDisconnecting) return
 			this.connect().catch((error) => {
 				this.emit('error', `Failed to reconnect after respawning: ${error}`)
 			})
