@@ -455,11 +455,30 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 		}
 	}
 
-	public async downloadMacro(index: number): Promise<Buffer> {
-		return this.dataTransferManager.downloadMacro(index)
+	/**
+	 * Download a macro from the ATEM
+	 * @param index Macro index to download
+	 * @param options Transfer options, such as a signal to abort it
+	 * @returns Promise which returns the macro once downloaded
+	 */
+	public async downloadMacro(index: number, options?: DT.DataTransferOptions): Promise<Buffer> {
+		return this.dataTransferManager.downloadMacro(index, options?.signal)
 	}
-	public async uploadMacro(index: number, name: string, data: Buffer): Promise<void> {
-		return this.dataTransferManager.uploadMacro(index, data, name)
+	/**
+	 * Upload a macro to the ATEM
+	 * @param index Macro index to upload to
+	 * @param name Name to give the macro
+	 * @param data The macro data
+	 * @param options Transfer options, such as a signal to abort it
+	 * @returns Promise which resolves once the macro is uploaded
+	 */
+	public async uploadMacro(
+		index: number,
+		name: string,
+		data: Buffer,
+		options?: DT.DataTransferOptions
+	): Promise<void> {
+		return this.dataTransferManager.uploadMacro(index, data, name, options?.signal)
 	}
 
 	/**
@@ -470,16 +489,17 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * pre-convert the images with more optimal algorithms
 	 * @param clipIndex Clip index to download
 	 * @param frameIndex Frame index to download from the clip
-	 * @param format The pixel format to return for the downloaded image. 'raw' passes through unchanged, and will be RLE encoded.
+	 * @param options Download options, such as the pixel format to return and a signal to abort it
 	 * @returns Promise which returns the image once downloaded. If the still slot is not in use, this will throw
 	 */
 	public async downloadClipFrame(
 		clipIndex: number,
 		frameIndex: number,
-		format: 'raw' | 'rgba' | 'yuv' = 'rgba'
+		options?: DT.DownloadImageOptions
 	): Promise<Buffer> {
+		const format = options?.format ?? 'rgba'
 		this.#assertValidClipIndex(clipIndex)
-		let rawBuffer = await this.dataTransferManager.downloadClipFrame(clipIndex, frameIndex)
+		let rawBuffer = await this.dataTransferManager.downloadClipFrame(clipIndex, frameIndex, options?.signal)
 
 		if (format === 'raw') {
 			return rawBuffer
@@ -507,11 +527,12 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * consider using [@atem-connection/image-tools](https://www.npmjs.com/package/@atem-connection/image-tools) to
 	 * pre-convert the images with more optimal algorithms
 	 * @param index Still index to download
-	 * @param format The pixel format to return for the downloaded image. 'raw' passes through unchanged, and will be RLE encoded.
+	 * @param options Download options, such as the pixel format to return and a signal to abort it
 	 * @returns Promise which returns the image once downloaded. If the still slot is not in use, this will throw
 	 */
-	public async downloadStill(index: number, format: 'raw' | 'rgba' | 'yuv' = 'rgba'): Promise<Buffer> {
-		let rawBuffer = await this.dataTransferManager.downloadStill(index)
+	public async downloadStill(index: number, options?: DT.DownloadImageOptions): Promise<Buffer> {
+		const format = options?.format ?? 'rgba'
+		let rawBuffer = await this.dataTransferManager.downloadStill(index, options?.signal)
 
 		if (format === 'raw') {
 			return rawBuffer
@@ -542,7 +563,7 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * @param data a RGBA pixel buffer, or an already YUVA encoded image
 	 * @param name Name to give the uploaded image
 	 * @param description Description for the uploaded image
-	 * @param options Upload options
+	 * @param options Upload options, including a signal to abort the transfer
 	 * @returns Promise which resolves once the image is uploaded
 	 */
 	public async uploadStill(
@@ -558,7 +579,7 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 
 		const encodedData = generateUploadBufferInfo(data, resolution, !options?.disableRLE)
 
-		return this.dataTransferManager.uploadStill(index, encodedData, name, description)
+		return this.dataTransferManager.uploadStill(index, encodedData, name, description, options?.signal)
 	}
 
 	/**
@@ -570,7 +591,7 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * @param index Clip index to upload to
 	 * @param frames Array or generator of frames. Each frame can be a RGBA pixel buffer, or an already YUVA encoded image
 	 * @param name Name to give the uploaded clip
-	 * @param options Upload options
+	 * @param options Upload options, including a signal to abort the transfer
 	 * @returns Promise which resolves once the clip is uploaded
 	 */
 	public async uploadClip(
@@ -589,7 +610,7 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 				yield generateUploadBufferInfo(frame, resolution, !options?.disableRLE)
 			}
 		}
-		return this.dataTransferManager.uploadClip(index, provideFrame(), name)
+		return this.dataTransferManager.uploadClip(index, provideFrame(), name, options?.signal)
 	}
 
 	/**
@@ -600,14 +621,21 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * @param samples Interleaved stereo 48khz signed 24bit little-endian PCM samples.
 	 * This is the contents of the data chunk of a 24bit stereo wav file, or the output of `ffmpeg -f s24le -ac 2 -ar 48000`
 	 * @param name Name to give the uploaded audio
+	 * @param options Transfer options, such as a signal to abort it
 	 * @returns Promise which resolves once the clip audio is uploaded
 	 */
-	public async uploadAudio(index: number, samples: Uint8Array, name: string): Promise<void> {
+	public async uploadAudio(
+		index: number,
+		samples: Uint8Array,
+		name: string,
+		options?: DT.DataTransferOptions
+	): Promise<void> {
 		this.#assertValidClipIndex(index)
 		return this.dataTransferManager.uploadAudio(
 			index,
 			convertPCMToAtemAudio(samples, this.state?.info?.model),
-			name
+			name,
+			options?.signal
 		)
 	}
 
@@ -635,9 +663,14 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * Write a custom multiviewer label buffer
 	 * @param inputId The input id
 	 * @param buffer Label buffer
+	 * @param options Transfer options, such as a signal to abort it
 	 * @returns Promise that resolves once upload is complete
 	 */
-	public async writeMultiviewerLabel(inputId: number, buffer: Buffer): Promise<void> {
+	public async writeMultiviewerLabel(
+		inputId: number,
+		buffer: Buffer,
+		options?: DT.DataTransferOptions
+	): Promise<void> {
 		if (this.hasInternalMultiviewerLabelGeneration()) throw new Error(`ATEM doesn't support custom labels`)
 
 		// Verify the buffer doesnt contain data that is 'out of bounds' and will crash the atem
@@ -648,16 +681,17 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 			}
 		}
 
-		return this.dataTransferManager.uploadMultiViewerLabel(inputId, buffer)
+		return this.dataTransferManager.uploadMultiViewerLabel(inputId, buffer, options?.signal)
 	}
 
 	/**
 	 * Generate and upload a multiviewer label
 	 * @param inputId The input id
 	 * @param text Label text
+	 * @param options Transfer options, such as a signal to abort it
 	 * @returns Promise that resolves once upload is complete
 	 */
-	public async drawMultiviewerLabel(inputId: number, text: string): Promise<void> {
+	public async drawMultiviewerLabel(inputId: number, text: string, options?: DT.DataTransferOptions): Promise<void> {
 		if (this.hasInternalMultiviewerLabelGeneration()) throw new Error(`ATEM doesn't support custom labels`)
 
 		const props = calculateGenerateMultiviewerLabelProps(this.state ?? null)
@@ -667,6 +701,6 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 
 		const buffer = generateMultiviewerLabel(fontFace, this.#multiviewerFontScale, text, props)
 		// Note: we should probably validate the buffer looks like it doesn't contain crashy data, but as we generate we can trust it
-		return this.dataTransferManager.uploadMultiViewerLabel(inputId, buffer)
+		return this.dataTransferManager.uploadMultiViewerLabel(inputId, buffer, options?.signal)
 	}
 }

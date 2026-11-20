@@ -23,6 +23,11 @@ const queueHighPriority = 99
  */
 export const DEFAULT_TRANSFER_INACTIVITY_TIMEOUT = 30_000
 
+function abortReasonToError(reason: unknown): Error {
+	// The default reason is a DOMException, which is an Error
+	return reason instanceof Error ? reason : new Error(`Transfer aborted: ${reason}`)
+}
+
 export interface DataTransferQueueOptions {
 	nextTransferId: () => number
 	/** Report an unexpected error */
@@ -157,13 +162,50 @@ export abstract class DataTransferQueueBase {
 		}
 	}
 
-	/** Queue a transfer to be performed */
-	public async enqueue<T>(transfer: DataTransfer<T>): Promise<T> {
+	/**
+	 * Queue a transfer to be performed
+	 * @param signal Abort the transfer, whether it is still queued or already running
+	 */
+	public async enqueue<T>(transfer: DataTransfer<T>, signal?: AbortSignal): Promise<T> {
+		if (signal) {
+			if (signal.aborted) {
+				transfer.abort(abortReasonToError(signal.reason))
+				return transfer.promise
+			}
+
+			const onAbort = () => this.#abortTransfer(transfer, abortReasonToError(signal.reason))
+			signal.addEventListener('abort', onAbort, { once: true })
+			const cleanup = () => signal.removeEventListener('abort', onAbort)
+			transfer.promise.then(cleanup, cleanup)
+		}
+
 		this.taskQueue.push(transfer)
 
 		this.dequeueAndRun()
 
 		return transfer.promise
+	}
+
+	/** Abort a specific transfer, whether it is still queued or is the active transfer */
+	#abortTransfer(job: DataTransfer<any>, reason: Error): void {
+		const index = this.taskQueue.indexOf(job)
+		if (index !== -1) {
+			this.taskQueue.splice(index, 1)
+			job.abort(reason)
+			return
+		}
+
+		const active = this.activeTransfer
+		if (active?.job !== job) return
+
+		// Run in the command queue, so that it doesn't happen part way through handling a command for this transfer.
+		// There is no way to tell the atem to abort a transfer, so this stops sending to it and releases the lock, the
+		// same as when a transfer times out
+		this.#handleCommandQueue
+			.add(async () => this.#failTransfer(active, reason), { priority: queueHighPriority })
+			.catch((e) => {
+				this.onError(`abortTransfer failed: ${e}`)
+			})
 	}
 
 	private dequeueAndRun(): void {
@@ -358,6 +400,12 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 	/** We have obtained the lock! */
 	public lockObtained(): void {
 		this.#ownsLock = true
+
+		if (!this.activeTransfer) {
+			// The transfer which wanted the lock was aborted while waiting for it, so give it back
+			this.transferCompleted()
+			return
+		}
 
 		// Get the transfer started
 		this.tryStartTransfer()

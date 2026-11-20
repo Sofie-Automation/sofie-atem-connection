@@ -18,5 +18,5 @@ export * from './lib/atemCommands.js'
 export * from './lib/batchCommands.js'
 
 export { VideoState, AudioState, MediaState, InfoState, InputState, MacroState, SettingsState }
-export type { UploadStillEncodingOptions } from './dataTransfer/index.js'
+export type { DataTransferOptions, DownloadImageOptions, UploadStillEncodingOptions } from './dataTransfer/index.js'
 export type { UploadBufferInfo } from './dataTransfer/dataTransferUploadBuffer.js'

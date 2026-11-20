@@ -142,6 +142,85 @@ describe('DataTransferQueue', () => {
 		await expect(next).resolves.toBeUndefined()
 	})
 
+	describe('abort signal', () => {
+		test('an already aborted signal rejects without starting the transfer', async () => {
+			const { queue, errors } = createQueue()
+			const transfer = new FakeTransfer()
+			const startSpy = vi.spyOn(transfer, 'startTransfer')
+
+			const promise = queue.enqueue(transfer, AbortSignal.abort())
+			await expect(promise).rejects.toThrow('This operation was aborted')
+
+			await vi.advanceTimersByTimeAsync(0)
+			expect(startSpy).not.toHaveBeenCalled()
+			expect(queue.currentTransferId).toBeNull()
+			expect(errors).toEqual([])
+		})
+
+		test('aborting a queued transfer removes it, without affecting the active one', async () => {
+			const { queue, errors } = createQueue()
+			const first = queue.enqueue(new FakeTransfer())
+
+			const controller = new AbortController()
+			const queued = new FakeTransfer()
+			const startSpy = vi.spyOn(queued, 'startTransfer')
+			const queuedPromise = queue.enqueue(queued, controller.signal)
+			queuedPromise.catch(() => null)
+			await vi.advanceTimersByTimeAsync(0)
+
+			controller.abort(new Error('No longer wanted'))
+			await expect(queuedPromise).rejects.toThrow('No longer wanted')
+
+			queue.handleCommand(new DataTransferCompleteCommand({ transferId: 0 }))
+			await vi.advanceTimersByTimeAsync(0)
+			queue.popQueuedCommands(10) // Let the queue see the transfer has finished
+			await expect(first).resolves.toBeUndefined()
+
+			// The aborted transfer is never started
+			await vi.advanceTimersByTimeAsync(0)
+			expect(startSpy).not.toHaveBeenCalled()
+			expect(queue.currentTransferId).toBeNull()
+			expect(errors).toEqual([])
+		})
+
+		test('aborting the active transfer rejects it, and the queue moves on', async () => {
+			const { queue, errors } = createQueue()
+			const controller = new AbortController()
+			const active = queue.enqueue(new FakeTransfer(), controller.signal)
+			active.catch(() => null)
+			const next = queue.enqueue(new FakeTransfer())
+			await vi.advanceTimersByTimeAsync(0)
+			expect(queue.currentTransferId).toEqual(0)
+
+			controller.abort(new Error('No longer wanted'))
+			await vi.advanceTimersByTimeAsync(0)
+			await expect(active).rejects.toThrow('No longer wanted')
+			expect(queue.currentTransferId).toEqual(1)
+
+			// A late command for the aborted transfer is ignored
+			queue.handleCommand(new DataTransferCompleteCommand({ transferId: 0 }))
+			queue.handleCommand(new DataTransferCompleteCommand({ transferId: 1 }))
+			await vi.advanceTimersByTimeAsync(0)
+			await expect(next).resolves.toBeUndefined()
+			expect(errors).toEqual([])
+		})
+
+		test('aborting a completed transfer does nothing', async () => {
+			const { queue, errors } = createQueue()
+			const controller = new AbortController()
+			const promise = queue.enqueue(new FakeTransfer(), controller.signal)
+			await vi.advanceTimersByTimeAsync(0)
+
+			queue.handleCommand(new DataTransferCompleteCommand({ transferId: 0 }))
+			await vi.advanceTimersByTimeAsync(0)
+			await expect(promise).resolves.toBeUndefined()
+
+			controller.abort()
+			await vi.advanceTimersByTimeAsync(0)
+			expect(errors).toEqual([])
+		})
+	})
+
 	describe('locking', () => {
 		function createLockingQueue() {
 			const lockCommands: boolean[] = []
@@ -209,6 +288,39 @@ describe('DataTransferQueue', () => {
 			await expect(promise).rejects.toThrow('Lost lock mid-transfer')
 			// It is already unlocked, so there is nothing to release
 			expect(lockCommands).toEqual([true])
+		})
+
+		test('a lock obtained after its transfer was aborted is given back', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+			const controller = new AbortController()
+			const promise = queue.enqueue(new FakeTransfer(), controller.signal)
+			promise.catch(() => null)
+			await vi.advanceTimersByTimeAsync(0)
+			expect(lockCommands).toEqual([true])
+
+			// Aborted while still waiting for the lock
+			controller.abort(new Error('No longer wanted'))
+			await vi.advanceTimersByTimeAsync(0)
+			await expect(promise).rejects.toThrow('No longer wanted')
+
+			queue.lockObtained()
+			await vi.advanceTimersByTimeAsync(0)
+			expect(lockCommands).toEqual([true, false])
+		})
+
+		test('aborting a running transfer releases the lock', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+			const controller = new AbortController()
+			const promise = queue.enqueue(new FakeTransfer(), controller.signal)
+			promise.catch(() => null)
+			await vi.advanceTimersByTimeAsync(0)
+			queue.lockObtained()
+			await vi.advanceTimersByTimeAsync(0)
+
+			controller.abort(new Error('No longer wanted'))
+			await vi.advanceTimersByTimeAsync(0)
+			await expect(promise).rejects.toThrow('No longer wanted')
+			expect(lockCommands).toEqual([true, false])
 		})
 	})
 })
