@@ -120,7 +120,9 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public autoDownstreamKey(key = 0, isTowardsOnAir?: boolean): T {
 			const command = new Commands.DownstreamKeyAutoCommand(key)
-			return updateAndSend(this, command, { isTowardsOnAir })
+			// Always sent, as no direction is a valid command
+			command.updateProps({ isTowardsOnAir })
+			return this.sendCommand(command)
 		}
 
 		public setDipTransitionSettings(newProps: Partial<DipTransitionSettings>, me = 0): T {

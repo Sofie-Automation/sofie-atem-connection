@@ -34,6 +34,11 @@ describe('AtemCommandCollector', () => {
 		expect(commands).toEqual([])
 	})
 
+	test('autoDownstreamKey is sent without a direction', () => {
+		const commands = collect(ProtocolVersion.V8_0, (c) => c.autoDownstreamKey(1))
+		expect(commands).toEqual([new Commands.DownstreamKeyAutoCommand(1)])
+	})
+
 	test('only boxes with changes get a command', () => {
 		const commands = collect(ProtocolVersion.V8_1_1, (c) => c.setSuperSourceBoxBorder({ borderEnabled: true }))
 		expect(commands).toHaveLength(4)
