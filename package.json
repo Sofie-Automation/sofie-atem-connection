@@ -69,7 +69,6 @@
     "pinst": "^3.0.0",
     "prettier": "^3.10.1",
     "rimraf": "^6.1.4",
-    "ts-node": "^10.9.2",
     "typedoc": "^0.28.20",
     "typescript": "~6.0.3",
     "vite": "^8.3.8",
