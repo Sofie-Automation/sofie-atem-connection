@@ -273,7 +273,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			return this.sendCommand(command)
 		}
 		public setMultiViewerWindowSafeAreaEnabled(safeAreaEnabled: boolean, mv = 0, window = 0): T {
-			if (this.apiVersion && this.apiVersion < Enums.ProtocolVersion.V8_0) {
+			if (this.apiVersion && this.apiVersion < Commands.MultiViewerWindowSafeAreaCommand.minimumVersion) {
 				throw new Error(
 					'Per window safe area is not supported before 8.0, use setMultiViewerProperties({ safeAreaEnabled }) instead'
 				)
@@ -292,7 +292,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			return this.sendCommand(command)
 		}
 		public setMultiViewerProperties(props: Partial<MultiViewerPropertiesState>, mv = 0): T {
-			if (this.apiVersion && this.apiVersion >= Enums.ProtocolVersion.V8_0) {
+			if (this.apiVersion && this.apiVersion >= Commands.MultiViewerPropertiesCommand.minimumVersion) {
 				if (props.safeAreaEnabled !== undefined) {
 					throw new Error(
 						'safeAreaEnabled is only supported before 8.0, use setMultiViewerWindowSafeAreaEnabled instead'
@@ -368,7 +368,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 		}
 
 		public setSuperSourceProperties(newProps: Partial<SuperSource.SuperSourceProperties>, ssrcId = 0): T {
-			if (this.apiVersion && this.apiVersion >= Enums.ProtocolVersion.V8_0) {
+			if (this.apiVersion && this.apiVersion >= Commands.SuperSourcePropertiesV8Command.minimumVersion) {
 				const command = new Commands.SuperSourcePropertiesV8Command(ssrcId)
 				return updateAndSend(this, command, newProps)
 			} else {
@@ -378,7 +378,7 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 		}
 
 		public setSuperSourceBorder(newProps: Partial<SuperSource.SuperSourceBorder>, ssrcId = 0): T {
-			if (this.apiVersion && this.apiVersion >= Enums.ProtocolVersion.V8_0) {
+			if (this.apiVersion && this.apiVersion >= Commands.SuperSourceBorderCommand.minimumVersion) {
 				const command = new Commands.SuperSourceBorderCommand(ssrcId)
 				return updateAndSend(this, command, newProps)
 			} else {
