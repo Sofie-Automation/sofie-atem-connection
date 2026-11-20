@@ -156,8 +156,9 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 				async (message: string): Promise<void> => {
 					this.emit('info', message)
 				}, // onLog
-				async (payload: Buffer): Promise<void> => {
-					this._parseCommands(Buffer.from(payload))
+				async (payload: Uint8Array): Promise<void> => {
+					// Arrives as a Uint8Array from the worker thread. It is already a copy, so wrap it rather than copying again
+					this._parseCommands(Buffer.from(payload.buffer, payload.byteOffset, payload.byteLength))
 				}, // onCommandsReceived
 				async (ids: Array<{ packetId: number; trackingId: number }>): Promise<void> => {
 					this.emit(

@@ -485,6 +485,34 @@ describe('AtemSocket', () => {
 		expect(error).toHaveBeenCalledTimes(0)
 		expect(change).toHaveBeenCalledTimes(0)
 	})
+	test('receive - payload as a Uint8Array, as it arrives from the worker thread', async () => {
+		const socket = createSocket()
+		await socket.connect()
+		mockClear(true)
+
+		const change = jest.fn()
+		socket.on('receivedCommands', change)
+
+		const command = Buffer.from([
+			0,
+			12,
+			0,
+			0,
+			...Buffer.from(ProgramInputUpdateCommand.rawName, 'ascii'),
+			0,
+			0,
+			1,
+			0x23,
+		])
+		// Offset into a larger buffer, to check the view is taken correctly
+		const backing = new Uint8Array(command.length + 4)
+		backing.set(command, 4)
+		await AtemSocketChildSingleton.onCommandsReceived(backing.subarray(4) as any, 822)
+		await clock.tickAsync(0)
+
+		expect(change).toHaveBeenCalledWith([new ProgramInputUpdateCommand(0, { source: 0x0123 })])
+	})
+
 	test('receive - corrupt', async () => {
 		const socket = createSocket()
 		expect(getChild(socket)).toBeFalsy()
