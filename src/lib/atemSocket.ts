@@ -183,8 +183,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 			return
 		}
 
-		const workerUrl: string | URL =
-			this._workerFilePath ?? new URL('./atemSocketChildWorker.js', import.meta.dirname)
+		const workerUrl: string | URL = this._workerFilePath ?? new URL('./atemSocketChildWorker.js', import.meta.url)
 
 		let firstSpawn = true
 
