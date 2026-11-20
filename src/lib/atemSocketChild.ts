@@ -52,8 +52,8 @@ interface InFlightPacket {
 }
 
 export interface OutboundPacketInfo {
-	payloadLength: number
-	payloadHex: string
+	/** A Buffer, which arrives as a Uint8Array when crossing to the worker thread */
+	payload: Uint8Array
 	trackingId: number
 }
 
@@ -261,11 +261,12 @@ export class AtemSocketChild {
 		if (this._connectionState !== ConnectionState.Established) throw new Error('Not connected')
 
 		for (const packet of packets) {
-			this.sendPacket(packet.payloadLength, packet.payloadHex, packet.trackingId)
+			this.sendPacket(packet.payload, packet.trackingId)
 		}
 	}
 
-	private sendPacket(payloadLength: number, payloadHex: string, trackingId: number): void {
+	private sendPacket(payload: Uint8Array, trackingId: number): void {
+		const payloadLength = payload.length
 		const packetId = this._nextSendPacketId++
 		if (this._nextSendPacketId >= MAX_PACKET_ID) this._nextSendPacketId = 0
 
@@ -276,7 +277,7 @@ export class AtemSocketChild {
 		buffer.writeUInt16BE(this._sessionId, 2)
 		buffer.writeUInt16BE(packetId, 10)
 
-		buffer.write(payloadHex, 12, payloadLength, 'hex')
+		buffer.set(payload, 12)
 		this._sendPacket(buffer)
 
 		this._inFlight.push({

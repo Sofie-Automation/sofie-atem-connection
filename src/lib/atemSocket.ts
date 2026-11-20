@@ -121,11 +121,16 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		}
 
 		const packets: OutboundPacketInfo[] = packetBuilder.getPackets().map((buffer) => ({
-			payloadLength: buffer.length,
-			payloadHex: buffer.toString('hex'),
+			payload: buffer,
 			trackingId: this.nextPacketTrackingId,
 		}))
-		if (this._debugBuffers) this.emit('debug', `PAYLOAD PACKETS ${JSON.stringify(packets)}`)
+		if (this._debugBuffers) {
+			const described = packets.map((packet) => ({
+				...packet,
+				payload: Buffer.from(packet.payload).toString('hex'),
+			}))
+			this.emit('debug', `PAYLOAD PACKETS ${JSON.stringify(described)}`)
+		}
 
 		if (packets.length > 0) {
 			await this._socketProcess.sendPackets(packets)

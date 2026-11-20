@@ -406,8 +406,7 @@ describe('SocketChild', () => {
 
 			child.sendPackets([
 				{
-					payloadLength: buf1Expected.length,
-					payloadHex: buf1Expected.toString('hex'),
+					payload: buf1Expected,
 					trackingId: 1,
 				},
 			])
@@ -423,8 +422,7 @@ describe('SocketChild', () => {
 			// Send another
 			child.sendPackets([
 				{
-					payloadLength: buf1Expected.length,
-					payloadHex: buf1Expected.toString('hex'),
+					payload: buf1Expected,
 					trackingId: 1,
 				},
 			])
@@ -471,9 +469,7 @@ describe('SocketChild', () => {
 			expect(getState(child)).toEqual(ConnectionState.SynSent)
 
 			// Anything sent now would be dropped by the next reconnect attempt, never to be acked
-			expect(() => child.sendPackets([{ payloadLength: 1, payloadHex: '00', trackingId: 1 }])).toThrow(
-				'Not connected'
-			)
+			expect(() => child.sendPackets([{ payload: Buffer.alloc(1), trackingId: 1 }])).toThrow('Not connected')
 			expect(getInflightIds(child)).toEqual([])
 		} finally {
 			await child.disconnect()
@@ -503,14 +499,14 @@ describe('SocketChild', () => {
 			// Send some stuff
 			const buf1 = Buffer.from([0, 1, 2])
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 5 },
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 6 },
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 7 },
+				{ payload: buf1, trackingId: 5 },
+				{ payload: buf1, trackingId: 6 },
+				{ payload: buf1, trackingId: 7 },
 			])
-			child.sendPackets([{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 8 }])
+			child.sendPackets([{ payload: buf1, trackingId: 8 }])
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 9 },
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 10 },
+				{ payload: buf1, trackingId: 9 },
+				{ payload: buf1, trackingId: 10 },
 			])
 			expect(received).toEqual([123, 124, 125, 126, 127, 128])
 			received = []
@@ -562,16 +558,16 @@ describe('SocketChild', () => {
 			// Send some stuff
 			const buf1 = Buffer.from([0, 1, 2])
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 5 }, // 32764
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 6 }, // 32765
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 7 }, // 32766
+				{ payload: buf1, trackingId: 5 }, // 32764
+				{ payload: buf1, trackingId: 6 }, // 32765
+				{ payload: buf1, trackingId: 7 }, // 32766
 			])
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 8 }, // 32767
+				{ payload: buf1, trackingId: 8 }, // 32767
 			])
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 9 }, // 0
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 10 }, // 1
+				{ payload: buf1, trackingId: 9 }, // 0
+				{ payload: buf1, trackingId: 10 }, // 1
 			])
 			expect(received).toEqual([32764, 32765, 32766, 32767, 0, 1])
 			received = []
@@ -626,12 +622,12 @@ describe('SocketChild', () => {
 			// Send some stuff
 			const buf1 = Buffer.from([0, 1, 2])
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 5 }, // 32764
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 6 }, // 32765
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 7 }, // 32766
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 8 }, // 32767
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 9 }, // 0
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 10 }, // 1
+				{ payload: buf1, trackingId: 5 }, // 32764
+				{ payload: buf1, trackingId: 6 }, // 32765
+				{ payload: buf1, trackingId: 7 }, // 32766
+				{ payload: buf1, trackingId: 8 }, // 32767
+				{ payload: buf1, trackingId: 9 }, // 0
+				{ payload: buf1, trackingId: 10 }, // 1
 			])
 			expect(received).toEqual([32764, 32765, 32766, 32767, 0, 1])
 			received = []
@@ -661,7 +657,7 @@ describe('SocketChild', () => {
 
 			// Add another to the queue
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 11 }, // 2
+				{ payload: buf1, trackingId: 11 }, // 2
 			])
 			expect(received).toEqual([2])
 			received = []
@@ -723,12 +719,12 @@ describe('SocketChild', () => {
 			// Send some stuff
 			const buf1 = Buffer.from([0, 1, 2])
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 5 }, // 32764
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 6 }, // 32765
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 7 }, // 32766
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 8 }, // 32767
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 9 }, // 0
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 10 }, // 1
+				{ payload: buf1, trackingId: 5 }, // 32764
+				{ payload: buf1, trackingId: 6 }, // 32765
+				{ payload: buf1, trackingId: 7 }, // 32766
+				{ payload: buf1, trackingId: 8 }, // 32767
+				{ payload: buf1, trackingId: 9 }, // 0
+				{ payload: buf1, trackingId: 10 }, // 1
 			])
 			expect(received).toEqual([32764, 32765, 32766, 32767, 0, 1])
 			received = []
@@ -784,8 +780,8 @@ describe('SocketChild', () => {
 			// Send some stuff
 			const buf1 = Buffer.from([0, 1, 2])
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 5 }, // 32767
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 6 }, // 0
+				{ payload: buf1, trackingId: 5 }, // 32767
+				{ payload: buf1, trackingId: 6 }, // 0
 			])
 			expect(getInflightIds(child)).toEqual([32767, 0])
 			expect(acked).toEqual([])
@@ -824,8 +820,8 @@ describe('SocketChild', () => {
 			// Send some stuff
 			const buf1 = Buffer.from([0, 1, 2])
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 5 }, // 32767
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 6 }, // 0
+				{ payload: buf1, trackingId: 5 }, // 32767
+				{ payload: buf1, trackingId: 6 }, // 0
 			])
 			expect(getInflightIds(child)).toEqual([32767, 0])
 			expect(acked).toEqual([])
@@ -866,8 +862,8 @@ describe('SocketChild', () => {
 			// Send some stuff
 			const buf1 = Buffer.from([0, 1, 2])
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 5 }, // 32767
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 6 }, // 0
+				{ payload: buf1, trackingId: 5 }, // 32767
+				{ payload: buf1, trackingId: 6 }, // 0
 			])
 			expect(getInflightIds(child)).toEqual([32767, 0])
 			expect(acked).toEqual([])
@@ -898,7 +894,7 @@ describe('SocketChild', () => {
 			await clock.tickAsync(1990)
 			expect(connected).toBeTrue()
 			child.sendPackets([
-				{ payloadLength: buf1.length, payloadHex: buf1.toString('hex'), trackingId: 7 }, // 1
+				{ payload: buf1, trackingId: 7 }, // 1
 			])
 			expect(getInflightIds(child)).toEqual([1])
 			expect(acked).toEqual([])
@@ -1304,8 +1300,8 @@ describe('SocketChild', () => {
 				const socket = getSocket(child)
 				socket.sendImpl = () => null
 				child.sendPackets([
-					{ payloadLength: 1, payloadHex: '00', trackingId: 1 },
-					{ payloadLength: 1, payloadHex: '00', trackingId: 2 },
+					{ payload: Buffer.alloc(1), trackingId: 1 },
+					{ payload: Buffer.alloc(1), trackingId: 2 },
 				])
 
 				// Asks for a packet which isn't in flight (which forces a restart), and acks packet 1

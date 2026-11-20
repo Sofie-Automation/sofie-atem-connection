@@ -302,15 +302,10 @@ describe('AtemSocket', () => {
 		expect(AtemSocketChildSingleton.disconnect).toHaveBeenCalledTimes(0)
 		expect(AtemSocketChildSingleton.sendPackets).toHaveBeenCalledTimes(1)
 
-		const expectedBuffer =
-			Buffer.from([0, 20]).toString('hex') +
-			'0000' +
-			Buffer.from('TEST').toString('hex') +
-			cmd.serialize().toString('hex')
+		const expectedBuffer = Buffer.concat([Buffer.from([0, 20, 0, 0]), Buffer.from('TEST'), cmd.serialize()])
 		expect(AtemSocketChildSingleton.sendPackets).toHaveBeenCalledWith([
 			{
-				payloadLength: 20,
-				payloadHex: expectedBuffer,
+				payload: expectedBuffer,
 				trackingId: 836,
 			},
 		])
