@@ -2,6 +2,56 @@
 
 All notable changes to this project will be documented in this file. See [Convential Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) for commit guidelines.
 
+## [3.11.0](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.10.3...v3.11.0) (Fri Nov 20 2026)
+
+
+### Features
+
+* back off exponentially between connection attempts, up to a configurable maxReconnectDelay [8e150b51](https://github.com/Sofie-Automation/sofie-atem-connection/commit/8e150b51fea2c480b6f273b83f6fa59f0bd0eedf)
+* add setFairlightAudioMixerProps, to set the fairlight audio follow video crossfade [d3c74670](https://github.com/Sofie-Automation/sofie-atem-connection/commit/d3c74670d9723c719571100faffedb53f5bd9cfa)
+* add AtemCommandCollector, to build commands for a protocol version without a connection [5c28ac82](https://github.com/Sofie-Automation/sofie-atem-connection/commit/5c28ac8224dbb12c698ddb31701b914efb57dd5a)
+* add `disableExitHandlers` option to skip registering exit-hook handlers #209 [41a9c527](https://github.com/Sofie-Automation/sofie-atem-connection/commit/41a9c52748475eee490977f570c5ca176acc1580)
+
+### Fixes
+
+* races between disconnect, connect and reconnecting [c4c55754](https://github.com/Sofie-Automation/sofie-atem-connection/commit/c4c5575465b468483eb3fdd58663d73ca67277d0)
+* autoDownstreamKey sending nothing when called without a direction [56286e46](https://github.com/Sofie-Automation/sofie-atem-connection/commit/56286e46c8273c7a9839e4809b66bc91791b24d4)
+* setFairlightAudioMixerInputProps unable to set the input level on 8.1.1 and later [e8d4a4c6](https://github.com/Sofie-Automation/sofie-atem-connection/commit/e8d4a4c61b10ac430ecb2117caa858bb82270fe7)
+* don't send commands that change nothing [8241e809](https://github.com/Sofie-Automation/sofie-atem-connection/commit/8241e8092c9a6d2a9452397ebcca23a6b61c77c2)
+* commands importing from the package index, creating a circular import [adf5d46d](https://github.com/Sofie-Automation/sofie-atem-connection/commit/adf5d46d5566795fd934ebcfd8c84f2c4b614f56)
+* multiviewer properties using the 8.0 command layout before 8.0 [d1bb7c15](https://github.com/Sofie-Automation/sofie-atem-connection/commit/d1bb7c1577cf1b51cb11596acb39060c19de0a11)
+* treating another client's media pool lock as our own [0c5d666d](https://github.com/Sofie-Automation/sofie-atem-connection/commit/0c5d666dc4d88bccaa2be1e35ce4fc0f3bc2baaa)
+* inconsistent clip index limits [7d077c9e](https://github.com/Sofie-Automation/sofie-atem-connection/commit/7d077c9e9a92b55d7224ff0d22b3b25f9bc9e467)
+* sendCommand resolving when the connection is lost before the atem acknowledges it [53e5dda7](https://github.com/Sofie-Automation/sofie-atem-connection/commit/53e5dda75c4d703d9d7b28f61921ac63c2a81c13)
+* validate the aux bus against the device capabilities, like the other per-entity updates [f67177cd](https://github.com/Sofie-Automation/sofie-atem-connection/commit/f67177cd92c5adfc0961dbdf33672ada2c6f559d)
+* streaming audio bitrates of 0 being replaced with the defaults [98cd260c](https://github.com/Sofie-Automation/sofie-atem-connection/commit/98cd260c298d0f30198987f9d87c1cb0a2683b1e)
+* clip names being truncated to 44 bytes instead of the 64 byte field [6c1d394d](https://github.com/Sofie-Automation/sofie-atem-connection/commit/6c1d394d058e3b51a069b82c9d326638651e7d15)
+* fairlight source equalizer band update leaving an empty source in the state when it is rejected [469eedbc](https://github.com/Sofie-Automation/sofie-atem-connection/commit/469eedbca91a318c1474aebe9a9d8c27a34012fa)
+* incorrect change paths for recording disk, fairlight source and topology updates [e10f65c6](https://github.com/Sofie-Automation/sofie-atem-connection/commit/e10f65c61e169c01cdc1ba124b23debc89fc4019)
+* 8K video mode height being 4260 instead of 4320 [a1c2e5fe](https://github.com/Sofie-Automation/sofie-atem-connection/commit/a1c2e5fe45ed3146f1ee01891e29c5ed2a5b3bdb)
+* audio upload crashing for wav files with an odd number of frames [71383c06](https://github.com/Sofie-Automation/sofie-atem-connection/commit/71383c066d17da23435d2f715bc3b09f30fe0673)
+* pre-converted still and clip frames never being RLE encoded [dc207235](https://github.com/Sofie-Automation/sofie-atem-connection/commit/dc2072358d5bded86aad3a9d4a7aea08639d7033)
+* only emit 'disconnected' when a connection is actually lost [411337ca](https://github.com/Sofie-Automation/sofie-atem-connection/commit/411337cad7388bbba53a250f8924c8272b216209)
+* a failed frame crashing the process during a clip upload [d50bb11a](https://github.com/Sofie-Automation/sofie-atem-connection/commit/d50bb11ae33a414986b9c6783e97df47507541d5)
+* resolve hostnames before each connection attempt [0ec663f6](https://github.com/Sofie-Automation/sofie-atem-connection/commit/0ec663f632991dd7a22acb877cae6ee3c047e68a)
+* abort data transfers after 30s without hearing from the atem [0db18c9e](https://github.com/Sofie-Automation/sofie-atem-connection/commit/0db18c9eaea4bf9b9560ebabbc8bbbd58976b8fa)
+* stop parsing a packet when a command claims to be longer than the remaining data [87108d4d](https://github.com/Sofie-Automation/sofie-atem-connection/commit/87108d4d859818995e8a1eb86b8961c5e93c59a6)
+* stop a throwing event listener from aborting state updates [42580cf4](https://github.com/Sofie-Automation/sofie-atem-connection/commit/42580cf4397cb8ee421ba8ee7cc081d9adb675a2)
+* abort uploads when the atem requests a chunk size too small to make progress [808a2ab0](https://github.com/Sofie-Automation/sofie-atem-connection/commit/808a2ab01bbe95c890319b4e035cf94558fc9fcc)
+* only stringify data transfer commands when debug logging is enabled, and log buffers as hex [443f79cd](https://github.com/Sofie-Automation/sofie-atem-connection/commit/443f79cd81b37eeb08671e419167ffa1c9e8bebb)
+* reject sending commands before the connection is established [064b7134](https://github.com/Sofie-Automation/sofie-atem-connection/commit/064b71348cfca88b3739bd801552b8599f16d8cb)
+* ignore inbound packets that are too short or not from the atem [c21fe794](https://github.com/Sofie-Automation/sofie-atem-connection/commit/c21fe794fe0ad9300b6c36b4a0d85693abe23b1e)
+* setFairlightAudioMixerInputProps using v8.1.1 command layout on v8.0 #207 [48dd889e](https://github.com/Sofie-Automation/sofie-atem-connection/commit/48dd889e482bb926d50bce4c9d2e9e1f87b0992d)
+* 4 M/E Constellation 4K Plus has two power supplies #210 [df1ab62a](https://github.com/Sofie-Automation/sofie-atem-connection/commit/df1ab62adfb6c2bc1958fe5136a686ba15e1cfcb)
+* decode any non-zero camera control BOOL byte as true #210 [aa170399](https://github.com/Sofie-Automation/sofie-atem-connection/commit/aa170399bdd836d8d1de3d8efae5ae5b7da69e77)
+* throw when a command is too large to fit in a packet #210 [8224c254](https://github.com/Sofie-Automation/sofie-atem-connection/commit/8224c254cd4538ec3d7596ad6bcab0133e7e7e5b)
+* use utf8 byte lengths for macro and camera control strings, and bound input names #208 [638f4fd6](https://github.com/Sofie-Automation/sofie-atem-connection/commit/638f4fd6e7505be52bea426ab14f28526d835ee1)
+* narrow writable command property types to match their MaskFlags [75958e7a](https://github.com/Sofie-Automation/sofie-atem-connection/commit/75958e7a2a601869a6ac34798da0d0912dee7370)
+* throw in updateProps when a command is missing MaskFlags [33298f9d](https://github.com/Sofie-Automation/sofie-atem-connection/commit/33298f9d93b56d5d214f2dd6f7c017ff25dcdcaa)
+* fairlight dynamics reset commands not sending any flags #206 [6d652bf9](https://github.com/Sofie-Automation/sofie-atem-connection/commit/6d652bf9f4fd6a05ef33bcb8fb37c4fa132eef61)
+* apply frame descriptions for all media pool clips #205 [f7d7696f](https://github.com/Sofie-Automation/sofie-atem-connection/commit/f7d7696ff2ca81af1f2135dcaf1426693d75670e)
+* clamp and round alpha when converting still images #204 [27ad74ba](https://github.com/Sofie-Automation/sofie-atem-connection/commit/27ad74ba7b1451f38eeb8873012854aa909f5b14)
+
 ## [3.10.3](https://github.com/Sofie-Automation/sofie-atem-connection/compare/v3.10.2...v3.10.3) (Thu Oct 01 2026)
 
 
