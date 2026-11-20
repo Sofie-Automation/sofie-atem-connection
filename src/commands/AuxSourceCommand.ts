@@ -1,5 +1,5 @@
 import { BasicWritableCommand, DeserializedCommand } from './CommandBase'
-import { AtemState } from '../state'
+import { AtemState, InvalidIdError } from '../state'
 
 export interface AuxSourceProps {
 	source: number
@@ -46,6 +46,10 @@ export class AuxSourceUpdateCommand extends DeserializedCommand<AuxSourceProps> 
 	}
 
 	public applyToState(state: AtemState): string {
+		if (!state.info.capabilities || this.auxBus >= state.info.capabilities.auxilliaries) {
+			throw new InvalidIdError('Auxiliary', this.auxBus)
+		}
+
 		state.video.auxilliaries[this.auxBus] = this.properties.source
 		return `video.auxilliaries.${this.auxBus}`
 	}

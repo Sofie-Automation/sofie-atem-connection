@@ -11,7 +11,7 @@ export function createEmptyState(cmd?: IDeserializedCommand): AtemState {
 	state.info.capabilities = {
 		mixEffects: 4,
 		sources: 40,
-		auxilliaries: 6,
+		auxilliaries: 256, // The libatem fixtures use any 8bit aux bus
 		mixMinusOutputs: 8,
 		mediaPlayers: 4,
 		serialPorts: 1,
