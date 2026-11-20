@@ -39,6 +39,17 @@ describe('AtemCommandCollector', () => {
 		expect(commands).toHaveLength(4)
 	})
 
+	test('setFairlightAudioMixerProps sets audio follow video', () => {
+		const commands = collect(ProtocolVersion.V8_1_1, (c) =>
+			c.setFairlightAudioMixerProps({ audioFollowVideo: true })
+		)
+		expect(commands).toHaveLength(1)
+		expect(commands[0]).toBeInstanceOf(Commands.FairlightMixerMasterPropertiesCommand)
+		expect((commands[0] as Commands.FairlightMixerMasterPropertiesCommand).properties).toEqual({
+			audioFollowVideo: true,
+		})
+	})
+
 	describe('version specific commands', () => {
 		test.each([
 			[ProtocolVersion.V7_5_2, Commands.SuperSourcePropertiesCommand],

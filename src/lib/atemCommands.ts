@@ -555,6 +555,11 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			return this.sendCommand(command)
 		}
 
+		public setFairlightAudioMixerProps(props: { audioFollowVideo: boolean }): T {
+			const command = new Commands.FairlightMixerMasterPropertiesCommand()
+			return updateAndSend(this, command, props)
+		}
+
 		public setFairlightAudioMixerMasterProps(props: Partial<Commands.FairlightMixerMasterCommandProperties>): T {
 			const command = new Commands.FairlightMixerMasterCommand()
 			return updateAndSend(this, command, props)
