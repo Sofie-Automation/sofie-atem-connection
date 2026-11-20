@@ -206,5 +206,86 @@ describe('DataTransferQueue', () => {
 			// It is already unlocked, so there is nothing to release
 			expect(lockCommands).toEqual([true])
 		})
+
+		test('aborting while waiting for the lock cancels the request', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			const promise = queue.enqueue(new FakeTransfer())
+			promise.catch(() => null)
+			await clock.tickAsync(0)
+			expect(lockCommands).toEqual([true])
+
+			queue.tryAbortTransfer(new Error('Gave up'))
+			await clock.tickAsync(0)
+			await expect(promise).rejects.toThrow('Gave up')
+
+			// The atem queues lock requests, so it must be told we no longer want it
+			expect(lockCommands).toEqual([true, false])
+		})
+
+		test('clearing the queue while waiting for the lock cancels the request', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			const promise = queue.enqueue(new FakeTransfer())
+			promise.catch(() => null)
+			await clock.tickAsync(0)
+
+			queue.clearQueueAndAbort(new Error('Stopping connection'))
+			await expect(promise).rejects.toThrow('Stopping connection')
+			expect(lockCommands).toEqual([true, false])
+		})
+
+		test('a lock we did not request is left alone', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			// Taken manually through the same connection
+			queue.lockObtained()
+			await clock.tickAsync(0)
+			expect(lockCommands).toEqual([])
+
+			// It isn't mistaken as ours by the next transfer, which requests it and then releases only its own lock
+			const transfer = new FakeTransfer()
+			const startSpy = jest.spyOn(transfer, 'startTransfer')
+			const promise = queue.enqueue(transfer)
+			await clock.tickAsync(0)
+			expect(lockCommands).toEqual([true])
+			expect(startSpy).not.toHaveBeenCalled()
+
+			queue.lockObtained()
+			await clock.tickAsync(0)
+			queue.handleCommand(new DataTransferCompleteCommand({ transferId: 0 }))
+			await clock.tickAsync(0)
+			queue.popQueuedCommands(10)
+			await expect(promise).resolves.toBeUndefined()
+			expect(lockCommands).toEqual([true, false])
+		})
+
+		test('a transfer aborted while waiting hands the request on to the next one', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			const first = queue.enqueue(new FakeTransfer())
+			first.catch(() => null)
+			const second = new FakeTransfer()
+			const startSpy = jest.spyOn(second, 'startTransfer')
+			const secondPromise = queue.enqueue(second)
+			await clock.tickAsync(0)
+
+			queue.tryAbortTransfer(new Error('Gave up'))
+			await clock.tickAsync(0)
+			await expect(first).rejects.toThrow('Gave up')
+
+			// The original request is still queued with the atem, so isn't repeated or cancelled
+			expect(lockCommands).toEqual([true])
+
+			queue.lockObtained()
+			await clock.tickAsync(0)
+			expect(startSpy).toHaveBeenCalledTimes(1)
+
+			queue.handleCommand(new DataTransferCompleteCommand({ transferId: 1 }))
+			await clock.tickAsync(0)
+			queue.popQueuedCommands(10)
+			await expect(secondPromise).resolves.toBeUndefined()
+			expect(lockCommands).toEqual([true, false])
+		})
 	})
 })
