@@ -1,11 +1,13 @@
-import { Commands } from '../index'
-import { listVisibleInputs } from '../lib/tally'
-
 import { readFileSync } from 'fs'
 import { resolve } from 'path'
-import { AtemStateUtil, AtemState } from '../state'
-import { createEmptyState } from './util'
-import { getComponents } from '../lib/atemUtil'
+
+import { describe, expect, test } from 'vitest'
+
+import { Commands } from '../index.js'
+import { getComponents } from '../lib/atemUtil.js'
+import { listVisibleInputs } from '../lib/tally.js'
+import { AtemState, AtemStateUtil } from '../state/index.js'
+import { createEmptyState } from './util.js'
 
 function readJson(fileName: string): any {
 	const filePath = resolve(__dirname, fileName)

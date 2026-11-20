@@ -1,9 +1,11 @@
-/* eslint-disable @typescript-eslint/unbound-method */
-import { Atem, Enums } from '../index'
-import { createEmptyState } from './util'
+import { expect, test, vi } from 'vitest'
+
+import { Atem, Enums } from '../index.js'
+import { createInProcessChild } from '../lib/__tests__/atemSocketChildFake.js'
+import { createEmptyState } from './util.js'
 
 test('Simple test', async () => {
-	const nb = new Atem({ disableMultithreaded: true })
+	const nb = new Atem({ createChildBridge: createInProcessChild })
 	try {
 		nb.on('error', () => null)
 
@@ -14,14 +16,14 @@ test('Simple test', async () => {
 })
 
 function createConnection(apiVersion: Enums.ProtocolVersion): Atem {
-	const conn = new Atem({ debugBuffers: true, disableMultithreaded: true })
+	const conn = new Atem({ debugBuffers: true, createChildBridge: createInProcessChild })
 
 	// Create a state object
 	const state = createEmptyState()
 	state.info.apiVersion = apiVersion
 
 	// conn.on('error', () => null)
-	conn.sendCommand = jest.fn()
+	conn.sendCommand = vi.fn()
 	;(conn as any).client._state = state
 
 	return conn

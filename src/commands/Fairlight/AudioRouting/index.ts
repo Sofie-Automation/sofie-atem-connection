@@ -1,2 +1,2 @@
-export * from './AudioRoutingOutput'
-export * from './AudioRoutingSource'
+export * from './AudioRoutingOutput.js'
+export * from './AudioRoutingSource.js'

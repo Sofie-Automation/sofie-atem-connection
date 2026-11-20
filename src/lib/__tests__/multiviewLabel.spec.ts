@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { AtemState } from '../../state'
-import { calculateGenerateMultiviewerLabelProps, generateMultiviewerLabel } from '../multiviewLabel'
-import { NewMemoryFace } from '@julusian/freetype2'
 import * as fs from 'fs'
+
+import { NewMemoryFace } from '@julusian/freetype2'
+import { describe, expect, test } from 'vitest'
+
+import { AtemState } from '../../state/index.js'
+import { calculateGenerateMultiviewerLabelProps, generateMultiviewerLabel } from '../multiviewLabel.js'
 
 describe('Multiview Label', () => {
 	const font = NewMemoryFace(fs.readFileSync(__dirname + '/../../../assets/roboto/Roboto-Regular.ttf'))
@@ -674,7 +677,7 @@ describe('Multiview Label', () => {
 		expect(buffer.length).toBe(640 * 190)
 	})
 
-	// eslint-disable-next-line jest/no-commented-out-tests
+	// eslint-disable-next-line vitest/no-commented-out-tests
 	// test('Constellation 8K', () => {
 	// 	const info: AtemState['info'] = {
 

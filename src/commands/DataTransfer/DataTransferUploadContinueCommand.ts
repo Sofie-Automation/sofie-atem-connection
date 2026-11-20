@@ -1,4 +1,4 @@
-import { DeserializedCommand } from '../CommandBase'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export interface DataTransferUploadContinueProps {
 	transferId: number

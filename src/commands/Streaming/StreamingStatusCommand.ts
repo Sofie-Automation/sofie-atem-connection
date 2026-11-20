@@ -1,7 +1,7 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState, InvalidIdError } from '../../state'
-import { StreamingStateStatus } from '../../state/streaming'
-import { StreamingError, StreamingStatus, ProtocolVersion } from '../../enums'
+import { ProtocolVersion, StreamingError, StreamingStatus } from '../../enums/index.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { StreamingStateStatus } from '../../state/streaming.js'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 
 export class StreamingStatusCommand extends BasicWritableCommand<{ streaming: boolean }> {
 	public static readonly rawName = 'StrR'
@@ -49,7 +49,7 @@ export class StreamingStatusUpdateCommand extends DeserializedCommand<StreamingS
 		for (const e of statusEnumValues) {
 			if ((rawStatus & e) === e) {
 				state = e
-				if (e !== StreamingStatus.Streaming) break
+				if (e !== (StreamingStatus.Streaming as number)) break
 			}
 		}
 

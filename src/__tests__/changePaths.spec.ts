@@ -1,8 +1,11 @@
 import { readdirSync, readFileSync } from 'fs'
 import { resolve } from 'path'
-import { CommandParser } from '../lib/atemCommandParser'
-import { AtemState, AtemStateUtil } from '../state'
-import { IDeserializedCommand, VersionCommand } from '../commands'
+
+import { describe, expect, test } from 'vitest'
+
+import { IDeserializedCommand, VersionCommand } from '../commands/index.js'
+import { CommandParser } from '../lib/atemCommandParser.js'
+import { AtemState, AtemStateUtil } from '../state/index.js'
 
 /**
  * Replay real device dumps one command at a time, and check that the change paths each command returns cover

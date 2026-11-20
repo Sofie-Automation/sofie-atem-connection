@@ -1,6 +1,6 @@
-import { DeserializedCommand, WritableCommand } from '../CommandBase'
-import { MultiViewerWindowOverlayPropertiesState } from '../../state/settings'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { MultiViewerWindowOverlayPropertiesState } from '../../state/settings.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 export class MultiViewerWindowOverlayPropertiesCommand extends WritableCommand<MultiViewerWindowOverlayPropertiesState> {
 	public static MaskFlags = {

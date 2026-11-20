@@ -1,9 +1,11 @@
-import { DataTransferDataCommand, DataTransferUploadContinueCommand } from '../../commands/DataTransfer'
-import { DataTransferState } from '../dataTransfer'
-import { DataTransferUploadMacro } from '../dataTransferUploadMacro'
-import { generateHashForBuffer, generateUploadBufferInfo, UploadBufferInfo } from '../dataTransferUploadBuffer'
-import { getVideoModeInfo } from '../../lib/videoMode'
-import { VideoMode } from '../../enums'
+import { describe, expect, test } from 'vitest'
+
+import { DataTransferDataCommand, DataTransferUploadContinueCommand } from '../../commands/DataTransfer/index.js'
+import { VideoMode } from '../../enums/index.js'
+import { getVideoModeInfo } from '../../lib/videoMode.js'
+import { DataTransferState } from '../dataTransfer.js'
+import { generateHashForBuffer, generateUploadBufferInfo, UploadBufferInfo } from '../dataTransferUploadBuffer.js'
+import { DataTransferUploadMacro } from '../dataTransferUploadMacro.js'
 
 describe('DataTransferUploadBuffer', () => {
 	test('aborts when the requested chunk size is too small to make progress', async () => {
@@ -41,7 +43,7 @@ describe('DataTransferUploadBuffer', () => {
 
 		const result = generateUploadBufferInfo(input, resolution, true)
 
-		expect(result.isRleEncoded).toBeTrue()
+		expect(result.isRleEncoded).toBe(true)
 		expect(result.encodedData.length).toBeLessThan(yuv.length)
 		expect(result.hash).toEqual(generateHashForBuffer(yuv))
 		expect(input).toEqual({ encodedData: yuv, rawDataLength: yuv.length, isRleEncoded: false, hash: null })

@@ -1,8 +1,8 @@
-import { WritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import { InputChannel } from '../../state/input'
-import * as Util from '../../lib/atemUtil'
-import { OmitReadonly } from '../../lib/types'
+import * as Util from '../../lib/atemUtil.js'
+import { OmitReadonly } from '../../lib/types.js'
+import { AtemState } from '../../state/index.js'
+import { InputChannel } from '../../state/input.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 export class InputPropertiesCommand extends WritableCommand<OmitReadonly<InputChannel>> {
 	public static MaskFlags = {

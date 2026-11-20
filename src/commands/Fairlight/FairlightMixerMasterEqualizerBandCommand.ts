@@ -1,8 +1,8 @@
-import { FairlightAudioEqualizerBandState } from '../../state/fairlight'
-import { AtemState, InvalidIdError } from '../../state'
-import { DeserializedCommand, WritableCommand } from '../CommandBase'
-import { OmitReadonly } from '../../lib/types'
-import * as AtemUtil from '../../lib/atemUtil'
+import * as AtemUtil from '../../lib/atemUtil.js'
+import { OmitReadonly } from '../../lib/types.js'
+import { FairlightAudioEqualizerBandState } from '../../state/fairlight.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 export class FairlightMixerMasterEqualizerBandCommand extends WritableCommand<
 	OmitReadonly<FairlightAudioEqualizerBandState>

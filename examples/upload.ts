@@ -1,5 +1,7 @@
-import { Atem } from '../dist'
+/* eslint-disable n/no-process-exit */
 import * as fs from 'fs'
+
+import { Atem } from '../dist/index.js'
 
 const file = fs.readFileSync('./testframe.rgba')
 

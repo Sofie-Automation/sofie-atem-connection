@@ -1,31 +1,33 @@
-import EventEmitter = require('eventemitter3')
-import { AtemState, AtemStateUtil, InvalidIdError } from './state'
-import { AtemSocket } from './lib/atemSocket'
-import { ISerializableCommand, IDeserializedCommand } from './commands/CommandBase'
-import * as Commands from './commands'
-import * as DataTransferCommands from './commands/DataTransfer'
-import * as DT from './dataTransfer'
-import * as Util from './lib/atemUtil'
-import { VideoModeInfo, getVideoModeInfo } from './lib/videoMode'
-import { listVisibleInputs } from './lib/tally'
+import EventEmitter from 'node:events'
+
+import { FontFace } from '@julusian/freetype2'
+
+import { IDeserializedCommand, ISerializableCommand } from './commands/CommandBase.js'
+import * as DataTransferCommands from './commands/DataTransfer/index.js'
+import * as Commands from './commands/index.js'
+import { TimeCommand } from './commands/index.js'
+import { generateUploadBufferInfo, UploadBufferInfo } from './dataTransfer/dataTransferUploadBuffer.js'
+import * as DT from './dataTransfer/index.js'
+import * as Enums from './enums/index.js'
+import { AtemCommandSenderMixin } from './lib/atemCommands.js'
+import { AtemSocket } from './lib/atemSocket.js'
+import * as Util from './lib/atemUtil.js'
+import { AtemCommandBatch } from './lib/batchCommands.js'
+import { convertPCMToAtemAudio } from './lib/converters/audio.js'
+import { decodeRLE } from './lib/converters/rle.js'
+import { convertYUV422ToRGBA } from './lib/converters/yuv422ToRgba.js'
 import {
 	calculateGenerateMultiviewerLabelProps,
 	generateMultiviewerLabel,
 	hasInternalMultiviewerLabelGeneration,
 	loadFont,
-} from './lib/multiviewLabel'
-import { FontFace } from '@julusian/freetype2'
-import PLazy = require('p-lazy')
-import { TimeCommand } from './commands'
-import { TimeInfo } from './state/info'
-import { SomeAtemAudioLevels } from './state/levels'
-import { generateUploadBufferInfo, UploadBufferInfo } from './dataTransfer/dataTransferUploadBuffer'
-import { convertWAVToRaw } from './lib/converters/wavAudio'
-import { decodeRLE } from './lib/converters/rle'
-import { convertYUV422ToRGBA } from './lib/converters/yuv422ToRgba'
-import { AtemCommandSenderMixin } from './lib/atemCommands'
-import { AtemCommandBatch } from './lib/batchCommands'
-import * as Enums from './enums'
+} from './lib/multiviewLabel.js'
+import { listVisibleInputs } from './lib/tally.js'
+import { getVideoModeInfo, VideoModeInfo } from './lib/videoMode.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from './state/index.js'
+import { TimeInfo } from './state/info.js'
+import { SomeAtemAudioLevels } from './state/levels.js'
+import type { ChildBridgeFactory } from './lib/atemSocket.js'
 
 // Pre-computed once at module load — avoids allocating Object.values() and iterating
 // DataTransferCommands on every received command packet.
@@ -42,20 +44,21 @@ export interface AtemOptions {
 	 * Default: 30000
 	 */
 	maxReconnectDelay?: number
-	disableMultithreaded?: boolean
-	childProcessTimeout?: number
 	/**
 	 * Maximum size of packets to transmit
 	 */
 	maxPacketSize?: number
 	/**
-	 * Disable registering handlers (via `exit-hook`) to cleanup the connection when the process exits.
-	 * These handlers listen for SIGINT/SIGTERM and call `process.exit()`, which cuts off any async shutdown logic in your application.
-	 * When disabled, you should call `destroy()` as part of your own shutdown.
-	 * You may also want to set `ThreadedClassManager.handleExit = RegisterExitHandlers.NO` from `threadedclass` to stop it registering its own handlers.
-	 * Default: false. In v4 these handlers will no longer be registered, matching the behaviour of setting this to true.
+	 * Path to the worker JS file. When not set, resolves relative to this file.
+	 * Override this when the on-disk layout differs from the default.
 	 */
-	disableExitHandlers?: boolean
+	workerFilePath?: string | URL
+	/**
+	 * When provided, this factory is called instead of spawning a real worker thread.
+	 * Useful for testing or embedding the socket child in-process.
+	 * See `ChildBridgeFactory` and `createInProcessChild` from the test utilities.
+	 */
+	createChildBridge?: ChildBridgeFactory
 }
 
 export type AtemEvents = {
@@ -118,15 +121,12 @@ class AtemWrapper {
 			maxReconnectDelay: options?.maxReconnectDelay,
 			address: options?.address || '',
 			port: options?.port || DEFAULT_PORT,
-			disableMultithreaded: options?.disableMultithreaded ?? false,
-			childProcessTimeout: options?.childProcessTimeout || 600,
 			maxPacketSize: options?.maxPacketSize ?? DEFAULT_MAX_PACKET_SIZE,
-			disableExitHandlers: options?.disableExitHandlers ?? false,
+			workerFilePath: options?.workerFilePath,
+			createChildBridge: options?.createChildBridge,
 		})
-		this.dataTransferManager = new DT.DataTransferManager(
-			this.sendCommands.bind(this),
-			(message) => this._safeEmit('error', message),
-			options?.disableExitHandlers ?? false
+		this.dataTransferManager = new DT.DataTransferManager(this.sendCommands.bind(this), (message) =>
+			this._safeEmit('error', message)
 		)
 
 		this.socket.on('receivedCommands', (commands) => {
@@ -154,9 +154,10 @@ class AtemWrapper {
 	 * Emit an event, without letting an exception thrown by a listener escape.
 	 * A throwing listener would otherwise abort the processing that triggered the event, such as updating the state
 	 */
-	private _safeEmit<T extends EventEmitter.EventNames<AtemEvents>>(
+	private _safeEmit<T extends keyof AtemEvents>(
 		event: T,
-		...args: EventEmitter.EventArgs<AtemEvents, T>
+		// Matches how EventEmitter types its arguments, so they can be passed straight through
+		...args: T extends keyof AtemEvents ? AtemEvents[T] : never
 	): void {
 		try {
 			this.emitter.emit(event, ...args)
@@ -407,14 +408,22 @@ export class BasicAtem extends EventEmitter<AtemEvents> implements IBasicAtem {
 }
 
 export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem>(BasicAtem, async () => undefined) {
-	#multiviewerFontFace: Promise<FontFace>
+	#multiviewerFontFace: Promise<FontFace> | null = null
 	#multiviewerFontScale: number
 
 	constructor(options?: AtemOptions) {
 		super(options)
 
-		this.#multiviewerFontFace = PLazy.from(async () => loadFont())
 		this.#multiviewerFontScale = 1.0
+	}
+
+	async #loadMultiviewerFontFace(): Promise<FontFace> {
+		if (this.#multiviewerFontFace) {
+			return this.#multiviewerFontFace
+		} else {
+			this.#multiviewerFontFace = loadFont()
+			return this.#multiviewerFontFace
+		}
 	}
 
 	/**
@@ -446,11 +455,30 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 		}
 	}
 
-	public async downloadMacro(index: number): Promise<Buffer> {
-		return this.dataTransferManager.downloadMacro(index)
+	/**
+	 * Download a macro from the ATEM
+	 * @param index Macro index to download
+	 * @param options Transfer options, such as a signal to abort it
+	 * @returns Promise which returns the macro once downloaded
+	 */
+	public async downloadMacro(index: number, options?: DT.DataTransferOptions): Promise<Buffer> {
+		return this.dataTransferManager.downloadMacro(index, options?.signal)
 	}
-	public async uploadMacro(index: number, name: string, data: Buffer): Promise<void> {
-		return this.dataTransferManager.uploadMacro(index, data, name)
+	/**
+	 * Upload a macro to the ATEM
+	 * @param index Macro index to upload to
+	 * @param name Name to give the macro
+	 * @param data The macro data
+	 * @param options Transfer options, such as a signal to abort it
+	 * @returns Promise which resolves once the macro is uploaded
+	 */
+	public async uploadMacro(
+		index: number,
+		name: string,
+		data: Buffer,
+		options?: DT.DataTransferOptions
+	): Promise<void> {
+		return this.dataTransferManager.uploadMacro(index, data, name, options?.signal)
 	}
 
 	/**
@@ -461,16 +489,17 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * pre-convert the images with more optimal algorithms
 	 * @param clipIndex Clip index to download
 	 * @param frameIndex Frame index to download from the clip
-	 * @param format The pixel format to return for the downloaded image. 'raw' passes through unchanged, and will be RLE encoded.
+	 * @param options Download options, such as the pixel format to return and a signal to abort it
 	 * @returns Promise which returns the image once downloaded. If the still slot is not in use, this will throw
 	 */
 	public async downloadClipFrame(
 		clipIndex: number,
 		frameIndex: number,
-		format: 'raw' | 'rgba' | 'yuv' = 'rgba'
+		options?: DT.DownloadImageOptions
 	): Promise<Buffer> {
+		const format = options?.format ?? 'rgba'
 		this.#assertValidClipIndex(clipIndex)
-		let rawBuffer = await this.dataTransferManager.downloadClipFrame(clipIndex, frameIndex)
+		let rawBuffer = await this.dataTransferManager.downloadClipFrame(clipIndex, frameIndex, options?.signal)
 
 		if (format === 'raw') {
 			return rawBuffer
@@ -498,11 +527,12 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * consider using [@atem-connection/image-tools](https://www.npmjs.com/package/@atem-connection/image-tools) to
 	 * pre-convert the images with more optimal algorithms
 	 * @param index Still index to download
-	 * @param format The pixel format to return for the downloaded image. 'raw' passes through unchanged, and will be RLE encoded.
+	 * @param options Download options, such as the pixel format to return and a signal to abort it
 	 * @returns Promise which returns the image once downloaded. If the still slot is not in use, this will throw
 	 */
-	public async downloadStill(index: number, format: 'raw' | 'rgba' | 'yuv' = 'rgba'): Promise<Buffer> {
-		let rawBuffer = await this.dataTransferManager.downloadStill(index)
+	public async downloadStill(index: number, options?: DT.DownloadImageOptions): Promise<Buffer> {
+		const format = options?.format ?? 'rgba'
+		let rawBuffer = await this.dataTransferManager.downloadStill(index, options?.signal)
 
 		if (format === 'raw') {
 			return rawBuffer
@@ -533,7 +563,7 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * @param data a RGBA pixel buffer, or an already YUVA encoded image
 	 * @param name Name to give the uploaded image
 	 * @param description Description for the uploaded image
-	 * @param options Upload options
+	 * @param options Upload options, including a signal to abort the transfer
 	 * @returns Promise which resolves once the image is uploaded
 	 */
 	public async uploadStill(
@@ -549,7 +579,7 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 
 		const encodedData = generateUploadBufferInfo(data, resolution, !options?.disableRLE)
 
-		return this.dataTransferManager.uploadStill(index, encodedData, name, description)
+		return this.dataTransferManager.uploadStill(index, encodedData, name, description, options?.signal)
 	}
 
 	/**
@@ -561,7 +591,7 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * @param index Clip index to upload to
 	 * @param frames Array or generator of frames. Each frame can be a RGBA pixel buffer, or an already YUVA encoded image
 	 * @param name Name to give the uploaded clip
-	 * @param options Upload options
+	 * @param options Upload options, including a signal to abort the transfer
 	 * @returns Promise which resolves once the clip is uploaded
 	 */
 	public async uploadClip(
@@ -580,19 +610,33 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 				yield generateUploadBufferInfo(frame, resolution, !options?.disableRLE)
 			}
 		}
-		return this.dataTransferManager.uploadClip(index, provideFrame(), name)
+		return this.dataTransferManager.uploadClip(index, provideFrame(), name, options?.signal)
 	}
 
 	/**
 	 * Upload clip audio to the ATEM media pool
+	 *
+	 * This does not decode audio files. Load or decode the audio yourself (eg with the `wavefile` library or ffmpeg)
 	 * @param index Clip index to upload to
-	 * @param data stereo 48khz 24bit WAV audio data
+	 * @param samples Interleaved stereo 48khz signed 24bit little-endian PCM samples.
+	 * This is the contents of the data chunk of a 24bit stereo wav file, or the output of `ffmpeg -f s24le -ac 2 -ar 48000`
 	 * @param name Name to give the uploaded audio
+	 * @param options Transfer options, such as a signal to abort it
 	 * @returns Promise which resolves once the clip audio is uploaded
 	 */
-	public async uploadAudio(index: number, data: Buffer, name: string): Promise<void> {
+	public async uploadAudio(
+		index: number,
+		samples: Uint8Array,
+		name: string,
+		options?: DT.DataTransferOptions
+	): Promise<void> {
 		this.#assertValidClipIndex(index)
-		return this.dataTransferManager.uploadAudio(index, convertWAVToRaw(data, this.state?.info?.model), name)
+		return this.dataTransferManager.uploadAudio(
+			index,
+			convertPCMToAtemAudio(samples, this.state?.info?.model),
+			name,
+			options?.signal
+		)
 	}
 
 	/** Check a clip index against the number of clips the device reports, when that is known */
@@ -619,9 +663,14 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * Write a custom multiviewer label buffer
 	 * @param inputId The input id
 	 * @param buffer Label buffer
+	 * @param options Transfer options, such as a signal to abort it
 	 * @returns Promise that resolves once upload is complete
 	 */
-	public async writeMultiviewerLabel(inputId: number, buffer: Buffer): Promise<void> {
+	public async writeMultiviewerLabel(
+		inputId: number,
+		buffer: Buffer,
+		options?: DT.DataTransferOptions
+	): Promise<void> {
 		if (this.hasInternalMultiviewerLabelGeneration()) throw new Error(`ATEM doesn't support custom labels`)
 
 		// Verify the buffer doesnt contain data that is 'out of bounds' and will crash the atem
@@ -632,25 +681,26 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 			}
 		}
 
-		return this.dataTransferManager.uploadMultiViewerLabel(inputId, buffer)
+		return this.dataTransferManager.uploadMultiViewerLabel(inputId, buffer, options?.signal)
 	}
 
 	/**
 	 * Generate and upload a multiviewer label
 	 * @param inputId The input id
 	 * @param text Label text
+	 * @param options Transfer options, such as a signal to abort it
 	 * @returns Promise that resolves once upload is complete
 	 */
-	public async drawMultiviewerLabel(inputId: number, text: string): Promise<void> {
+	public async drawMultiviewerLabel(inputId: number, text: string, options?: DT.DataTransferOptions): Promise<void> {
 		if (this.hasInternalMultiviewerLabelGeneration()) throw new Error(`ATEM doesn't support custom labels`)
 
 		const props = calculateGenerateMultiviewerLabelProps(this.state ?? null)
 		if (!props) throw new Error(`Failed to determine render properties`)
 
-		const fontFace = await this.#multiviewerFontFace
+		const fontFace = await this.#loadMultiviewerFontFace()
 
 		const buffer = generateMultiviewerLabel(fontFace, this.#multiviewerFontScale, text, props)
 		// Note: we should probably validate the buffer looks like it doesn't contain crashy data, but as we generate we can trust it
-		return this.dataTransferManager.uploadMultiViewerLabel(inputId, buffer)
+		return this.dataTransferManager.uploadMultiViewerLabel(inputId, buffer, options?.signal)
 	}
 }

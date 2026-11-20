@@ -1,7 +1,7 @@
-import { DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import { ProtocolVersion } from '../../enums'
-import { SuperSourceInfo } from '../../state/info'
+import { ProtocolVersion } from '../../enums/index.js'
+import { AtemState } from '../../state/index.js'
+import { SuperSourceInfo } from '../../state/info.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class SuperSourceConfigCommand extends DeserializedCommand<SuperSourceInfo> {
 	public static readonly rawName = '_SSC'

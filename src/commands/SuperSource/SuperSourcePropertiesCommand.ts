@@ -1,7 +1,7 @@
-import { WritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
-import { SuperSourceProperties, SuperSourceBorder } from '../../state/video/superSource'
-import { ProtocolVersion } from '../../enums'
+import { ProtocolVersion } from '../../enums/index.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { SuperSourceBorder, SuperSourceProperties } from '../../state/video/superSource.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 export class SuperSourcePropertiesCommand extends WritableCommand<SuperSourceProperties & SuperSourceBorder> {
 	public static MaskFlags = {

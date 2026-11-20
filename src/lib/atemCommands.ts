@@ -1,45 +1,45 @@
+import * as Commands from '../commands/index.js'
+import * as Enums from '../enums/index.js'
+import type { FairlightDynamicsResetProps } from '../commands/Fairlight/common.js'
+import type { ISerializableCommand } from '../commands/index.js'
 import type {
+	ClassicAudioHeadphoneOutputChannel,
 	ClassicAudioMasterChannel,
 	ClassicAudioMonitorChannel,
-	ClassicAudioHeadphoneOutputChannel,
-} from '../state/audio'
+} from '../state/audio.js'
+import type { ColorGeneratorState } from '../state/color.js'
 import type {
 	FairlightAudioCompressorState,
-	FairlightAudioLimiterState,
 	FairlightAudioEqualizerBandState,
+	FairlightAudioExpanderState,
+	FairlightAudioInputProperties,
+	FairlightAudioLimiterState,
 	FairlightAudioMonitorChannel,
 	FairlightAudioMonitorSolo,
-	FairlightAudioExpanderState,
-	FairlightAudioRoutingSource,
 	FairlightAudioRoutingOutput,
-	FairlightAudioInputProperties,
-} from '../state/fairlight'
-import type { InputChannel } from '../state/input'
-import type { MediaPlayer, MediaPlayerSource } from '../state/media'
-import type { RecordingStateProperties } from '../state/recording'
+	FairlightAudioRoutingSource,
+} from '../state/fairlight.js'
+import type { InputChannel } from '../state/input.js'
+import type { MediaPlayer, MediaPlayerSource } from '../state/media.js'
+import type { RecordingStateProperties } from '../state/recording.js'
 import type {
 	MultiViewerBorderColorState,
 	MultiViewerPropertiesState,
 	MultiViewerWindowOverlayPropertiesState,
-} from '../state/settings'
-import type { StreamingServiceProperties } from '../state/streaming'
-import type { ColorGeneratorState } from '../state/color'
+} from '../state/settings.js'
+import type { StreamingServiceProperties } from '../state/streaming.js'
+import type { DownstreamKeyerGeneral, DownstreamKeyerMask } from '../state/video/downstreamKeyers.js'
 import type {
 	DipTransitionSettings,
 	DVETransitionSettings,
 	MixTransitionSettings,
-	TransitionProperties,
 	StingerTransitionSettings,
-	WipeTransitionSettings,
 	SuperSource,
+	TransitionProperties,
 	USK,
-} from '../state/video'
-import type { DownstreamKeyerGeneral, DownstreamKeyerMask } from '../state/video/downstreamKeyers'
-import type { ISerializableCommand } from '../commands'
-import * as Enums from '../enums'
-import * as Commands from '../commands'
-import type { OmitReadonly } from './types'
-import type { FairlightDynamicsResetProps } from '../commands/Fairlight/common'
+	WipeTransitionSettings,
+} from '../state/video/index.js'
+import type { OmitReadonly } from './types.js'
 
 /**
  * The control surface that the command sender methods need from their host class.
@@ -70,7 +70,7 @@ function rcaToXlrToInputLevel(rcaToXlrEnabled: boolean | undefined): Enums.Fairl
  * @param noopResult Produces the result to return when there is nothing to send
  */
 // The return type is an anonymous mixin class which cannot be practically named, so let it be inferred.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => AtemCommandSenderControl<T>>(
 	Base: TBase,
 	noopResult: () => T

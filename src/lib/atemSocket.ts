@@ -1,21 +1,60 @@
-import { EventEmitter } from 'eventemitter3'
-import { CommandParser } from './atemCommandParser'
-import exitHook = require('exit-hook')
-import { VersionCommand, ISerializableCommand, IDeserializedCommand } from '../commands'
-import { DEFAULT_PORT } from '../atem'
-import { threadedClass, ThreadedClass, ThreadedClassManager } from 'threadedclass'
-import type { AtemSocketChild, OutboundPacketInfo } from './atemSocketChild'
-import { PacketBuilder } from './packetBuilder'
+import EventEmitter from 'node:events'
+
+import { IpcWrapper, RespawnWorkerMonitor } from 'thread-tools'
+import type { IpcEventHandlers } from 'thread-tools'
+
+import { DEFAULT_PORT } from '../atem.js'
+import { IDeserializedCommand, ISerializableCommand, VersionCommand } from '../commands/index.js'
+import { CommandParser } from './atemCommandParser.js'
+import { PacketBuilder } from './packetBuilder.js'
+import type { OutboundPacketInfo } from './atemSocketChild.js'
+import type { ChildToParentIpc, ParentToChildIpc } from './atemSocketIpc.js'
+
+/**
+ * Callbacks the bridge must call to notify the parent of child events.
+ */
+export type ChildBridgeCallbacks = {
+	onDisconnect: () => void
+	onLog: (message: string) => void
+	onCommandsReceived: (payload: Uint8Array) => void
+	onPacketsAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => void
+}
+
+/**
+ * Returned by a ChildBridgeFactory. Represents the outbound side of the bridge.
+ */
+export interface ChildBridgeHandle {
+	connect(address: string, port: number): Promise<void>
+	disconnect(): Promise<void>
+	sendPackets(packets: OutboundPacketInfo[]): void
+}
+
+/**
+ * Factory for creating an in-process child bridge instead of spawning a real worker.
+ * Implement and pass as `createChildBridge` in AtemOptions to avoid a real worker thread
+ * (useful for testing or embedding).
+ */
+export type ChildBridgeFactory = (
+	options: { address: string; port: number; debugBuffers: boolean; maxReconnectDelay?: number },
+	callbacks: ChildBridgeCallbacks
+) => ChildBridgeHandle
 
 export interface AtemSocketOptions {
 	address: string
 	port: number
 	debugBuffers: boolean
 	maxReconnectDelay?: number
-	disableMultithreaded: boolean
-	childProcessTimeout: number
 	maxPacketSize: number
-	disableExitHandlers?: boolean
+	/**
+	 * Path to the worker JS file. When not set, resolves relative to this file.
+	 * Override this when the on-disk layout differs from the default.
+	 */
+	workerFilePath?: string | URL
+	/**
+	 * When provided, this factory is called instead of spawning a real worker thread.
+	 * Useful for testing or embedding the socket child in-process.
+	 */
+	createChildBridge?: ChildBridgeFactory
 }
 
 export type AtemSocketEvents = {
@@ -30,19 +69,19 @@ export type AtemSocketEvents = {
 export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	private readonly _debugBuffers: boolean
 	private readonly _maxReconnectDelay: number | undefined
-	private readonly _disableMultithreaded: boolean
-	private readonly _childProcessTimeout: number
 	private readonly _maxPacketSize: number
-	private readonly _disableExitHandlers: boolean
+	private readonly _workerFilePath: string | URL | undefined
+	private readonly _createChildBridgeFn: ChildBridgeFactory | undefined
 	private readonly _commandParser: CommandParser = new CommandParser()
 
 	private _nextPacketTrackingId = 0
 	private _isDisconnecting = false
 	private _address: string
 	private _port: number = DEFAULT_PORT
-	private _socketProcess: ThreadedClass<AtemSocketChild> | undefined
+	private _monitor: RespawnWorkerMonitor | undefined
+	private _bridge: ChildBridgeHandle | undefined
+	private _workerReady: Promise<void> | undefined
 	private _creatingSocket: Promise<void> | undefined
-	private _exitUnsubscribe?: () => void
 
 	constructor(options: AtemSocketOptions) {
 		super()
@@ -50,10 +89,9 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		this._port = options.port
 		this._debugBuffers = options.debugBuffers
 		this._maxReconnectDelay = options.maxReconnectDelay
-		this._disableMultithreaded = options.disableMultithreaded
-		this._childProcessTimeout = options.childProcessTimeout
 		this._maxPacketSize = options.maxPacketSize
-		this._disableExitHandlers = options.disableExitHandlers ?? false
+		this._workerFilePath = options.workerFilePath
+		this._createChildBridgeFn = options.createChildBridge
 	}
 
 	public async connect(address?: string, port?: number): Promise<void> {
@@ -66,17 +104,34 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 			this._port = port
 		}
 
-		if (!this._socketProcess) {
+		if (!this._bridge) {
 			// cache the creation promise, in case `destroy` is called before it completes
 			this._creatingSocket = this._createSocketProcess()
 			await this._creatingSocket
 
-			if (this._isDisconnecting || !this._socketProcess) {
+			if (this._isDisconnecting || !this._bridge) {
 				throw new Error('Disconnecting')
 			}
 		}
 
-		await this._socketProcess.connect(this._address, this._port)
+		this._updateWorkerRef()
+		await this._bridge.connect(this._address, this._port)
+	}
+
+	/**
+	 * While a connection is wanted the worker keeps the process alive, as the timers and socket inside it would for
+	 * any other connection. Once disconnected the idle worker is kept for a quick reconnect, but must not stop the
+	 * process from exiting
+	 */
+	private _updateWorkerRef(): void {
+		const worker = this._monitor?.worker
+		if (!worker) return
+
+		if (this._isDisconnecting) {
+			worker.unref()
+		} else {
+			worker.ref()
+		}
 	}
 
 	public async destroy(): Promise<void> {
@@ -85,22 +140,25 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		// Ensure thread creation has finished if it was started
 		if (this._creatingSocket) await this._creatingSocket.catch(() => null)
 
-		if (this._socketProcess) {
-			await ThreadedClassManager.destroy(this._socketProcess)
-			this._socketProcess = undefined
+		const monitor = this._monitor
+		if (monitor) {
+			await new Promise<void>((resolve) => monitor.stop(resolve))
+			this._monitor = undefined
 		}
-		if (this._exitUnsubscribe) {
-			this._exitUnsubscribe()
-			this._exitUnsubscribe = undefined
-		}
+		this._bridge = undefined
+		this._workerReady = undefined
 	}
 
 	public async disconnect(): Promise<void> {
 		this._isDisconnecting = true
 
-		if (this._socketProcess) {
-			await this._socketProcess.disconnect()
+		if (this._bridge) {
+			// Only release the worker once it has replied, as nothing else keeps the process alive while waiting
+			await this._bridge.disconnect()
 		}
+
+		// A connect may have been made while waiting
+		this._updateWorkerRef()
 	}
 
 	get nextPacketTrackingId(): number {
@@ -111,7 +169,7 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 	}
 
 	public async sendCommands(commands: Array<ISerializableCommand>): Promise<number[]> {
-		if (!this._socketProcess) throw new Error('Socket process is not open')
+		if (!this._bridge) throw new Error('Socket process is not open')
 
 		const maxPacketSize = this._maxPacketSize - 12 // MTU minus ATEM header
 		const packetBuilder = new PacketBuilder(maxPacketSize, this._commandParser.version)
@@ -133,63 +191,137 @@ export class AtemSocket extends EventEmitter<AtemSocketEvents> {
 		}
 
 		if (packets.length > 0) {
-			await this._socketProcess.sendPackets(packets)
+			this._bridge.sendPackets(packets)
 		}
 
 		return packets.map((packet) => packet.trackingId)
 	}
 
 	private async _createSocketProcess(): Promise<void> {
-		this._socketProcess = await threadedClass<AtemSocketChild, typeof AtemSocketChild>(
-			'./atemSocketChild',
-			'AtemSocketChild',
-			[
-				{
-					address: this._address,
-					port: this._port,
-					debugBuffers: this._debugBuffers,
-					maxReconnectDelay: this._maxReconnectDelay,
-				},
-				async (): Promise<void> => {
-					this.emit('disconnect')
-				}, // onDisconnect
-				async (message: string): Promise<void> => {
-					this.emit('info', message)
-				}, // onLog
-				async (payload: Uint8Array): Promise<void> => {
-					// Arrives as a Uint8Array from the worker thread. It is already a copy, so wrap it rather than copying again
-					this._parseCommands(Buffer.from(payload.buffer, payload.byteOffset, payload.byteLength))
-				}, // onCommandsReceived
-				async (ids: Array<{ packetId: number; trackingId: number }>): Promise<void> => {
-					this.emit(
-						'ackPackets',
-						ids.map((id) => id.trackingId)
-					)
-				}, // onPacketsAcknowledged
-			],
-			{
-				instanceName: 'atem-connection',
-				freezeLimit: this._childProcessTimeout,
-				autoRestart: true,
-				disableMultithreading: this._disableMultithreaded,
-			}
+		if (this._createChildBridgeFn) {
+			// In-process bridge: wire two IpcWrappers directly together without spawning a worker.
+			this._setupInProcessBridge(this._createChildBridgeFn)
+			return
+		}
+
+		const workerUrl: string | URL = this._workerFilePath ?? new URL('./atemSocketChildWorker.js', import.meta.url)
+
+		let firstSpawn = true
+
+		const workerReadyPromise = Promise.withResolvers<void>()
+		this._workerReady = workerReadyPromise.promise
+
+		const childToParentHandlers: IpcEventHandlers<ChildToParentIpc> = {
+			onDisconnect: async () => {
+				this.emit('disconnect')
+			},
+			onLog: async ({ message }) => {
+				this.emit('info', message)
+			},
+			onCommandsReceived: async ({ payload }) => {
+				// Arrives as a Uint8Array from the worker thread. It is already a copy, so wrap it rather than copying again
+				this._parseCommands(Buffer.from(payload.buffer, payload.byteOffset, payload.byteLength))
+			},
+			onPacketsAcknowledged: async ({ ids }) => {
+				this.emit(
+					'ackPackets',
+					ids.map((id) => id.trackingId)
+				)
+			},
+		}
+
+		const monitor = new RespawnWorkerMonitor(workerUrl, {
+			workerData: () => ({
+				address: this._address,
+				port: this._port,
+				debugBuffers: this._debugBuffers,
+				maxReconnectDelay: this._maxReconnectDelay,
+			}),
+			sleep: 1000,
+		})
+
+		const ipc = new IpcWrapper<ParentToChildIpc, ChildToParentIpc>(
+			childToParentHandlers,
+			(msg) => monitor.worker?.postMessage(msg),
+			10000
 		)
 
-		ThreadedClassManager.onEvent(this._socketProcess, 'restarted', () => {
-			this.connect().catch((error) => {
-				const errorMsg = `Failed to reconnect after respawning socket process: ${error}`
-				this.emit('error', errorMsg)
-			})
+		monitor.on('message', (msg) => ipc.receivedMessage(msg))
+
+		monitor.on('online', () => {
+			workerReadyPromise.resolve()
 		})
-		ThreadedClassManager.onEvent(this._socketProcess, 'thread_closed', () => {
+
+		monitor.on('spawn', () => {
+			// A new worker starts out holding the process open
+			this._updateWorkerRef()
+
+			// Only reconnect if a connection is still wanted
+			if (!firstSpawn && !this._isDisconnecting) {
+				this.connect().catch((error) => {
+					const errorMsg = `Failed to reconnect after respawning socket process: ${error}`
+					this.emit('error', errorMsg)
+				})
+			}
+			firstSpawn = false
+		})
+
+		monitor.on('crash', () => {
 			this.emit('disconnect')
 		})
 
-		if (!this._disableExitHandlers) {
-			this._exitUnsubscribe = exitHook(() => {
-				this.destroy().catch(() => null)
-			})
+		this._monitor = monitor
+		this._bridge = {
+			connect: async (address, port) => ipc.sendWithCb('connect', { address, port }),
+			disconnect: async () => ipc.sendWithCb('disconnect', {}),
+			sendPackets: (packets) => {
+				ipc.sendWithNoCb('sendPackets', { packets })
+			},
 		}
+		monitor.start()
+
+		await this._workerReady
+	}
+
+	private _setupInProcessBridge(factory: ChildBridgeFactory): void {
+		// Dummy monitor: an EventEmitter with a no-op stop(), so tests can emit 'spawn'/'crash'
+		const dummyMonitor = new EventEmitter()
+		;(dummyMonitor as EventEmitter & { stop: (cb?: () => void) => void }).stop = (cb?) => cb?.()
+
+		// For in-process bridges, treat every 'spawn' as a reconnect (no real first-spawn to skip)
+		dummyMonitor.on('spawn', () => {
+			if (this._isDisconnecting) return
+			this.connect().catch((error) => {
+				this.emit('error', `Failed to reconnect after respawning: ${error}`)
+			})
+		})
+		dummyMonitor.on('crash', () => {
+			this.emit('disconnect')
+		})
+
+		this._monitor = dummyMonitor as unknown as RespawnWorkerMonitor
+
+		this._bridge = factory(
+			{
+				address: this._address,
+				port: this._port,
+				debugBuffers: this._debugBuffers,
+				maxReconnectDelay: this._maxReconnectDelay,
+			},
+			{
+				onDisconnect: () => this.emit('disconnect'),
+				onLog: (message) => this.emit('info', message),
+				onCommandsReceived: (payload) =>
+					this._parseCommands(Buffer.from(payload.buffer, payload.byteOffset, payload.byteLength)),
+				onPacketsAcknowledged: (ids) =>
+					this.emit(
+						'ackPackets',
+						ids.map((id) => id.trackingId)
+					),
+			}
+		)
+
+		this._workerReady = Promise.resolve()
 	}
 
 	private _parseCommands(buffer: Buffer): IDeserializedCommand[] {

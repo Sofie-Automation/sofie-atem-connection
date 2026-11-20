@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../CommandBase'
+import { BasicWritableCommand } from '../CommandBase.js'
 
 export class FairlightMixerResetPeakLevelsCommand extends BasicWritableCommand<{ all: boolean; master: boolean }> {
 	public static readonly rawName = 'RFLP'

@@ -1,7 +1,7 @@
-import { WritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
-import { SuperSourceBox } from '../../state/video/superSource'
-import { ProtocolVersion } from '../../enums'
+import { ProtocolVersion } from '../../enums/index.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { SuperSourceBox } from '../../state/video/superSource.js'
+import { DeserializedCommand, WritableCommand } from '../CommandBase.js'
 
 /** The writable box properties. The border is set with SuperSourceBoxBorderCommand */
 export type SuperSourceBoxParametersCommandProps = Omit<SuperSourceBox, 'border'>

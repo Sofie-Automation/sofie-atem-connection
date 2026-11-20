@@ -1,13 +1,13 @@
-import { AtemState } from '.'
-import * as Enums from '../enums'
-import { MultiViewer } from './settings'
-import { MediaPlayerState, ClipBank } from './media'
-import { MixEffect, SuperSource, DSK, USK } from './video'
+import * as Enums from '../enums/index.js'
+import { AtemState } from './index.js'
+import { ClipBank, MediaPlayerState } from './media.js'
+import { MultiViewer } from './settings.js'
+import { DSK, MixEffect, SuperSource, USK } from './video/index.js'
 
 export function Create(): AtemState {
 	return {
 		info: {
-			apiVersion: 0,
+			apiVersion: Enums.ProtocolVersion.Unknown,
 			model: Enums.Model.Unknown,
 			superSources: [],
 			mixEffects: [],

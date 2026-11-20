@@ -1,30 +1,45 @@
-import exitHook = require('exit-hook')
+import debug0 from 'debug'
 
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
+import { LockObtainedCommand, LockStateUpdateCommand } from '../commands/DataTransfer/index.js'
+import { commandStringify } from '../lib/atemUtil.js'
+import { DataTransferDownloadMacro } from './dataTransferDownloadMacro.js'
+import { DataTransferDownloadStill } from './dataTransferDownloadStill.js'
 import {
 	DataTransferLockingQueue,
-	DataTransferSimpleQueue,
 	DataTransferQueueBase,
 	DataTransferQueueOptions,
-} from './dataTransferQueue'
-import DataTransferUploadStill from './dataTransferUploadStill'
-import { DataTransferUploadClipFrame, DataTransferUploadClip } from './dataTransferUploadClip'
-import DataTransferUploadAudio from './dataTransferUploadAudio'
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase'
-import DataTransferUploadMultiViewerLabel from './dataTransferUploadMultiViewerLabel'
-import { DataTransferDownloadMacro } from './dataTransferDownloadMacro'
-import { DataTransferUploadMacro } from './dataTransferUploadMacro'
-import { LockObtainedCommand, LockStateUpdateCommand } from '../commands/DataTransfer'
-import debug0 from 'debug'
-import { commandStringify } from '../lib/atemUtil'
-import type { UploadBufferInfo } from './dataTransferUploadBuffer'
-import { DataTransferDownloadStill } from './dataTransferDownloadStill'
+	DataTransferSimpleQueue,
+} from './dataTransferQueue.js'
+import DataTransferUploadAudio from './dataTransferUploadAudio.js'
+import { DataTransferUploadClip, DataTransferUploadClipFrame } from './dataTransferUploadClip.js'
+import { DataTransferUploadMacro } from './dataTransferUploadMacro.js'
+import DataTransferUploadMultiViewerLabel from './dataTransferUploadMultiViewerLabel.js'
+import DataTransferUploadStill from './dataTransferUploadStill.js'
+import type { UploadBufferInfo } from './dataTransferUploadBuffer.js'
 
 const MAX_PACKETS_TO_SEND_PER_TICK = 50
 const MAX_TRANSFER_INDEX = (1 << 16) - 1 // Inclusive maximum
 
 const debug = debug0('atem-connection:data-transfer:manager')
 
-export interface UploadStillEncodingOptions {
+export interface DataTransferOptions {
+	/**
+	 * Abort the transfer. A transfer which is still queued is removed from the queue.
+	 * One which has started is stopped part way through, leaving whatever it was writing to incomplete
+	 */
+	signal?: AbortSignal
+}
+
+export interface DownloadImageOptions extends DataTransferOptions {
+	/**
+	 * The pixel format to return the downloaded image in. 'raw' passes through unchanged, and will be RLE encoded.
+	 * Default: 'rgba'
+	 */
+	format?: 'raw' | 'rgba' | 'yuv'
+}
+
+export interface UploadStillEncodingOptions extends DataTransferOptions {
 	disableRLE?: boolean
 }
 
@@ -50,23 +65,14 @@ export class DataTransferManager {
 	readonly #labelsLock: DataTransferSimpleQueue
 	readonly #macroLock: DataTransferSimpleQueue
 
-	private interval?: NodeJS.Timer
-	private exitUnsubscribe?: () => void
-
-	readonly #disableExitHandlers: boolean
+	private interval?: NodeJS.Timeout
 
 	/**
 	 * @param rawSendCommands Send commands to the atem
 	 * @param onError Report an unexpected error
-	 * @param disableExitHandlers Skip registering exit handlers
 	 */
-	constructor(
-		rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>,
-		onError: (message: string) => void,
-		disableExitHandlers = false
-	) {
+	constructor(rawSendCommands: (cmds: ISerializableCommand[]) => Promise<void>, onError: (message: string) => void) {
 		this.#rawSendCommands = rawSendCommands
-		this.#disableExitHandlers = disableExitHandlers
 		this.#queueOptions = {
 			nextTransferId: this.#nextTransferId,
 			onError,
@@ -110,13 +116,6 @@ export class DataTransferManager {
 				}
 			}, 2) // TODO - refine this. perhaps we can stop and restart the interval?
 		}
-		if (!this.#disableExitHandlers && !this.exitUnsubscribe) {
-			this.exitUnsubscribe = exitHook(() => {
-				debug(`Exit auto-cleanup`)
-				// TODO - replace this with a WeakRef to the parent class?
-				this.stopCommandSending()
-			})
-		}
 	}
 
 	/**
@@ -129,10 +128,6 @@ export class DataTransferManager {
 			lock.clearQueueAndAbort(new Error('Stopping connection'))
 		}
 
-		if (this.exitUnsubscribe) {
-			this.exitUnsubscribe()
-			this.exitUnsubscribe = undefined
-		}
 		if (this.interval) {
 			clearInterval(this.interval)
 			this.interval = undefined
@@ -193,28 +188,35 @@ export class DataTransferManager {
 		}
 	}
 
-	public async downloadClipFrame(clipIndex: number, frameIndex: number): Promise<Buffer> {
+	public async downloadClipFrame(clipIndex: number, frameIndex: number, signal?: AbortSignal): Promise<Buffer> {
 		// The clip index is validated by getClipLock
 		const transfer = new DataTransferDownloadStill(clipIndex + 1, frameIndex)
 
-		return this.getClipLock(clipIndex).enqueue(transfer)
+		return this.getClipLock(clipIndex).enqueue(transfer, signal)
 	}
 
-	public async downloadStill(index: number): Promise<Buffer> {
+	public async downloadStill(index: number, signal?: AbortSignal): Promise<Buffer> {
 		const transfer = new DataTransferDownloadStill(0, index)
 
-		return this.#stillsLock.enqueue(transfer)
+		return this.#stillsLock.enqueue(transfer, signal)
 	}
 
-	public async uploadStill(index: number, data: UploadBufferInfo, name: string, description: string): Promise<void> {
+	public async uploadStill(
+		index: number,
+		data: UploadBufferInfo,
+		name: string,
+		description: string,
+		signal?: AbortSignal
+	): Promise<void> {
 		const transfer = new DataTransferUploadStill(index, data, name, description)
-		return this.#stillsLock.enqueue(transfer)
+		return this.#stillsLock.enqueue(transfer, signal)
 	}
 
 	public async uploadClip(
 		index: number,
 		data: Iterable<UploadBufferInfo> | AsyncIterable<UploadBufferInfo>,
-		name: string
+		name: string,
+		signal?: AbortSignal
 	): Promise<void> {
 		const provideFrame = async function* (): AsyncGenerator<DataTransferUploadClipFrame, undefined> {
 			let id = -1
@@ -226,30 +228,30 @@ export class DataTransferManager {
 		}
 		const transfer = new DataTransferUploadClip(index, name, provideFrame(), this.#nextTransferId)
 		const lock = this.getClipLock(index)
-		return lock.enqueue(transfer)
+		return lock.enqueue(transfer, signal)
 	}
 
-	public async uploadAudio(index: number, data: Buffer, name: string): Promise<void> {
+	public async uploadAudio(index: number, data: Buffer, name: string, signal?: AbortSignal): Promise<void> {
 		const transfer = new DataTransferUploadAudio(index, data, name)
 		const lock = this.getClipLock(index)
-		return lock.enqueue(transfer)
+		return lock.enqueue(transfer, signal)
 	}
 
-	public async downloadMacro(index: number): Promise<Buffer> {
+	public async downloadMacro(index: number, signal?: AbortSignal): Promise<Buffer> {
 		const transfer = new DataTransferDownloadMacro(index)
 
-		return this.#macroLock.enqueue(transfer)
+		return this.#macroLock.enqueue(transfer, signal)
 	}
 
-	public async uploadMacro(index: number, data: Buffer, name: string): Promise<void> {
+	public async uploadMacro(index: number, data: Buffer, name: string, signal?: AbortSignal): Promise<void> {
 		const transfer = new DataTransferUploadMacro(index, data, name)
 
-		return this.#macroLock.enqueue(transfer)
+		return this.#macroLock.enqueue(transfer, signal)
 	}
 
-	public async uploadMultiViewerLabel(index: number, data: Buffer): Promise<void> {
+	public async uploadMultiViewerLabel(index: number, data: Buffer, signal?: AbortSignal): Promise<void> {
 		const transfer = new DataTransferUploadMultiViewerLabel(index, data)
-		return this.#labelsLock.enqueue(transfer)
+		return this.#labelsLock.enqueue(transfer, signal)
 	}
 
 	private getClipLock(index: number): DataTransferLockingQueue {

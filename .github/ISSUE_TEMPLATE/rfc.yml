@@ -1,6 +1,6 @@
 name: Request for Comments ❗
 description: Use this to initiate a discussion about a new feature or a larger change
-title: "RFC: [Short description of the feature/change]"
+title: 'RFC: [Short description of the feature/change]'
 labels:
   - RFC
   - Contribution
@@ -23,7 +23,7 @@ body:
   - type: textarea
     attributes:
       label: Use case
-      description: "Please write some background information here, such as: What is your use case? What problem are you trying to solve?"
+      description: 'Please write some background information here, such as: What is your use case? What problem are you trying to solve?'
     validations:
       required: true
 

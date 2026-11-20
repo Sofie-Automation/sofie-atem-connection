@@ -1,5 +1,7 @@
-import { convertYUV422ToRGBA } from '../yuv422ToRgba'
-import { convertRGBAToYUV422 } from '../rgbaToYuv422'
+import { describe, expect, test } from 'vitest'
+
+import { convertRGBAToYUV422 } from '../rgbaToYuv422.js'
+import { convertYUV422ToRGBA } from '../yuv422ToRgba.js'
 
 function encodeAlphaPair(alpha10: number): Buffer {
 	const word = ((alpha10 << 20) | (512 << 10) | 64) >>> 0

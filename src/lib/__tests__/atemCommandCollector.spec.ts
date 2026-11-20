@@ -1,6 +1,8 @@
-import { AtemCommandCollector } from '../batchCommands'
-import * as Commands from '../../commands'
-import { FairlightAnalogInputLevel, ProtocolVersion } from '../../enums'
+import { describe, expect, test } from 'vitest'
+
+import * as Commands from '../../commands/index.js'
+import { FairlightAnalogInputLevel, ProtocolVersion } from '../../enums/index.js'
+import { AtemCommandCollector } from '../batchCommands.js'
 
 describe('AtemCommandCollector', () => {
 	test('takeCommands returns the collected commands, and empties the list', () => {

@@ -1,5 +1,5 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 
 export interface InputSource {
 	source: number

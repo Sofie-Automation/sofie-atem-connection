@@ -1,12 +1,12 @@
+import { IDeserializedCommand } from '../commands/CommandBase.js'
 import {
 	DataTransferAckCommand,
 	DataTransferCompleteCommand,
 	DataTransferDataCommand,
 	DataTransferErrorCommand,
 	ErrorCode,
-} from '../commands/DataTransfer'
-import { IDeserializedCommand } from '../commands/CommandBase'
-import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataTransfer'
+} from '../commands/DataTransfer/index.js'
+import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer.js'
 
 /**
  * Generic base for transfers which download a buffer from the ATEM.
@@ -25,7 +25,10 @@ export abstract class DataTransferDownloadBuffer extends DataTransfer<Buffer> {
 	 * @param transferIndex Index reported back in the ack commands
 	 * @param maxBufferSize Hard cap on the total downloaded size, in bytes
 	 */
-	constructor(protected readonly transferIndex: number, private readonly maxBufferSize: number) {
+	constructor(
+		protected readonly transferIndex: number,
+		private readonly maxBufferSize: number
+	) {
 		super()
 	}
 

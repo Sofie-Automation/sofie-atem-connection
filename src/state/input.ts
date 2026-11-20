@@ -1,4 +1,4 @@
-import { ExternalPortType, InternalPortType, MeAvailability, SourceAvailability } from '../enums'
+import { ExternalPortType, InternalPortType, MeAvailability, SourceAvailability } from '../enums/index.js'
 
 export interface InputChannel {
 	readonly inputId: number

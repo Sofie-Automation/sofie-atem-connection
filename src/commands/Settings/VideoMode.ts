@@ -1,6 +1,6 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import * as Enums from '../../enums'
+import * as Enums from '../../enums/index.js'
+import { AtemState } from '../../state/index.js'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 
 export interface VideoModeProps {
 	mode: Enums.VideoMode

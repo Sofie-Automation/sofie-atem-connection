@@ -1,5 +1,5 @@
-import { DeserializedCommand } from './CommandBase'
-import { AtemState } from '../state'
+import { AtemState } from '../state/index.js'
+import { DeserializedCommand } from './CommandBase.js'
 
 export interface TallyBySourceProps {
 	[source: number]: { program: boolean; preview: boolean } | undefined

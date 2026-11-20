@@ -1,7 +1,7 @@
-import { ISerializableCommand } from '../commands/CommandBase'
-import { DataTransferUploadBuffer } from './dataTransferUploadBuffer'
-import { DataTransferFileDescriptionCommand, DataTransferUploadRequestCommand } from '../commands/DataTransfer'
-import { ProgressTransferResult, DataTransferState } from './dataTransfer'
+import { ISerializableCommand } from '../commands/CommandBase.js'
+import { DataTransferFileDescriptionCommand, DataTransferUploadRequestCommand } from '../commands/DataTransfer/index.js'
+import { DataTransferState, ProgressTransferResult } from './dataTransfer.js'
+import { DataTransferUploadBuffer } from './dataTransferUploadBuffer.js'
 
 export default class DataTransferUploadAudio extends DataTransferUploadBuffer {
 	readonly #clipIndex: number

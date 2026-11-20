@@ -1,4 +1,8 @@
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase'
+import * as crypto from 'crypto'
+
+import debug0 from 'debug'
+
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
 import {
 	DataTransferCompleteCommand,
 	DataTransferDataCommand,
@@ -6,13 +10,11 @@ import {
 	DataTransferUploadContinueCommand,
 	DataTransferUploadContinueProps,
 	ErrorCode,
-} from '../commands/DataTransfer'
-import * as crypto from 'crypto'
-import { DataTransfer, ProgressTransferResult, DataTransferState } from './dataTransfer'
-import debug0 = require('debug')
-import { VideoModeInfo } from '../lib/videoMode'
-import { convertRGBAToYUV422 } from '../lib/converters/rgbaToYuv422'
-import { RLE_HEADER, encodeRLE } from '../lib/converters/rle'
+} from '../commands/DataTransfer/index.js'
+import { convertRGBAToYUV422 } from '../lib/converters/rgbaToYuv422.js'
+import { encodeRLE, RLE_HEADER } from '../lib/converters/rle.js'
+import { VideoModeInfo } from '../lib/videoMode.js'
+import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer.js'
 
 const debug = debug0('atem-connection:data-transfer:upload-buffer')
 

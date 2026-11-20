@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-misused-promises */
-import { Atem } from '../../dist'
-import { DataTransferManager } from '../../dist/dataTransfer'
+/* eslint-disable n/no-process-exit */
 import * as fs from 'fs'
+
+import { generateUploadBufferInfo } from '../../dist/dataTransfer/dataTransferUploadBuffer.js'
+import { DataTransferManager } from '../../dist/dataTransfer/index.js'
+import { Atem, Enums } from '../../dist/index.js'
+import { getVideoModeInfo } from '../../dist/lib/videoMode.js'
 
 const frameBuffer = Buffer.alloc(1920 * 1080 * 4, 0)
 // const wavBuffer = fs.readFileSync('./src/dataTransfer/__tests__/sampleAudio.wav')
@@ -17,7 +21,7 @@ nb.on('connected', async () => {
 		const props = { ...cmd.properties }
 		Object.keys(props).forEach((k) => {
 			if (Buffer.isBuffer(props[k])) {
-				const buf = props[k] as Buffer
+				const buf = props[k]
 				props[k] = { bufferLength: buf.length }
 			}
 		})
@@ -28,24 +32,25 @@ nb.on('connected', async () => {
 		}
 	}
 
-	const transfer = new DataTransferManager()
-	transfer.startCommandSending((cmds) => {
-		return cmds.map(async (cmd) => {
-			commands.push(procCmd(cmd, 'send'))
-			return nb.sendCommand(cmd)
-		})
-	})
+	const transfer = new DataTransferManager(async (cmds) => {
+		for (const cmd of cmds) commands.push(procCmd(cmd, 'send'))
+		return nb.sendCommands(cmds)
+	}, console.error)
+	transfer.startCommandSending()
 	nb.on('receivedCommands', (cmds) => {
 		cmds.forEach(async (cmd): Promise<void> => {
 			commands.push(procCmd(cmd, 'recv'))
-			transfer.queueCommand(cmd)
+			transfer.queueHandleCommand(cmd)
 		})
 	})
 
 	console.log('uploading')
 	// await transfer.uploadStill(0, frameBuffer, 'some still', '')
 	// await transfer.uploadAudio(1, wavBuffer, 'audio file')
-	await transfer.uploadClip(1, [frameBuffer, frameBuffer, frameBuffer], 'clip file')
+	const resolution = getVideoModeInfo(Enums.VideoMode.N1080p2398)
+	if (!resolution) throw new Error('Unknown resolution')
+	const frame = generateUploadBufferInfo(frameBuffer, resolution, true)
+	await transfer.uploadClip(1, [frame, frame, frame], 'clip file')
 
 	console.log('uploaded')
 

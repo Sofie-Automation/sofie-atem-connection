@@ -1,8 +1,9 @@
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase'
-import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer'
-import { LockStateCommand } from '../commands/DataTransfer'
+import debug0 from 'debug'
 import PQueue from 'p-queue'
-import debug0 = require('debug')
+
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
+import { LockStateCommand } from '../commands/DataTransfer/index.js'
+import { DataTransfer, DataTransferState, ProgressTransferResult } from './dataTransfer.js'
 
 const debug = debug0('atem-connection:data-transfer:upload-buffer')
 
@@ -22,6 +23,11 @@ const queueHighPriority = 99
  */
 export const DEFAULT_TRANSFER_INACTIVITY_TIMEOUT = 30_000
 
+function abortReasonToError(reason: unknown): Error {
+	// The default reason is a DOMException, which is an Error
+	return reason instanceof Error ? reason : new Error(`Transfer aborted: ${reason}`)
+}
+
 export interface DataTransferQueueOptions {
 	nextTransferId: () => number
 	/** Report an unexpected error */
@@ -35,7 +41,7 @@ export abstract class DataTransferQueueBase {
 
 	protected readonly nextTransferId: () => number
 	protected readonly onError: (message: string) => void
-	protected readonly handleCommandQueue = new PQueue({ concurrency: 1 })
+	readonly #handleCommandQueue = new PQueue({ concurrency: 1 })
 
 	readonly #inactivityTimeout: number
 	#inactivityTimer: NodeJS.Timeout | undefined
@@ -123,7 +129,7 @@ export abstract class DataTransferQueueBase {
 		}
 		this.taskQueue.splice(0, this.taskQueue.length)
 
-		this.handleCommandQueue.clear()
+		this.#handleCommandQueue.clear()
 
 		this.transferCompleted()
 
@@ -156,13 +162,50 @@ export abstract class DataTransferQueueBase {
 		}
 	}
 
-	/** Queue a transfer to be performed */
-	public async enqueue<T>(transfer: DataTransfer<T>): Promise<T> {
+	/**
+	 * Queue a transfer to be performed
+	 * @param signal Abort the transfer, whether it is still queued or already running
+	 */
+	public async enqueue<T>(transfer: DataTransfer<T>, signal?: AbortSignal): Promise<T> {
+		if (signal) {
+			if (signal.aborted) {
+				transfer.abort(abortReasonToError(signal.reason))
+				return transfer.promise
+			}
+
+			const onAbort = () => this.#abortTransfer(transfer, abortReasonToError(signal.reason))
+			signal.addEventListener('abort', onAbort, { once: true })
+			const cleanup = () => signal.removeEventListener('abort', onAbort)
+			transfer.promise.then(cleanup, cleanup)
+		}
+
 		this.taskQueue.push(transfer)
 
 		this.dequeueAndRun()
 
 		return transfer.promise
+	}
+
+	/** Abort a specific transfer, whether it is still queued or is the active transfer */
+	#abortTransfer(job: DataTransfer<any>, reason: Error): void {
+		const index = this.taskQueue.indexOf(job)
+		if (index !== -1) {
+			this.taskQueue.splice(index, 1)
+			job.abort(reason)
+			return
+		}
+
+		const active = this.activeTransfer
+		if (active?.job !== job) return
+
+		// Run in the command queue, so that it doesn't happen part way through handling a command for this transfer.
+		// There is no way to tell the atem to abort a transfer, so this stops sending to it and releases the lock, the
+		// same as when a transfer times out
+		this.#handleCommandQueue
+			.add(async () => this.#failTransfer(active, reason), { priority: queueHighPriority })
+			.catch((e) => {
+				this.onError(`abortTransfer failed: ${e}`)
+			})
 	}
 
 	private dequeueAndRun(): void {
@@ -172,7 +215,7 @@ export abstract class DataTransferQueueBase {
 		if (!newTransfer) return
 
 		// Anything in the queue is rubbish now TODO - is this true? what about lock changes?
-		this.handleCommandQueue.clear()
+		this.#handleCommandQueue.clear()
 
 		const transferId = this.nextTransferId()
 		this.activeTransfer = {
@@ -191,7 +234,7 @@ export abstract class DataTransferQueueBase {
 	 */
 	protected tryStartTransfer(): void {
 		if (this.activeTransfer) {
-			this.handleCommandQueue
+			this.#handleCommandQueue
 				.add(
 					async () =>
 						this.#runTransferTask(async () => {
@@ -244,7 +287,7 @@ export abstract class DataTransferQueueBase {
 	public tryAbortTransfer(reason: Error): void {
 		if (this.activeTransfer) {
 			const transferId = this.activeTransfer.id
-			this.handleCommandQueue
+			this.#handleCommandQueue
 				.add(
 					async () => {
 						const transfer = this.activeTransfer
@@ -268,7 +311,7 @@ export abstract class DataTransferQueueBase {
 	protected abstract transferCompleted(): void
 
 	public handleCommand(command: IDeserializedCommand): void {
-		this.handleCommandQueue
+		this.#handleCommandQueue
 			.add(async () => {
 				const transfer = this.activeTransfer
 				if (!transfer || transfer.id !== command.properties.transferId) {
@@ -330,6 +373,12 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 	 * clients, so this is only set by LockObtained which is only sent to the client that requested it
 	 */
 	#ownsLock = false
+	/**
+	 * Whether we have asked for the lock, and are waiting for it. The atem queues lock requests and grants them once
+	 * the holder releases it, so a request must be cancelled if we no longer want it, or we will be given a lock that
+	 * nothing will release
+	 */
+	#lockRequested = false
 
 	constructor(storeId: number, sendLockCommand: (cmd: LockStateCommand) => void, options: DataTransferQueueOptions) {
 		super(options)
@@ -344,9 +393,12 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 			// Get the transfer going immediately
 			return transfer.startTransfer(transferId)
 		} else {
-			this.#sendLockCommand(new LockStateCommand(this.#storeId, true))
+			// We need to lock the pool first. A request is still queued with the atem if a previous transfer was aborted while waiting
+			if (!this.#lockRequested) {
+				this.#lockRequested = true
+				this.#sendLockCommand(new LockStateCommand(this.#storeId, true))
+			}
 
-			// We need to lock the pool first
 			return {
 				newState: DataTransferState.Pending,
 				commands: [],
@@ -356,7 +408,20 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 
 	/** We have obtained the lock! */
 	public lockObtained(): void {
+		if (!this.#lockRequested) {
+			// Not something we asked for, so it must be a lock taken manually through this connection. Leave that alone
+			debug(`Ignoring lock ${this.#storeId} that we did not request`)
+			return
+		}
+
 		this.#ownsLock = true
+		this.#lockRequested = false
+
+		if (!this.activeTransfer) {
+			// The transfer which wanted the lock was aborted while waiting for it, so give it back
+			this.transferCompleted()
+			return
+		}
 
 		// Get the transfer started
 		this.tryStartTransfer()
@@ -373,12 +438,13 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 	}
 
 	protected transferCompleted(): void {
-		if (this.#ownsLock && !this.taskQueue.length) {
-			// unlock only when queue is empty
+		if ((this.#ownsLock || this.#lockRequested) && !this.taskQueue.length) {
+			// unlock only when queue is empty. This also cancels a request that is still waiting for the lock
+
+			debug(`Completing transfer (Owned lock = ${this.#ownsLock})`)
 
 			this.#ownsLock = false
-
-			debug(`Completing transfer`)
+			this.#lockRequested = false
 
 			// Unlock the pool
 			this.#sendLockCommand(new LockStateCommand(this.#storeId, false))

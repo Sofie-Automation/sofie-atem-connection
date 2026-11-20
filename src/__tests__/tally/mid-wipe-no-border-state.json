@@ -682,14 +682,7 @@
 				"remainingFrames": 25
 			}
 		],
-		"auxilliaries": [
-			3020,
-			0,
-			6000,
-			0,
-			6000,
-			7001
-		],
+		"auxilliaries": [3020, 0, 6000, 0, 6000, 7001],
 		"superSources": [
 			{
 				"boxes": [
@@ -786,10 +779,7 @@
 			"inputId": 1,
 			"longName": "Camera 1",
 			"shortName": "Cam1",
-			"externalPorts": [
-				1,
-				2
-			],
+			"externalPorts": [1, 2],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -800,9 +790,7 @@
 			"inputId": 2,
 			"longName": "Camera 2",
 			"shortName": "Cam2",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -813,9 +801,7 @@
 			"inputId": 3,
 			"longName": "Camera 3",
 			"shortName": "Cam3",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -826,9 +812,7 @@
 			"inputId": 4,
 			"longName": "9532",
 			"shortName": "96",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -839,9 +823,7 @@
 			"inputId": 5,
 			"longName": "Camera 5",
 			"shortName": "Cam5",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -852,9 +834,7 @@
 			"inputId": 6,
 			"longName": "Camera 6",
 			"shortName": "Cam6",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -865,9 +845,7 @@
 			"inputId": 7,
 			"longName": "6+6",
 			"shortName": "00",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -878,9 +856,7 @@
 			"inputId": 8,
 			"longName": "Camera 8",
 			"shortName": "Cam8",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -891,9 +867,7 @@
 			"inputId": 9,
 			"longName": "Camera 9",
 			"shortName": "Cam9",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -904,9 +878,7 @@
 			"inputId": 10,
 			"longName": "Camera 10",
 			"shortName": "Cm10",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -917,9 +889,7 @@
 			"inputId": 11,
 			"longName": "Camera 11",
 			"shortName": "Cm11",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -930,9 +900,7 @@
 			"inputId": 12,
 			"longName": "Camera 12",
 			"shortName": "Cm12",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -943,9 +911,7 @@
 			"inputId": 13,
 			"longName": "Camera 13",
 			"shortName": "Cm13",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -956,9 +922,7 @@
 			"inputId": 14,
 			"longName": "Camera 14",
 			"shortName": "Cm14",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -969,9 +933,7 @@
 			"inputId": 15,
 			"longName": "Camera 15",
 			"shortName": "Cm15",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,
@@ -982,9 +944,7 @@
 			"inputId": 16,
 			"longName": "Camera 16",
 			"shortName": "Cm16",
-			"externalPorts": [
-				1
-			],
+			"externalPorts": [1],
 			"isExternal": true,
 			"externalPortType": 1,
 			"internalPortType": 0,

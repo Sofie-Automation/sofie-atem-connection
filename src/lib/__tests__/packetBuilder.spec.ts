@@ -1,17 +1,22 @@
-import type { ISerializableCommand } from '../../commands'
-import { ProtocolVersion } from '../../enums'
-import { MAX_PACKET_PAYLOAD_SIZE, PacketBuilder } from '../packetBuilder'
+import { describe, expect, it, vi } from 'vitest'
+
+import { ProtocolVersion } from '../../enums/index.js'
+import { MAX_PACKET_PAYLOAD_SIZE, PacketBuilder } from '../packetBuilder.js'
+import type { ISerializableCommand } from '../../commands/index.js'
 
 class FakeCommand implements ISerializableCommand {
 	static readonly rawName: string = 'FAKE'
 
-	constructor(public readonly length: number, public readonly value: number = 1) {}
+	constructor(
+		public readonly length: number,
+		public readonly value: number = 1
+	) {}
 
 	public get lengthWithHeader(): number {
 		return this.length + 8
 	}
 
-	serialize = jest.fn((_version: ProtocolVersion): Buffer => {
+	serialize = vi.fn((_version: ProtocolVersion): Buffer => {
 		return Buffer.alloc(this.length, this.value)
 	})
 }

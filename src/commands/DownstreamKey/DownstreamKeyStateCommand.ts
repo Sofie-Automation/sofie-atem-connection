@@ -1,7 +1,7 @@
-import { DeserializedCommand } from '../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
-import { DownstreamKeyerBase } from '../../state/video/downstreamKeyers'
-import { ProtocolVersion } from '../../enums'
+import { ProtocolVersion } from '../../enums/index.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { DownstreamKeyerBase } from '../../state/video/downstreamKeyers.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class DownstreamKeyStateCommand extends DeserializedCommand<DownstreamKeyerBase> {
 	public static readonly rawName = 'DskS'

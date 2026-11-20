@@ -1,4 +1,4 @@
-import { BasicWritableCommand } from '../../CommandBase'
+import { BasicWritableCommand } from '../../CommandBase.js'
 
 export class MixEffectKeyFillSourceSetCommand extends BasicWritableCommand<{ fillSource: number }> {
 	public static readonly rawName = 'CKeF'

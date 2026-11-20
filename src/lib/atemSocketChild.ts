@@ -1,9 +1,9 @@
 /**
  * Note: this file wants as few imports as possible, as it gets loaded in a worker-thread and may require its own webpack bundle
  */
-import { createSocket, Socket, RemoteInfo } from 'dgram'
-import { isIP } from 'net'
+import { createSocket, RemoteInfo, Socket } from 'dgram'
 import { promises as dns } from 'dns'
+import { isIP } from 'net'
 import { performance } from 'perf_hooks'
 
 const IN_FLIGHT_TIMEOUT = 60 // ms
@@ -74,7 +74,7 @@ export class AtemSocketChild {
 	private _nextAttemptAt = 0
 
 	private _connectionState = ConnectionState.Closed
-	private _reconnectTimer: NodeJS.Timer | undefined
+	private _reconnectTimer: NodeJS.Timeout | undefined
 	private _retransmitTimer: NodeJS.Timeout | undefined
 
 	private _nextSendPacketId = 1
@@ -108,7 +108,7 @@ export class AtemSocketChild {
 		options: { address: string; port: number; debugBuffers: boolean; maxReconnectDelay?: number },
 		onDisconnect: () => Promise<void>,
 		onLog: (message: string) => Promise<void>,
-		onCommandReceived: (payload: Buffer, packetId: number) => Promise<void>,
+		onCommandReceived: (payload: Uint8Array, packetId: number) => Promise<void>,
 		onCommandAcknowledged: (ids: Array<{ packetId: number; trackingId: number }>) => Promise<void>
 	) {
 		this._debugBuffers = options.debugBuffers

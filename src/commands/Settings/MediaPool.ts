@@ -1,6 +1,6 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState } from '../../state'
-import { ProtocolVersion } from '../../enums'
+import { ProtocolVersion } from '../../enums/index.js'
+import { AtemState } from '../../state/index.js'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 
 export interface MediaPoolProps {
 	maxFrames: number[]

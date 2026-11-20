@@ -1,6 +1,8 @@
-import { DataTransferErrorCommand } from '../../commands/DataTransfer'
-import { DataTransferState } from '../dataTransfer'
-import { DataTransferUploadClip, DataTransferUploadClipFrame } from '../dataTransferUploadClip'
+import { describe, expect, test } from 'vitest'
+
+import { DataTransferErrorCommand, ErrorCode } from '../../commands/DataTransfer/index.js'
+import { DataTransferState } from '../dataTransfer.js'
+import { DataTransferUploadClip, DataTransferUploadClipFrame } from '../dataTransferUploadClip.js'
 
 function createClip() {
 	const generator = { closed: false, framesTaken: 0 }
@@ -32,7 +34,7 @@ describe('DataTransferUploadClip', () => {
 
 		await clip.startTransfer(1)
 		const result = await clip.handleCommand(
-			new DataTransferErrorCommand({ transferId: 1, errorCode: 7 }),
+			new DataTransferErrorCommand({ transferId: 1, errorCode: 7 as ErrorCode }),
 			DataTransferState.Transferring
 		)
 
@@ -40,7 +42,7 @@ describe('DataTransferUploadClip', () => {
 		expect(result).toEqual({ newState: DataTransferState.Finished, commands: [] })
 		await expect(clip.promise).rejects.toThrow('Frame 0 failed: Unknown error 7')
 		expect(generator.framesTaken).toEqual(1)
-		expect(generator.closed).toBeTrue()
+		expect(generator.closed).toBe(true)
 	})
 
 	test('aborting the clip closes the generator', async () => {
@@ -48,10 +50,10 @@ describe('DataTransferUploadClip', () => {
 		clip.promise.catch(() => null)
 
 		await clip.startTransfer(1)
-		expect(generator.closed).toBeFalse()
+		expect(generator.closed).toBe(false)
 
 		clip.abort(new Error('Stopping'))
 		await expect(clip.promise).rejects.toThrow('Stopping')
-		expect(generator.closed).toBeTrue()
+		expect(generator.closed).toBe(true)
 	})
 })

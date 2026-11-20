@@ -1,5 +1,5 @@
-import { WritableCommand } from '../CommandBase'
-import { ProtocolVersion } from '../../enums'
+import { ProtocolVersion } from '../../enums/index.js'
+import { WritableCommand } from '../CommandBase.js'
 
 export class DownstreamKeyAutoCommand extends WritableCommand<{ isTowardsOnAir: boolean }> {
 	public static readonly MaskFlags = {

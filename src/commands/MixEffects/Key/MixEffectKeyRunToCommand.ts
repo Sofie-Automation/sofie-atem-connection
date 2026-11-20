@@ -1,5 +1,5 @@
-import { BasicWritableCommand } from '../../CommandBase'
-import { FlyKeyKeyFrame, FlyKeyDirection } from '../../../enums'
+import { FlyKeyDirection, FlyKeyKeyFrame } from '../../../enums/index.js'
+import { BasicWritableCommand } from '../../CommandBase.js'
 
 export class MixEffectKeyRunToCommand extends BasicWritableCommand<{
 	keyFrameId: FlyKeyKeyFrame

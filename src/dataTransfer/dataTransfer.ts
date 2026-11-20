@@ -1,4 +1,4 @@
-import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase'
+import { IDeserializedCommand, ISerializableCommand } from '../commands/CommandBase.js'
 
 export enum DataTransferState {
 	/** Waiting for strt */
@@ -18,18 +18,10 @@ export abstract class DataTransfer<T> {
 	protected rejectPromise: (reason?: any) => void
 
 	constructor() {
-		// Make typescript happy
-		this.resolvePromise = (): void => {
-			// Ignore
-		}
-		this.rejectPromise = (): void => {
-			// Ignore
-		}
-
-		this.#completionPromise = new Promise<T>((resolve, reject) => {
-			this.resolvePromise = resolve
-			this.rejectPromise = reject
-		})
+		const p = Promise.withResolvers<T>()
+		this.#completionPromise = p.promise
+		this.resolvePromise = p.resolve
+		this.rejectPromise = p.reject
 	}
 
 	/** Get the promise that will resolve upon completion/failure of the transfer */

@@ -1,7 +1,7 @@
-import { AtemState, AtemStateUtil } from '../../state'
-import { ClipBank } from '../../state/media'
-import { DeserializedCommand } from '../CommandBase'
-import * as Util from '../../lib/atemUtil'
+import * as Util from '../../lib/atemUtil.js'
+import { AtemState, AtemStateUtil } from '../../state/index.js'
+import { ClipBank } from '../../state/media.js'
+import { DeserializedCommand } from '../CommandBase.js'
 
 export class MediaPoolClipDescriptionCommand extends DeserializedCommand<Omit<ClipBank, 'frames'>> {
 	public static readonly rawName = 'MPCS'

@@ -1,7 +1,10 @@
 import { types } from 'util'
-import { CommandParser } from '../../lib/atemCommandParser'
-import { ProtocolVersion } from '../../enums'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
+
+import { describe, expect, test } from 'vitest'
+
+import { ProtocolVersion } from '../../enums/index.js'
+import { CommandParser } from '../../lib/atemCommandParser.js'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
 
 /**
  * Feed random bytes to every command, to check that malformed data from a device is handled cleanly:

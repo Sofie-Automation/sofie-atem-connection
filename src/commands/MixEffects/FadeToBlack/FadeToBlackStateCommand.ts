@@ -1,5 +1,5 @@
-import { DeserializedCommand } from '../../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
+import { DeserializedCommand } from '../../CommandBase.js'
 
 export interface FadeToBlackProps {
 	isFullyBlack: boolean

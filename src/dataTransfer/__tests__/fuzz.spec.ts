@@ -1,4 +1,6 @@
-import * as fakeTimers from '@sinonjs/fake-timers'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
+
+import { IDeserializedCommand, ISerializableCommand } from '../../commands/CommandBase.js'
 import {
 	DataTransferCompleteCommand,
 	DataTransferDataCommand,
@@ -9,10 +11,9 @@ import {
 	ErrorCode,
 	LockObtainedCommand,
 	LockStateUpdateCommand,
-} from '../../commands/DataTransfer'
-import { IDeserializedCommand, ISerializableCommand } from '../../commands/CommandBase'
-import { DataTransferManager } from '..'
-import { UploadBufferInfo } from '../dataTransferUploadBuffer'
+} from '../../commands/DataTransfer/index.js'
+import { UploadBufferInfo } from '../dataTransferUploadBuffer.js'
+import { DataTransferManager } from '../index.js'
 
 /**
  * Drive the data transfer manager with random sequences of responses from a misbehaving device, and check that it
@@ -40,20 +41,19 @@ function bufferInfo(length: number): UploadBufferInfo {
 }
 
 describe('DataTransferManager fuzzing', () => {
-	let clock: fakeTimers.InstalledClock
 	const unhandled: unknown[] = []
 	const onUnhandled = (e: unknown): void => {
 		unhandled.push(e)
 	}
 
 	beforeEach(() => {
-		clock = fakeTimers.install()
+		vi.useFakeTimers()
 		unhandled.length = 0
 		process.on('unhandledRejection', onUnhandled)
 	})
 	afterEach(() => {
 		process.off('unhandledRejection', onUnhandled)
-		clock.uninstall()
+		vi.useRealTimers()
 	})
 
 	test.each(Array.from({ length: SEEDS }, (_, i) => i + 1))('seed %d', async (seed) => {
@@ -74,8 +74,7 @@ describe('DataTransferManager fuzzing', () => {
 					}
 				}
 			},
-			(message) => errors.push(message),
-			true
+			(message) => errors.push(message)
 		)
 		manager.startCommandSending(true)
 
@@ -119,24 +118,24 @@ describe('DataTransferManager fuzzing', () => {
 				default:
 					return new DataTransferErrorCommand({
 						transferId,
-						errorCode: pick([ErrorCode.Retry, ErrorCode.NotFound, ErrorCode.NotLocked, 7]),
+						errorCode: pick([ErrorCode.Retry, ErrorCode.NotFound, ErrorCode.NotLocked, 7 as ErrorCode]),
 					})
 			}
 		}
 
 		for (let step = 0; step < STEPS; step++) {
 			manager.queueHandleCommand(randomCommand())
-			await clock.tickAsync(Math.floor(rand() * 10))
+			await vi.advanceTimersByTimeAsync(Math.floor(rand() * 10))
 		}
 
 		// Give every lock, so that nothing is left waiting on one, then let anything stalled time out
 		for (let round = 0; round < 10 && settled.includes(false); round++) {
 			for (const index of [0, 1, 2, 3]) manager.queueHandleCommand(new LockObtainedCommand(index))
-			await clock.tickAsync(SETTLE_TIME)
+			await vi.advanceTimersByTimeAsync(SETTLE_TIME)
 		}
 
 		manager.stopCommandSending()
-		await clock.tickAsync(0)
+		await vi.advanceTimersByTimeAsync(0)
 
 		expect(errors).toEqual([])
 		expect(unhandled).toEqual([])

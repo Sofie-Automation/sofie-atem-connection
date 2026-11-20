@@ -1,7 +1,7 @@
-import { Timecode } from '../../state/common'
-import { ProtocolVersion } from '../../enums'
-import { InvalidIdError, AtemState } from '../../state'
-import { DeserializedCommand, BasicWritableCommand } from '../CommandBase'
+import { ProtocolVersion } from '../../enums/index.js'
+import { Timecode } from '../../state/common.js'
+import { AtemState, InvalidIdError } from '../../state/index.js'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
 
 export class StreamingRequestDurationCommand extends BasicWritableCommand<Record<string, never>> {
 	public static readonly rawName = 'SRDR'

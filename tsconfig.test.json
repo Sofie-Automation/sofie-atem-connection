@@ -1,0 +1,14 @@
+{
+	"extends": "@sofie-automation/code-standard-preset/ts/tsconfig.lib",
+	"include": ["src/**/*spec.ts", "src/**/__tests__/*", "src/**/__mocks__/*", "vitest.config.mts", "examples/**/*"],
+	"exclude": ["node_modules/**", "scratch/**"],
+	"compilerOptions": {
+		"rootDir": "./",
+		"outDir": "./dist",
+		"types": ["node"],
+		"skipLibCheck": true,
+		"noEmit": true,
+		"importHelpers": false // we don't need tslib, but just in case
+	},
+	"references": [{ "path": "./tsconfig.build.json" }]
+}

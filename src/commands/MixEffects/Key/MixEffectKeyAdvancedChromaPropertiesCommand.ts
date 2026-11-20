@@ -1,6 +1,6 @@
-import { WritableCommand, DeserializedCommand } from '../../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state'
-import { UpstreamKeyerAdvancedChromaProperties } from '../../../state/video/upstreamKeyers'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../../state/index.js'
+import { UpstreamKeyerAdvancedChromaProperties } from '../../../state/video/upstreamKeyers.js'
+import { DeserializedCommand, WritableCommand } from '../../CommandBase.js'
 
 export class MixEffectKeyAdvancedChromaPropertiesCommand extends WritableCommand<UpstreamKeyerAdvancedChromaProperties> {
 	public static MaskFlags = {

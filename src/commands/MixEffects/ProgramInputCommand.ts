@@ -1,6 +1,6 @@
-import { BasicWritableCommand, DeserializedCommand } from '../CommandBase'
-import { AtemState, AtemStateUtil, InvalidIdError } from '../../state'
-import { InputSource } from './PreviewInputCommand'
+import { AtemState, AtemStateUtil, InvalidIdError } from '../../state/index.js'
+import { BasicWritableCommand, DeserializedCommand } from '../CommandBase.js'
+import { InputSource } from './PreviewInputCommand.js'
 
 export class ProgramInputCommand extends BasicWritableCommand<InputSource> {
 	public static readonly rawName = 'CPgI'

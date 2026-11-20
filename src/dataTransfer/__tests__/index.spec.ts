@@ -1,9 +1,12 @@
-import * as DataTransferCommands from '../../commands/DataTransfer'
 import { readFileSync } from 'fs'
 import * as path from 'path'
-import { DataTransferManager } from '..'
-import { Commands, UploadBufferInfo } from '../..'
-import { generateHashForBuffer } from '../dataTransferUploadBuffer'
+
+import { expect, test } from 'vitest'
+
+import * as DataTransferCommands from '../../commands/DataTransfer/index.js'
+import { Commands, UploadBufferInfo } from '../../index.js'
+import { generateHashForBuffer } from '../dataTransferUploadBuffer.js'
+import { DataTransferManager } from '../index.js'
 
 function specToCommandClass(spec: any): Commands.IDeserializedCommand | undefined {
 	for (const commandName in DataTransferCommands) {
@@ -32,7 +35,7 @@ function mangleCommand(cmd: any, dir: string): any {
 	const props = { ...cmd.properties }
 	Object.keys(props).forEach((k) => {
 		if (Buffer.isBuffer(props[k])) {
-			const buf = props[k] as Buffer
+			const buf = props[k]
 			props[k] = { bufferLength: buf.length }
 		}
 	})

@@ -1,5 +1,5 @@
-import { PropertyAliasResult, CommandTestConverterSet } from './index.spec'
-import { Util } from '../..'
+import { Util } from '../../index.js'
+import { CommandTestConverterSet, PropertyAliasResult } from './index.spec.js'
 
 export const V8_0CommandConverters: CommandTestConverterSet = {
 	SSrc: {
