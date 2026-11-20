@@ -1,5 +1,5 @@
 import { BasicWritableCommand } from '../CommandBase'
-import { Util } from '../..'
+import * as Util from '../../lib/atemUtil'
 
 export class MacroRecordCommand extends BasicWritableCommand<{ name: string; description: string }> {
 	public static readonly rawName = 'MSRc'

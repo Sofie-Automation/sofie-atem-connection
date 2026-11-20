@@ -1,5 +1,5 @@
 import { AtemState, InvalidIdError } from '../../state'
-import { Util } from '../..'
+import * as Util from '../../lib/atemUtil'
 import { AudioChannel } from '../../state/audio'
 import { WritableCommand, DeserializedCommand } from '../CommandBase'
 import { ProtocolVersion } from '../../enums'

@@ -1,6 +1,6 @@
 import { WritableCommand, DeserializedCommand } from '../CommandBase'
 import { AtemState, InvalidIdError } from '../../state'
-import { Util } from '../..'
+import * as Util from '../../lib/atemUtil'
 import { AudioMasterChannel } from '../../state/audio'
 
 export class AudioMixerMasterCommand extends WritableCommand<AudioMasterChannel> {

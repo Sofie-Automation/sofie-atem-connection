@@ -1,6 +1,6 @@
 import { BasicWritableCommand, DeserializedCommand } from '../CommandBase'
 import { AtemState } from '../../state'
-import { Enums } from '../..'
+import * as Enums from '../../enums'
 
 export interface VideoModeProps {
 	mode: Enums.VideoMode
