@@ -1223,6 +1223,102 @@ describe('SocketChild', () => {
 		}
 	})
 
+	describe('lifecycle races', () => {
+		test('a disconnect while a restart waits on onDisconnect is not undone', async () => {
+			let release: () => void = () => null
+			let calls = 0
+			const child = createSocketChild(undefined, undefined, async () => {
+				// Hold up the first onDisconnect, which is the one from the restart
+				if (++calls === 1) await new Promise<void>((resolve) => (release = resolve))
+			})
+			fakeConnect(child)
+
+			const restarting = (child as any).restartConnection()
+			await clock.tickAsync(0)
+			await child.disconnect()
+			release()
+			await restarting
+
+			expect(getState(child)).toEqual(ConnectionState.Disconnected)
+			expect(clock.countTimers()).toEqual(0)
+		})
+
+		test('connect straight after disconnect, without waiting, connects', async () => {
+			const child = createSocketChild()
+			try {
+				await child.connect(ADDRESS, DEFAULT_PORT)
+				const oldSocket = getSocket(child)
+
+				const disconnecting = child.disconnect()
+				const connecting = child.connect(ADDRESS, DEFAULT_PORT)
+				await disconnecting
+				await connecting
+
+				expect(getState(child)).toEqual(ConnectionState.SynSent)
+				const newSocket = (child as any)._socket
+				expect(newSocket).not.toBe(oldSocket)
+				expect(newSocket.isOpen).toBeTrue()
+			} finally {
+				await child.disconnect()
+			}
+		})
+
+		test('the rest of a packet which triggered a restart is ignored', async () => {
+			const child = createSocketChild()
+			try {
+				fakeConnect(child)
+				const socket = getSocket(child)
+				socket.sendImpl = () => null
+				child.sendPackets([
+					{ payloadLength: 1, payloadHex: '00', trackingId: 1 },
+					{ payloadLength: 1, payloadHex: '00', trackingId: 2 },
+				])
+
+				// Asks for a packet which isn't in flight (which forces a restart), and acks packet 1
+				const packet = Buffer.alloc(12)
+				packet.writeUInt16BE(((PacketFlag.RetransmitRequest | PacketFlag.AckReply) << 11) | 12, 0)
+				packet.writeUInt16BE(1, 4) // Ack id
+				packet.writeUInt16BE(99, 6) // Retransmit from
+				await socket.emitMessage(clock, packet)
+
+				expect(getInflightIds(child)).toEqual([])
+				expect((child as any)._retransmitTimer).toBeUndefined()
+			} finally {
+				await child.disconnect()
+			}
+		})
+
+		test('a late handshake reply during a restart is ignored', async () => {
+			let resolveLookup: (v: any) => void = () => null
+			const lookup = jest
+				.spyOn(dns, 'lookup')
+				.mockImplementation(async () => new Promise((resolve) => (resolveLookup = resolve)) as any)
+			const child = createSocketChild()
+			try {
+				const socket = getSocket(child)
+				socket.expectedAddress = undefined
+				socket.sendImpl = () => null
+
+				const connecting = child.connect('atem.local', DEFAULT_PORT)
+				// A reply to an older hello arrives while waiting for the lookup
+				socket.emit('message', genNewSessionMessage(0), {
+					address: 'atem.local',
+					port: DEFAULT_PORT,
+					family: 'IPv4',
+					size: 12,
+				})
+				expect(getState(child)).toEqual(ConnectionState.Closed)
+
+				resolveLookup({ address: '10.0.0.5', family: 4 })
+				await connecting
+				expect(getState(child)).toEqual(ConnectionState.SynSent)
+			} finally {
+				await child.disconnect()
+				lookup.mockRestore()
+			}
+		})
+	})
+
 	test('Inbound commands - out of order buffer is cleared by a new session', async () => {
 		const { child, socket, delivered, acked } = createOutOfOrderHarness()
 		try {

@@ -142,15 +142,16 @@ export class AtemSocketChild {
 	}
 
 	public async disconnect(): Promise<void> {
-		// Abort any restart which is waiting on a dns lookup
+		// Abort any restart which is in progress
 		this._restartGeneration++
 		this._clearTimers()
 
-		return this._closeSocket().then(async () => {
-			this._connectionState = ConnectionState.Disconnected
-			this._clearOutOfOrderPackets()
-			return this.onDisconnect()
-		})
+		// Update the state immediately, so that a connect() made while the socket is closing creates a new one
+		this._connectionState = ConnectionState.Disconnected
+		this._clearOutOfOrderPackets()
+
+		await this._closeSocket()
+		return this.onDisconnect()
 	}
 
 	private _clearTimers() {
@@ -168,21 +169,28 @@ export class AtemSocketChild {
 		const generation = ++this._restartGeneration
 		this._clearTimers()
 
-		// This includes a 'disconnect'
-		if (this._connectionState === ConnectionState.Established) {
-			this._connectionState = ConnectionState.Closed
+		const wasEstablished = this._connectionState === ConnectionState.Established
+		if (wasEstablished) {
 			this._recreateSocket()
-			await this.onDisconnect()
 		} else if (this._connectionState === ConnectionState.Disconnected) {
 			this._createSocket()
 		}
 
-		// Reset connection
+		// Reset everything before waiting on anything, so that nothing still being handled for the old connection (such as
+		// the rest of the packet which triggered this restart) can act on it
+		this._connectionState = ConnectionState.Closed
 		this._nextSendPacketId = 1
 		this._sessionId = 0
 		this._inFlight = []
+		this._receivedWithoutAck = 0
 		this._clearOutOfOrderPackets()
 		this.log('reconnect')
+
+		if (wasEstablished) {
+			await this.onDisconnect()
+			// Disconnected, or another restart was started while waiting
+			if (generation !== this._restartGeneration) return
+		}
 
 		if (isIP(this._host)) {
 			this._address = this._host
@@ -318,6 +326,13 @@ export class AtemSocketChild {
 
 		// Send hello answer packet when receive connect flags
 		if (flags & PacketFlag.NewSessionId) {
+			// Not expecting a handshake, as a restart is in progress (or a disconnect). It is a late reply to an older hello
+			if (
+				this._connectionState === ConnectionState.Closed ||
+				this._connectionState === ConnectionState.Disconnected
+			)
+				return
+
 			this._connectionState = ConnectionState.Established
 			this._lastReceivedPacketId = remotePacketId
 			this._clearOutOfOrderPackets()
@@ -335,7 +350,10 @@ export class AtemSocketChild {
 
 				ps.push(this._retransmitFrom(fromPacketId))
 			}
+		}
 
+		// The retransmit request may have restarted the connection, in which case the rest of the packet is for the old one
+		if (this._connectionState === ConnectionState.Established) {
 			// Got a packet that needs an ack. Ids are only 15 bits, anything larger is malformed and could never be drained
 			if (flags & PacketFlag.AckRequest && remotePacketId < MAX_PACKET_ID) {
 				const distance = (remotePacketId - this._lastReceivedPacketId + MAX_PACKET_ID) % MAX_PACKET_ID
