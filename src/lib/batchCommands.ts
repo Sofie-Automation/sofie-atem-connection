@@ -49,3 +49,42 @@ export class AtemCommandBatchBase {
  *
  */
 export class AtemCommandBatch extends AtemCommandSenderMixin<void, typeof AtemCommandBatchBase>(AtemCommandBatchBase) {}
+
+/**
+ * Holds the collected commands for an {@link AtemCommandCollector}.
+ * The command-building methods are added by {@link AtemCommandSenderMixin}.
+ *
+ * Exported so that declaration emit can name it as the base of {@link AtemCommandCollector}
+ * (which extends it through the mixin). Not intended to be used directly.
+ */
+export class AtemCommandCollectorBase {
+	#commands: ISerializableCommand[] = []
+
+	/**
+	 * @param apiVersion The protocol version to build commands for, which decides between version specific commands
+	 */
+	constructor(public readonly apiVersion: ProtocolVersion) {}
+
+	/** Return the collected commands, and empty the list */
+	public takeCommands(): ISerializableCommand[] {
+		const commands = this.#commands
+		this.#commands = []
+		return commands
+	}
+
+	public sendCommand(command: ISerializableCommand): void {
+		this.#commands.push(command)
+	}
+
+	public sendCommands(commands: ISerializableCommand[]): void {
+		this.#commands.push(...commands)
+	}
+}
+
+/**
+ * Builds commands with the same helpers as `Atem`, without needing a connection, collecting them into an array.
+ * This is useful for computing the commands to send elsewhere, such as when diffing states.
+ */
+export class AtemCommandCollector extends AtemCommandSenderMixin<void, typeof AtemCommandCollectorBase>(
+	AtemCommandCollectorBase
+) {}
