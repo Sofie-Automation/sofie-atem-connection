@@ -1,5 +1,5 @@
 import * as fakeTimers from '@sinonjs/fake-timers'
-import { DataTransferCompleteCommand, DataTransferDataCommand } from '../../commands/DataTransfer'
+import { DataTransferCompleteCommand, DataTransferDataCommand, LockStateCommand } from '../../commands/DataTransfer'
 import { IDeserializedCommand } from '../../commands/CommandBase'
 import { DataTransfer, DataTransferState, ProgressTransferResult } from '../dataTransfer'
 import { DataTransferLockingQueue, DataTransferSimpleQueue } from '../dataTransferQueue'
@@ -136,5 +136,75 @@ describe('DataTransferQueue', () => {
 		queue.handleCommand(new DataTransferCompleteCommand({ transferId: 1 }))
 		await clock.tickAsync(0)
 		await expect(next).resolves.toBeUndefined()
+	})
+
+	describe('locking', () => {
+		function createLockingQueue() {
+			const lockCommands: boolean[] = []
+			let nextId = 0
+			const queue = new DataTransferLockingQueue(
+				0,
+				(cmd: LockStateCommand) => lockCommands.push(cmd.properties.locked),
+				{
+					nextTransferId: () => nextId++,
+					onError: () => null,
+					inactivityTimeout: TIMEOUT,
+				}
+			)
+			return { queue, lockCommands }
+		}
+
+		test("another client's lock is not mistaken for ours", async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			// Another client locks the pool
+			queue.updateLock(true)
+
+			// We still have to request the lock, rather than starting the transfer straight away
+			const transfer = new FakeTransfer()
+			const startSpy = jest.spyOn(transfer, 'startTransfer')
+			const promise = queue.enqueue(transfer)
+			await clock.tickAsync(0)
+			expect(lockCommands).toEqual([true])
+			expect(startSpy).not.toHaveBeenCalled()
+
+			// The other client unlocking doesn't abort our transfer, which is still waiting for the lock
+			queue.updateLock(false)
+			await clock.tickAsync(0)
+
+			queue.lockObtained()
+			await clock.tickAsync(0)
+			expect(startSpy).toHaveBeenCalledTimes(1)
+
+			queue.handleCommand(new DataTransferCompleteCommand({ transferId: 0 }))
+			await clock.tickAsync(0)
+			queue.popQueuedCommands(10) // Let the queue see the transfer has finished
+			await expect(promise).resolves.toBeUndefined()
+
+			// Our lock is released, once
+			expect(lockCommands).toEqual([true, false])
+
+			// Then confirming our unlock, and another client taking the lock, changes nothing
+			queue.updateLock(false)
+			queue.updateLock(true)
+			await clock.tickAsync(0)
+			expect(lockCommands).toEqual([true, false])
+		})
+
+		test('losing our lock mid-transfer aborts it', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			const promise = queue.enqueue(new FakeTransfer())
+			promise.catch(() => null)
+			await clock.tickAsync(0)
+			queue.lockObtained()
+			await clock.tickAsync(0)
+
+			queue.updateLock(false)
+			await clock.tickAsync(0)
+			await expect(promise).rejects.toThrow('Lost lock mid-transfer')
+			// It is already unlocked, so there is nothing to release
+			expect(lockCommands).toEqual([true])
+		})
 	})
 })

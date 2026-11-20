@@ -325,19 +325,22 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 	readonly #storeId: number
 	readonly #sendLockCommand: (cmd: LockStateCommand) => void
 
-	private isLocked: boolean
+	/**
+	 * Whether we hold the lock. Lock state updates are sent to every client, including for locks held by other
+	 * clients, so this is only set by LockObtained which is only sent to the client that requested it
+	 */
+	#ownsLock = false
 
 	constructor(storeId: number, sendLockCommand: (cmd: LockStateCommand) => void, options: DataTransferQueueOptions) {
 		super(options)
 
 		this.#storeId = storeId
 		this.#sendLockCommand = sendLockCommand
-		this.isLocked = false
 	}
 
 	protected async startTransfer(transfer: DataTransfer<any>, transferId: number): Promise<ProgressTransferResult> {
-		debug(`Starting transfer ${transferId} (Already locked = ${this.isLocked})`)
-		if (this.isLocked) {
+		debug(`Starting transfer ${transferId} (Already locked = ${this.#ownsLock})`)
+		if (this.#ownsLock) {
 			// Get the transfer going immediately
 			return transfer.startTransfer(transferId)
 		} else {
@@ -353,29 +356,27 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 
 	/** We have obtained the lock! */
 	public lockObtained(): void {
-		this.isLocked = true
+		this.#ownsLock = true
 
 		// Get the transfer started
 		this.tryStartTransfer()
 	}
 
-	/** The status of the lock has changed */
+	/** The status of the lock has changed. This could be for a lock held by another client */
 	public updateLock(locked: boolean): void {
-		const wasLocked = this.isLocked
-		this.isLocked = locked
-
-		if (wasLocked && !locked) {
-			// only abort when it becomes unlocked unexpectedly, otherwise we're likely waiting to
-			// obtain lock for a transfer queued shortly after sending unlock command
+		// Ownership is given up as soon as the unlock is sent, so an unlock reported while we still own it was unexpected.
+		// Any other change is for another client, or confirming our own unlock, so can be ignored
+		if (!locked && this.#ownsLock) {
+			this.#ownsLock = false
 			this.tryAbortTransfer(new Error('Lost lock mid-transfer'))
 		}
 	}
 
 	protected transferCompleted(): void {
-		if (this.isLocked && !this.taskQueue.length) {
+		if (this.#ownsLock && !this.taskQueue.length) {
 			// unlock only when queue is empty
 
-			this.isLocked = false
+			this.#ownsLock = false
 
 			debug(`Completing transfer`)
 
