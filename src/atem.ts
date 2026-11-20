@@ -67,7 +67,7 @@ export type AtemEvents = {
 
 interface SentPackets {
 	resolve: () => void
-	reject: () => void
+	reject: (reason: Error) => void
 }
 
 export enum AtemConnectionStatus {
@@ -232,7 +232,8 @@ class AtemWrapper {
 			)
 		}
 
-		await Promise.allSettled(promises)
+		// Rejects if the connection is lost before the atem acknowledges every packet
+		await Promise.all(promises)
 	}
 
 	private _mutateState(commands: IDeserializedCommand[]): void {
@@ -323,7 +324,8 @@ class AtemWrapper {
 		const sentQueue = this._sentQueue
 		this._sentQueue = {}
 
-		Object.values<SentPackets>(sentQueue).forEach((sent) => sent.reject())
+		const reason = new Error('Connection lost before the command was acknowledged')
+		Object.values<SentPackets>(sentQueue).forEach((sent) => sent.reject(reason))
 	}
 }
 

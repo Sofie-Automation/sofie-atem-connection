@@ -144,6 +144,28 @@ describe('Atem', () => {
 		}
 	}, 500)
 
+	test('sendCommand - rejects when the connection is lost before the ack', async () => {
+		;(AtemSocket as any).mockImplementation(() => new MockSocket())
+		const conn = new Atem({ address: 'test1', port: 23 })
+
+		try {
+			const socket = (conn as any).client.socket as AtemSocket
+			socket.sendCommands = jest.fn(() => Promise.resolve([124, 125]) as any)
+
+			const res = conn.sendCommand(new CutCommand(0))
+			await setImmediatePromise()
+
+			// One packet is acked, then the connection drops before the other is
+			socket.emit('ackPackets', [124])
+			socket.emit('disconnect')
+
+			await expect(res).rejects.toThrow('Connection lost before the command was acknowledged')
+			expect(Object.keys((conn as any).client._sentQueue)).toHaveLength(0)
+		} finally {
+			await conn.destroy()
+		}
+	})
+
 	test('sendCommand - send error', async () => {
 		;(AtemSocket as any).mockImplementation(() => new MockSocket())
 		const conn = new Atem({ debugBuffers: true, address: 'test1', port: 23 })
