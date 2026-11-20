@@ -13,10 +13,9 @@ export class StreamingAudioBitratesCommand extends SymmetricalCommand<StreamingA
 
 	public serialize(): Buffer {
 		const buffer = Buffer.alloc(8)
-		const lowBitrate = this.properties.lowBitrate || 128000
-		const highBitrate = this.properties.highBitrate || 192000
-		buffer.writeUInt32BE(lowBitrate, 0)
-		buffer.writeUInt32BE(highBitrate, 4)
+		// Defaults are applied by the constructor, so an explicit 0 is kept
+		buffer.writeUInt32BE(this.properties.lowBitrate, 0)
+		buffer.writeUInt32BE(this.properties.highBitrate, 4)
 		return buffer
 	}
 
