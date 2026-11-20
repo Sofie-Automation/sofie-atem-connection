@@ -258,6 +258,12 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			return this.sendCommand(command)
 		}
 		public setMultiViewerWindowSafeAreaEnabled(safeAreaEnabled: boolean, mv = 0, window = 0): T {
+			if (this.apiVersion && this.apiVersion < Enums.ProtocolVersion.V8_0) {
+				throw new Error(
+					'Per window safe area is not supported before 8.0, use setMultiViewerProperties({ safeAreaEnabled }) instead'
+				)
+			}
+
 			const command = new Commands.MultiViewerWindowSafeAreaCommand(mv, window, safeAreaEnabled)
 			return this.sendCommand(command)
 		}
@@ -271,9 +277,21 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 			return this.sendCommand(command)
 		}
 		public setMultiViewerProperties(props: Partial<MultiViewerPropertiesState>, mv = 0): T {
-			const command = new Commands.MultiViewerPropertiesCommand(mv)
-			command.updateProps(props)
-			return this.sendCommand(command)
+			if (this.apiVersion && this.apiVersion >= Enums.ProtocolVersion.V8_0) {
+				if (props.safeAreaEnabled !== undefined) {
+					throw new Error(
+						'safeAreaEnabled is only supported before 8.0, use setMultiViewerWindowSafeAreaEnabled instead'
+					)
+				}
+
+				const command = new Commands.MultiViewerPropertiesCommand(mv)
+				command.updateProps(props)
+				return this.sendCommand(command)
+			} else {
+				const command = new Commands.MultiViewerPropertiesV7Command(mv)
+				command.updateProps(props)
+				return this.sendCommand(command)
+			}
 		}
 		public setMultiViewerBorderColor(color: MultiViewerBorderColorState, mv = 0): T {
 			const command = new Commands.MultiViewerBorderColorCommand(mv, color)

@@ -78,6 +78,18 @@ export const DefaultCommandConverters: CommandTestConverterSet = {
 			inputSource: (v: number): PropertyAliasResult => ({ val: v, name: 'source' }),
 		},
 	},
+	CMvP: {
+		idAliases: {
+			multiViewerId: 'multiviewIndex',
+		},
+		propertyAliases: {},
+	},
+	MvPr: {
+		idAliases: {
+			multiViewerId: 'multiviewIndex',
+		},
+		propertyAliases: {},
+	},
 	SSrc: {
 		idAliases: {},
 		propertyAliases: {

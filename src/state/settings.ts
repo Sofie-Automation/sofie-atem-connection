@@ -19,6 +19,8 @@ export interface MultiViewerWindowState extends MultiViewerSourceState {
 export interface MultiViewerPropertiesState {
 	layout: MultiViewerLayout
 	programPreviewSwapped: boolean
+	/** Only before 8.0. Since then the safe area is a property of each window */
+	safeAreaEnabled?: boolean
 }
 export interface MultiViewerBorderColorState {
 	/** Red component 0-1000 */
