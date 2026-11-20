@@ -1,6 +1,6 @@
 import { AtemCommandCollector } from '../batchCommands'
 import * as Commands from '../../commands'
-import { ProtocolVersion } from '../../enums'
+import { FairlightAnalogInputLevel, ProtocolVersion } from '../../enums'
 
 describe('AtemCommandCollector', () => {
 	test('takeCommands returns the collected commands, and empties the list', () => {
@@ -83,6 +83,60 @@ describe('AtemCommandCollector', () => {
 			const commands = collect(ProtocolVersion.V8_0, (c) => c.setMultiViewerWindowSafeAreaEnabled(true))
 			expect(commands).toHaveLength(1)
 			expect(commands[0]).toBeInstanceOf(Commands.MultiViewerWindowSafeAreaCommand)
+		})
+	})
+
+	describe('setFairlightAudioMixerInputProps input level', () => {
+		function inputCommand(
+			version: ProtocolVersion,
+			props: Parameters<AtemCommandCollector['setFairlightAudioMixerInputProps']>[1]
+		) {
+			const commands = collect(version, (c) => c.setFairlightAudioMixerInputProps(2, props))
+			expect(commands).toHaveLength(1)
+			return commands[0] as Commands.FairlightMixerInputCommand | Commands.FairlightMixerInputV8Command
+		}
+
+		test('before 8.1.1, activeInputLevel is converted to rcaToXlrEnabled', () => {
+			const proLine = inputCommand(ProtocolVersion.V8_0_1, {
+				activeInputLevel: FairlightAnalogInputLevel.ProLine,
+			})
+			expect(proLine).toBeInstanceOf(Commands.FairlightMixerInputCommand)
+			expect(proLine.properties).toEqual({ rcaToXlrEnabled: true })
+			expect(proLine.flag).toEqual(Commands.FairlightMixerInputCommand.MaskFlags.rcaToXlrEnabled)
+
+			const mic = inputCommand(ProtocolVersion.V8_0_1, { activeInputLevel: FairlightAnalogInputLevel.Microphone })
+			expect(mic.properties).toEqual({ rcaToXlrEnabled: false })
+		})
+
+		test('before 8.1.1, the deprecated rcaToXlrEnabled is passed through', () => {
+			const command = inputCommand(ProtocolVersion.V8_0_1, { rcaToXlrEnabled: true, activeConfiguration: 1 })
+			expect(command.properties).toEqual({ rcaToXlrEnabled: true, activeConfiguration: 1 })
+		})
+
+		test('from 8.1.1, activeInputLevel is set directly', () => {
+			const command = inputCommand(ProtocolVersion.V8_1_1, {
+				activeInputLevel: FairlightAnalogInputLevel.ConsumerLine,
+			})
+			expect(command).toBeInstanceOf(Commands.FairlightMixerInputV8Command)
+			expect(command.properties).toEqual({ activeInputLevel: FairlightAnalogInputLevel.ConsumerLine })
+			expect(command.flag).toEqual(Commands.FairlightMixerInputV8Command.MaskFlags.activeInputLevel)
+		})
+
+		test('from 8.1.1, the deprecated rcaToXlrEnabled is converted to activeInputLevel', () => {
+			expect(inputCommand(ProtocolVersion.V8_1_1, { rcaToXlrEnabled: true }).properties).toEqual({
+				activeInputLevel: FairlightAnalogInputLevel.ProLine,
+			})
+			expect(inputCommand(ProtocolVersion.V8_1_1, { rcaToXlrEnabled: false }).properties).toEqual({
+				activeInputLevel: FairlightAnalogInputLevel.Microphone,
+			})
+		})
+
+		test('activeInputLevel takes priority over the deprecated rcaToXlrEnabled', () => {
+			const command = inputCommand(ProtocolVersion.V8_1_1, {
+				activeInputLevel: FairlightAnalogInputLevel.ConsumerLine,
+				rcaToXlrEnabled: true,
+			})
+			expect(command.properties).toEqual({ activeInputLevel: FairlightAnalogInputLevel.ConsumerLine })
 		})
 	})
 })

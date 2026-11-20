@@ -12,6 +12,7 @@ import type {
 	FairlightAudioExpanderState,
 	FairlightAudioRoutingSource,
 	FairlightAudioRoutingOutput,
+	FairlightAudioInputProperties,
 } from '../state/fairlight'
 import type { InputChannel } from '../state/input'
 import type { MediaPlayer, MediaPlayerSource } from '../state/media'
@@ -48,6 +49,12 @@ export interface AtemCommandSenderControl<T> {
 	sendCommand(command: ISerializableCommand): T
 	sendCommands(commands: ISerializableCommand[]): T
 	readonly apiVersion: Enums.ProtocolVersion | undefined
+}
+
+/** Convert the pre 8.1.1 RCA to XLR flag to an input level, matching how FairlightMixerInputUpdateCommand reads it */
+function rcaToXlrToInputLevel(rcaToXlrEnabled: boolean | undefined): Enums.FairlightAnalogInputLevel | undefined {
+	if (rcaToXlrEnabled === undefined) return undefined
+	return rcaToXlrEnabled ? Enums.FairlightAnalogInputLevel.ProLine : Enums.FairlightAnalogInputLevel.Microphone
 }
 
 /**
@@ -612,14 +619,32 @@ export function AtemCommandSenderMixin<T, TBase extends new (...args: any[]) => 
 
 		public setFairlightAudioMixerInputProps(
 			index: number,
-			props: Commands.FairlightMixerInputCommand['properties']
+			props: Partial<OmitReadonly<FairlightAudioInputProperties>> & {
+				/**
+				 * Whether the RCA input is used instead of XLR, which is how the input level was set before 8.1.1
+				 * @deprecated Use `activeInputLevel`. `true` is `ProLine`, and `false` is `Microphone`
+				 */
+				rcaToXlrEnabled?: boolean
+			}
 		): T {
+			const { rcaToXlrEnabled, activeInputLevel, ...otherProps } = props
+
 			if (this.apiVersion && this.apiVersion >= Commands.FairlightMixerInputV8Command.minimumVersion) {
 				const command = new Commands.FairlightMixerInputV8Command(index)
-				return updateAndSend(this, command, props)
+				return updateAndSend(this, command, {
+					...otherProps,
+					activeInputLevel: activeInputLevel ?? rcaToXlrToInputLevel(rcaToXlrEnabled),
+				})
 			} else {
 				const command = new Commands.FairlightMixerInputCommand(index)
-				return updateAndSend(this, command, props)
+				return updateAndSend(this, command, {
+					...otherProps,
+					// The reverse of how FairlightMixerInputUpdateCommand reads it
+					rcaToXlrEnabled:
+						activeInputLevel !== undefined
+							? activeInputLevel === Enums.FairlightAnalogInputLevel.ProLine
+							: rcaToXlrEnabled,
+				})
 			}
 		}
 
