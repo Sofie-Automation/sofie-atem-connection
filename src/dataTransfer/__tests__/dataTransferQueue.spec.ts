@@ -2,7 +2,7 @@ import * as fakeTimers from '@sinonjs/fake-timers'
 import { DataTransferCompleteCommand, DataTransferDataCommand, LockStateCommand } from '../../commands/DataTransfer'
 import { IDeserializedCommand } from '../../commands/CommandBase'
 import { DataTransfer, DataTransferState, ProgressTransferResult } from '../dataTransfer'
-import { DataTransferLockingQueue, DataTransferSimpleQueue } from '../dataTransferQueue'
+import { DataTransferLockingQueue, DataTransferSimpleQueue, STALE_UNLOCK_WINDOW } from '../dataTransferQueue'
 
 const TIMEOUT = 1000
 
@@ -198,6 +198,7 @@ describe('DataTransferQueue', () => {
 			promise.catch(() => null)
 			await clock.tickAsync(0)
 			queue.lockObtained()
+			queue.updateLock(true) // The atem confirms the lock
 			await clock.tickAsync(0)
 
 			queue.updateLock(false)
@@ -205,6 +206,42 @@ describe('DataTransferQueue', () => {
 			await expect(promise).rejects.toThrow('Lost lock mid-transfer')
 			// It is already unlocked, so there is nothing to release
 			expect(lockCommands).toEqual([true])
+		})
+
+		test('losing a lock that was granted without being confirmed aborts the transfer', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			const promise = queue.enqueue(new FakeTransfer())
+			promise.catch(() => null)
+			await clock.tickAsync(0)
+
+			// When the lock is handed straight over from another client, the atem doesn't report it as locked
+			queue.lockObtained()
+			await clock.tickAsync(STALE_UNLOCK_WINDOW)
+
+			queue.updateLock(false)
+			await clock.tickAsync(0)
+			await expect(promise).rejects.toThrow('Lost lock mid-transfer')
+			expect(lockCommands).toEqual([true])
+		})
+
+		test('a stale unlock arriving soon after the lock is granted is not mistaken for losing it', async () => {
+			const { queue, lockCommands } = createLockingQueue()
+
+			const promise = queue.enqueue(new FakeTransfer())
+			await clock.tickAsync(0)
+
+			// After releasing and quickly re-obtaining the lock, the update for the release can arrive after the new grant
+			queue.lockObtained()
+			await clock.tickAsync(STALE_UNLOCK_WINDOW - 1)
+			queue.updateLock(false)
+			await clock.tickAsync(0)
+
+			queue.handleCommand(new DataTransferCompleteCommand({ transferId: 0 }))
+			await clock.tickAsync(0)
+			queue.popQueuedCommands(10)
+			await expect(promise).resolves.toBeUndefined()
+			expect(lockCommands).toEqual([true, false])
 		})
 
 		test('aborting while waiting for the lock cancels the request', async () => {

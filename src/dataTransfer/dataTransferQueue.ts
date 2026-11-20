@@ -30,6 +30,13 @@ export interface DataTransferQueueOptions {
 	inactivityTimeout?: number
 }
 
+/**
+ * How long after being granted a lock that an unlock is assumed to be a stale update from before the grant.
+ * The atem sends state updates shortly after the grant, so after releasing and quickly re-obtaining the lock, the update
+ * for the release can arrive after the new grant.
+ */
+export const STALE_UNLOCK_WINDOW = 500
+
 export abstract class DataTransferQueueBase {
 	protected readonly taskQueue: Array<DataTransfer<any>> = []
 
@@ -336,6 +343,14 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 	 * nothing will release
 	 */
 	#lockRequested = false
+	/**
+	 * Whether the atem has reported the pool as locked since we were granted it. Any stale unlock update will have
+	 * arrived before that. The atem does not always send this, such as when the lock is handed straight over from
+	 * another client, so the lock is also treated as confirmed once STALE_UNLOCK_WINDOW has passed
+	 */
+	#lockConfirmed = false
+	/** When we were last granted the lock */
+	#lockObtainedAt = 0
 
 	constructor(storeId: number, sendLockCommand: (cmd: LockStateCommand) => void, options: DataTransferQueueOptions) {
 		super(options)
@@ -372,7 +387,9 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 		}
 
 		this.#ownsLock = true
+		this.#lockConfirmed = false
 		this.#lockRequested = false
+		this.#lockObtainedAt = Date.now()
 
 		// Get the transfer started
 		this.tryStartTransfer()
@@ -380,9 +397,19 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 
 	/** The status of the lock has changed. This could be for a lock held by another client */
 	public updateLock(locked: boolean): void {
-		// Ownership is given up as soon as the unlock is sent, so an unlock reported while we still own it was unexpected.
-		// Any other change is for another client, or confirming our own unlock, so can be ignored
-		if (!locked && this.#ownsLock) {
+		if (!this.#ownsLock) {
+			// For another client, or confirming our own unlock, so can be ignored
+			return
+		}
+
+		if (locked) {
+			this.#lockConfirmed = true
+			return
+		}
+
+		// Ownership is given up as soon as the unlock is sent, so an unlock reported while we own it, after it has been
+		// confirmed, was unexpected. Before it has been confirmed, it is a stale update from before we were granted it
+		if (this.#lockConfirmed || Date.now() - this.#lockObtainedAt >= STALE_UNLOCK_WINDOW) {
 			this.#ownsLock = false
 			this.tryAbortTransfer(new Error('Lost lock mid-transfer'))
 		}
