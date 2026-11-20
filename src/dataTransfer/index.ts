@@ -194,10 +194,7 @@ export class DataTransferManager {
 	}
 
 	public async downloadClipFrame(clipIndex: number, frameIndex: number): Promise<Buffer> {
-		if (clipIndex < 0 || clipIndex >= 2) {
-			throw new Error('Invalid clip index')
-		}
-
+		// The clip index is validated by getClipLock
 		const transfer = new DataTransferDownloadStill(clipIndex + 1, frameIndex)
 
 		return this.getClipLock(clipIndex).enqueue(transfer)

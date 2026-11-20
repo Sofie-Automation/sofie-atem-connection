@@ -463,6 +463,7 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 		frameIndex: number,
 		format: 'raw' | 'rgba' | 'yuv' = 'rgba'
 	): Promise<Buffer> {
+		this.#assertValidClipIndex(clipIndex)
 		let rawBuffer = await this.dataTransferManager.downloadClipFrame(clipIndex, frameIndex)
 
 		if (format === 'raw') {
@@ -563,6 +564,7 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 		name: string,
 		options?: DT.UploadStillEncodingOptions
 	): Promise<void> {
+		this.#assertValidClipIndex(index)
 		if (!this.state) throw new Error('Unable to check current resolution')
 		const resolution = getVideoModeInfo(this.state.settings.videoMode)
 		if (!resolution) throw new Error('Failed to determine required resolution')
@@ -583,7 +585,16 @@ export class Atem extends AtemCommandSenderMixin<Promise<void>, typeof BasicAtem
 	 * @returns Promise which resolves once the clip audio is uploaded
 	 */
 	public async uploadAudio(index: number, data: Buffer, name: string): Promise<void> {
+		this.#assertValidClipIndex(index)
 		return this.dataTransferManager.uploadAudio(index, convertWAVToRaw(data, this.state?.info?.model), name)
+	}
+
+	/** Check a clip index against the number of clips the device reports, when that is known */
+	#assertValidClipIndex(index: number): void {
+		const clipCount = this.state?.info.mediaPool?.clipCount
+		if (clipCount !== undefined && (index < 0 || index >= clipCount)) {
+			throw new Error(`Invalid clip index ${index}, the device has ${clipCount} clips`)
+		}
 	}
 
 	public listVisibleInputs(mode: 'program' | 'preview', me = 0): number[] {
