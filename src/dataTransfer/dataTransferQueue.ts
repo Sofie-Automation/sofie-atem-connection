@@ -373,6 +373,12 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 	 * clients, so this is only set by LockObtained which is only sent to the client that requested it
 	 */
 	#ownsLock = false
+	/**
+	 * Whether we have asked for the lock, and are waiting for it. The atem queues lock requests and grants them once
+	 * the holder releases it, so a request must be cancelled if we no longer want it, or we will be given a lock that
+	 * nothing will release
+	 */
+	#lockRequested = false
 
 	constructor(storeId: number, sendLockCommand: (cmd: LockStateCommand) => void, options: DataTransferQueueOptions) {
 		super(options)
@@ -387,9 +393,12 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 			// Get the transfer going immediately
 			return transfer.startTransfer(transferId)
 		} else {
-			this.#sendLockCommand(new LockStateCommand(this.#storeId, true))
+			// We need to lock the pool first. A request is still queued with the atem if a previous transfer was aborted while waiting
+			if (!this.#lockRequested) {
+				this.#lockRequested = true
+				this.#sendLockCommand(new LockStateCommand(this.#storeId, true))
+			}
 
-			// We need to lock the pool first
 			return {
 				newState: DataTransferState.Pending,
 				commands: [],
@@ -399,7 +408,14 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 
 	/** We have obtained the lock! */
 	public lockObtained(): void {
+		if (!this.#lockRequested) {
+			// Not something we asked for, so it must be a lock taken manually through this connection. Leave that alone
+			debug(`Ignoring lock ${this.#storeId} that we did not request`)
+			return
+		}
+
 		this.#ownsLock = true
+		this.#lockRequested = false
 
 		if (!this.activeTransfer) {
 			// The transfer which wanted the lock was aborted while waiting for it, so give it back
@@ -422,12 +438,13 @@ export class DataTransferLockingQueue extends DataTransferQueueBase {
 	}
 
 	protected transferCompleted(): void {
-		if (this.#ownsLock && !this.taskQueue.length) {
-			// unlock only when queue is empty
+		if ((this.#ownsLock || this.#lockRequested) && !this.taskQueue.length) {
+			// unlock only when queue is empty. This also cancels a request that is still waiting for the lock
+
+			debug(`Completing transfer (Owned lock = ${this.#ownsLock})`)
 
 			this.#ownsLock = false
-
-			debug(`Completing transfer`)
+			this.#lockRequested = false
 
 			// Unlock the pool
 			this.#sendLockCommand(new LockStateCommand(this.#storeId, false))
