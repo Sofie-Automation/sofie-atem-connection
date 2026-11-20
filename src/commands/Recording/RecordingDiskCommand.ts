@@ -61,6 +61,6 @@ export class RecordingDiskInfoUpdateCommand extends DeserializedCommand<Deletabl
 			state.recording.disks[this.diskId] = this.properties
 		}
 
-		return `recording.duration`
+		return `recording.disks.${this.diskId}`
 	}
 }

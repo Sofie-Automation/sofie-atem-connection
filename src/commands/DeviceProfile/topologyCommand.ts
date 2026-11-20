@@ -40,7 +40,7 @@ export class TopologyCommand extends DeserializedCommand<AtemCapabilites & { mul
 		return new TopologyCommand(properties)
 	}
 
-	public applyToState(state: AtemState): string {
+	public applyToState(state: AtemState): string[] {
 		state.info.capabilities = {
 			...state.info.capabilities,
 			...this.properties,
@@ -51,7 +51,8 @@ export class TopologyCommand extends DeserializedCommand<AtemCapabilites & { mul
 				...state.info.multiviewer,
 				count: this.properties.multiviewers,
 			}
+			return [`info.capabilities`, `info.multiviewer`]
 		}
-		return `info.capabilities`
+		return [`info.capabilities`]
 	}
 }

@@ -131,7 +131,7 @@ export class FairlightMixerSourceUpdateCommand extends DeserializedCommand<
 		return new FairlightMixerSourceUpdateCommand(index, source, properties)
 	}
 
-	public applyToState(state: AtemState): string {
+	public applyToState(state: AtemState): string[] {
 		if (!state.fairlight) {
 			throw new InvalidIdError('Fairlight')
 		}
@@ -161,6 +161,7 @@ export class FairlightMixerSourceUpdateCommand extends DeserializedCommand<
 			},
 		}
 
-		return `fairlight.inputs.${this.index}.sources.${sourceIdStr}.properties`
+		const sourcePath = `fairlight.inputs.${this.index}.sources.${sourceIdStr}`
+		return [`${sourcePath}.properties`, `${sourcePath}.equalizer`, `${sourcePath}.dynamics`]
 	}
 }
